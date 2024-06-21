@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% block subTitle %} {% endblock subTitle %} - Digital Risk
+{% endblock title %}
+
+{% block header %} 
+    {% include 'components/navbar-marketing.html' %} 
+{% endblock %}
+
+{% block main %}
+    <main class="container min-h-screen">
+        {% block content %} {% endblock content %}
+    </main>
+{% endblock main %}
+
+{% block footer %}
+    {% include 'components/footer.html' %}
+{% endblock footer %}
