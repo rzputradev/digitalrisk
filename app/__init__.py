@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 import os
-from config import config
+from app.config import config
 
 
 db = SQLAlchemy()
@@ -16,6 +16,12 @@ def create_app():
     app = Flask(__name__)
     env = os.getenv('FLASK_ENV')
     app.config.from_object(config[env])
+
+    # if os.getenv('FLASK_ENV') == 'development':
+    #     @app.after_request
+    #     def add_header(response):
+    #         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    #         return response
 
     migrate.init_app(app, db)
     db.init_app(app)

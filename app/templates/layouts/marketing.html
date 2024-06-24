@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% block subTitle %} {% endblock subTitle %} - Digital Risk
+    {% block subTitle %} {% endblock subTitle %} {% if request.path != url_for('marketing.homepage') %}  - DigitalRisk {% endif %}
 {% endblock title %}
 
 {% block header %} 
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block main %}
-    <main class="container min-h-screen">
+    <main class="flex flex-col items-center">
         {% block content %} {% endblock content %}
     </main>
 {% endblock main %}

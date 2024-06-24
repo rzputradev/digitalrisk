@@ -1,61 +1,83 @@
-<header class="sticky-top bg-white py-1" id="navbar-marketing">
-    <nav class="navbar container navbar-expand-lg">
-        <div class="container-fluid">
-            <a class="navbar-brand me-auto fw-bold" href="#">Brand</a>
+<header class="flex sticky top-0 justify-center items-center min-h-16 bg-background" id="navbar-marketing">
+   <nav class="flex container w-full justify-between items-center">
+      <!-- Left side -->
+      <div class="flex space-x-2">
+         <span class="text-xl font-semibold">Logo</span>
+      </div>
+
+      <!-- Right side -->
+      <div class="flex items-center lg:space-x-8">
+         <div
+            class="nav-links justify-center items-center lg:static absolute lg:min-h-fit left-0 top-[-300%] lg:w-auto w-full flex lg:items-center lg:flex-row flex-col lg:gap-8 gap-4 bg-background lg:bg-transparent p-4 lg:p-0 transition-all duration-500 ease-in-out"
+         >
             <div
-                class="offcanvas offcanvas-end"
-                tabindex="-1"
-                id="offcanvasNavbar"
-                aria-labelledby="offcanvasNavbarLabel"
+               class="container flex lg:flex-row flex-col lg:items-center lg:space-x-2 space-y-8 lg:space-y-0 w-full lg:w-auto"
             >
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Visi Prima Solusi HQ</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                        <li class="nav-item mx-lg-2">
-                            <a
-                                class="nav-link {% if request.path == url_for('marketing.homepage') %}active{% endif %}"
-                                href="{{url_for('marketing.homepage')}}"
-                                >Home</a
-                            >
-                        </li>
-                        <li class="nav-item mx-lg-2">
-                            <a
-                                class="nav-link {% if request.path == url_for('marketing.about') %}active{% endif %}"
-                                href="{{url_for('marketing.about')}}"
-                                >About</a
-                            >
-                        </li>
-                        <li class="nav-item mx-lg-2">
-                            <a
-                                class="nav-link {% if request.path == url_for('marketing.contact') %}active{% endif %}"
-                                href="{{url_for('marketing.contact')}}"
-                                >Contact</a
-                            >
-                        </li>
-                    </ul>
-                </div>
+               <a href="{{url_for('marketing.homepage')}}">
+                  <button
+                     class="lg:hover:bg-secondary lg:px-4 lg:py-2 lg:rounded-full transition duration-300 {% if request.path == url_for('marketing.homepage') %} lg:bg-secondary font-semibold lg:px-4 lg:py-2 lg:rounded-full {% endif %}"
+                  >
+                     Home
+                  </button>
+               </a>
+               <a href="{{url_for('marketing.about')}}">
+                  <button
+                     class="lg:hover:bg-secondary lg:px-4 lg:py-2 lg:rounded-full transition duration-300 {% if request.path == url_for('marketing.about') %} lg:bg-secondary font-semibold lg:px-4 lg:py-2 lg:rounded-full {% endif %}"
+                  >
+                     About
+                  </button>
+               </a>
+               <a href="{{url_for('marketing.contact')}}">
+                  <button
+                     class="lg:hover:bg-secondary lg:px-4 lg:py-2 lg:rounded-full transition duration-300 {% if request.path == url_for('marketing.contact') %} lg:bg-secondary font-semibold lg:px-4 lg:py-2 lg:rounded-full {% endif %}"
+                  >
+                     Contact
+                  </button>
+               </a>
             </div>
-
-            {% if current_user.is_authenticated %}
-                <a class="btn btn-md btn-dark fw-medium" href="{{ url_for('auth.login') }}">Dashboard</a>
-            {% else %}
-                <a class="btn btn-md btn-dark fw-medium" href="{{ url_for('auth.login') }}">Sign In</a>
-            {% endif %}
-
-            <button
-                class="navbar-toggler border-0 ms-2 ms-lg-0"
-                type="button"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#offcanvasNavbar"
-                aria-controls="offcanvasNavbar"
-                aria-label="Toggle navigation"
+         </div>
+         <div class="flex items-center h-full">
+            <a
+               href="#"
+               class="px-4 py-2 text-sm rounded-lg bg-primary text-background hover:bg-primary/90 transition duration-300"
+               >Sign In</a
             >
-                <span class="navbar-toggler-icon"></span>
+            <button onclick="onToggleMenu(this)" class="lg:hidden ml-4 focus:outline-none">
+               <img
+                  id="mode-toggle"
+                  src="{{url_for('static', filename='icons/menu.svg')}}"
+                  alt="Menu icon"
+                  class="h-6 w-6"
+               />
             </button>
-        </div>
-    </nav>
+         </div>
+      </div>
+   </nav>
 </header>
+
+<script>
+   const navLinks = document.querySelector(".nav-links");
+   function onToggleMenu(button) {
+      button.classList.toggle("open");
+      navLinks.classList.toggle("top-[100%]");
+      const menuIcon = button.querySelector("#mode-toggle");
+      if (button.classList.contains("open")) {
+         setTimeout(() => {
+            menuIcon.src = "{{url_for('static', filename='icons/x.svg')}}";
+         }, 250);
+      } else {
+         setTimeout(() => {
+            menuIcon.src = "{{url_for('static', filename='icons/menu.svg')}}";
+         }, 100);
+      }
+   }
+
+   window.addEventListener("scroll", function () {
+      var navbar = document.getElementById("navbar-marketing");
+      if (window.scrollY > 50) {
+         navbar.classList.add("backdrop-blur", "border-b");
+      } else {
+         navbar.classList.remove("backdrop-blur", "border-b");
+      }
+   });
+</script>
