@@ -1,20 +1,24 @@
-{% extends 'layouts/marketing.html' %} {% block subTitle %} DigitalRisk {% endblock subTitle %} {% block content %}
-<div class="container">
+{% extends 'layouts/marketing.html' %} {% block subTitle %} DigitalRisk {% endblock subTitle %} {% block main %}
+
+<main class="">
    <!-- First section -->
-   <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-      <div class="flex space-x-1">
-         <span class="text-4xl font-semibold">Welcome to</span>
-         <span class="text-4xl font-extrabold">DigitalRisk</span>
+   <section class="container mx-auto">
+      <div class="flex flex-col items-center justify-center min-h-[550px] space-y-4">
+         <div class="flex space-x-1">
+            <span class="text-4xl font-semibold">Welcome to</span>
+            <span class="text-4xl font-extrabold">DigitalRisk</span>
+         </div>
+         <p
+            class="text-lg text-center text-mutedForeground max-w-4xl line-clamp-3 leading-7 [&:not(:first-child)]:mt-6"
+         >
+            DigitalRisk helps bank officers manage loans efficiently. It uses OCR to convert bank books into Excel for
+            easier analysis.
+         </p>
+         <a href="{{url_for('auth.register')}}">
+            <button class="primary-button">Join Us</button>
+         </a>
       </div>
-      <p class="text-lg text-center text-mutedForeground max-w-4xl line-clamp-3">
-         DigitalRisk helps bank officers manage loans efficiently. It uses OCR to convert bank books into Excel for
-         easier analysis.
-      </p>
-      <a href="#">
-         <button class="px-4 py-2 bg-primary rounded-md text-secondary hover:bg-primary/90 transition duration-300">
-            Join Us
-         </button>
-      </a>
-   </div>
-</div>
-{% endblock content %}
+   </section>
+</main>
+
+{% endblock main %}

@@ -1,5 +1,5 @@
-<header class="flex sticky top-0 justify-center items-center min-h-16 bg-background" id="navbar-marketing">
-   <nav class="flex container w-full justify-between items-center">
+<header class="sticky top-0" id="navbar-marketing">
+   <nav class="flex container mx-auto min-h-16 justify-between items-center">
       <!-- Left side -->
       <div class="flex space-x-2">
          <span class="text-xl font-semibold">Logo</span>
@@ -37,11 +37,7 @@
             </div>
          </div>
          <div class="flex items-center h-full">
-            <a
-               href="#"
-               class="px-4 py-2 text-sm rounded-lg bg-primary text-background hover:bg-primary/90 transition duration-300"
-               >Sign In</a
-            >
+            <a href="{{url_for('auth.login')}}" class="primary-button text-sm">Sign In</a>
             <button onclick="onToggleMenu(this)" class="lg:hidden ml-4 focus:outline-none">
                <img
                   id="mode-toggle"

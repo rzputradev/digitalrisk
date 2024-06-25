@@ -4,16 +4,12 @@
     {% block subTitle %} {% endblock subTitle %} {% if request.path != url_for('marketing.homepage') %}  - DigitalRisk {% endif %}
 {% endblock title %}
 
-{% block header %} 
-    {% include 'components/navbar-marketing.html' %} 
-{% endblock %}
-
-{% block main %}
-    <main class="flex flex-col items-center">
-        {% block content %} {% endblock content %}
-    </main>
-{% endblock main %}
-
-{% block footer %}
-    {% include 'components/footer.html' %}
-{% endblock footer %}
+{% block content %}
+    <!-- Header -->
+    {% include 'components/marketing-navbar.html' %} 
+    
+    {% block main %} {% endblock main %}
+    
+    <!-- Footer -->
+    {% include 'components/marketing-footer.html' %}
+{% endblock content %}

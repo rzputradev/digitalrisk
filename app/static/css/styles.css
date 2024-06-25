@@ -79,6 +79,19 @@ h1, h2, h3, h4, h5, h6, p, a, span, div {
     font-family: 'Inter', sans-serif;
 }
 
+.primary-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem; 
+    background-color: hsl(240, 5.9%, 10%); 
+    color: hsl(0, 0%, 100%); 
+    transition: background-color 0.3s; 
+    cursor: pointer;
+}
+
+.primary-button:hover {
+    background-color: hsla(240, 5.9%, 10%, 0.9); 
+  }
+
 /* .min-h-screen {
     min-height: 100vh;
 }

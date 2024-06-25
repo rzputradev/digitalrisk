@@ -2,19 +2,15 @@
 <html lang="en">
    <head>
       <meta charset="UTF-8" />
-      <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>{% block title %}{% endblock %}</title>
       <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
       <!-- <script src="https://cdn.tailwindcss.com"></script> -->
       <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}" />
       <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
    </head>
-   <body class="antialiased">
-      {% block header %} {% endblock header %} 
-      
-      {% block main %} {% endblock main %} 
-      
-      {% block footer %} {% endblock footer %}
+   <body class="antialiased min-h-screen">
+      {% block content %} {% endblock content %}
 
       <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
    </body>

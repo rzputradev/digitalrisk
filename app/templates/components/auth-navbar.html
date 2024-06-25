@@ -1,0 +1,25 @@
+<header class="flex justify-center sticky top-0 bg-background" id="navbar-auth">
+   <nav class="flex container min-h-16 justify-between items-center">
+      <!-- Left side -->
+      <a class="flex space-x-1 hover:text-primary/90 transition duration-300" href="{{url_for('marketing.homepage')}}">
+         <img src="{{url_for('static', filename='icons/arrow-left.svg')}}" alt="Menu icon" class="size-6" />
+         <span class="font-semibold">Homepage</span>
+      </a>
+      <div class="flex items-center space-x-6">
+         <a
+            href="{{url_for('marketing.contact')}}"
+            class="text-mutedForeground hover:underline hover:text-primary/80 cursor-pointer"
+            >Contact</a
+         >
+         {% if request.path == url_for('auth.register') %}
+         <a href="{{url_for('auth.login')}}">
+            <button class="primary-button text-sm">Login</button>
+         </a>
+         {% else %}
+         <a href="{{url_for('auth.register')}}">
+            <button class="primary-button text-sm">Register</button>
+         </a>
+         {% endif %}
+      </div>
+   </nav>
+</header>

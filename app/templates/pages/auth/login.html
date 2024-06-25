@@ -1,0 +1,61 @@
+{% extends 'layouts/auth.html' %} {% block title %} Sign In {% endblock title %} {% block main %}
+
+<main>
+   <!-- First section -->
+   <section class="container mx-auto">
+      <div class="flex flex-col justify-center p-4">
+         <div class="max-w-md w-full mx-auto border border-secondaryForeground/20 rounded-xl px-8 py-10">
+            <div class="flex flex-col space-y-1 text-center mb-8">
+               <a href="#" class="text-xl font-bold text-primary/90">DigitalRisk </a>
+               <span class="text-mutedForeground">Welcome back</span>
+            </div>
+
+            <form action="">
+               <div class="space-y-6">
+                  <div>
+                     <label class="text-primary/90 text-sm mb-2 block">Email</label>
+                     <input
+                        required
+                        name="email"
+                        type="text"
+                        class="text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3 rounded-md outline-secondaryForeground/20"
+                        placeholder="Enter email"
+                     />
+                  </div>
+                  <div>
+                     <label class="text-primary/90 text-sm mb-2 block">Password</label>
+                     <input
+                        required
+                        name="password"
+                        type="password"
+                        class="text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3 rounded-md outline-secondaryForeground/20"
+                        placeholder="Enter password"
+                     />
+                  </div>
+                  <div>
+                     <a href="#" class="text-primary/80 hover:underline text-xs lg:text-sm">Forgot password </a>
+                  </div>
+               </div>
+
+               <div class="!mt-12">
+                  <button
+                     disabled="If all input(email, password)"
+                     type="submit"
+                     class="cursor-pointer w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md bg-primary/95 hover:bg-primary text-secondary focus:outline-none"
+                  >
+                     Sing In
+                  </button>
+               </div>
+               <p class="text-primary/90 text-sm mt-6 text-center">
+                  Not have an account?
+                  <a href="{{url_for('auth.register')}}" class="text-primary/80 font-semibold hover:underline ml-1"
+                     >Register here</a
+                  >
+               </p>
+            </form>
+         </div>
+      </div>
+   </section>
+</main>
+
+{% endblock main %}

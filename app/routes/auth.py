@@ -19,7 +19,7 @@ def login():
             return redirect(url_for('main.index'))
         else:
             flash('Email or password is incorrect', 'denger')
-    return render_template('login.html')
+    return render_template('pages/auth/login.html')
 
 
 @login_required
@@ -52,4 +52,4 @@ def register():
         else:
             flash('Email address already registered.', 'warning')
 
-    return render_template('register.html', form=form)
+    return render_template('pages/auth/register.html', form=form)
