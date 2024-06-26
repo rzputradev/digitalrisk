@@ -23,3 +23,14 @@
       </div>
    </nav>
 </header>
+
+<script>
+   window.addEventListener("scroll", function () {
+      var navbar = document.getElementById("navbar-auth");
+      if (window.scrollY > 50) {
+         navbar.classList.add("backdrop-blur", "border-b");
+      } else {
+         navbar.classList.remove("backdrop-blur", "border-b");
+      }
+   });
+</script>

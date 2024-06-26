@@ -34,7 +34,9 @@ def create_app():
 
     from .routes.auth import auth as auth_blueprint
     from .routes.marketing import marketing as marketing_blueprint
+    from .routes.platform import platform as platform_blueprint
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(marketing_blueprint)
+    app.register_blueprint(platform_blueprint)
     
     return app

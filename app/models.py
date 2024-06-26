@@ -12,19 +12,27 @@ class RoleEnum(Enum):
 
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = db.Column(db.String(80), nullable=False)  
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)  
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(250), nullable=False)
     role = db.Column(db.Enum(RoleEnum), nullable=False, default=RoleEnum.user)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
-    # def __init__(self, name=None, email=None, password=None, role=RoleEnum.user):
-    #     self.name = name
-    #     self.email = email
-    #     self.password = generate_password_hash(password) if password else None
-    #     self.role = role
+    def __init__(self, name, email, password, role=RoleEnum.user):
+        self.name = name
+        self.email = email
+        self.password = generate_password_hash(password)
+        self.role = role
+
+    @staticmethod
+    def get_user_by_id(user_id):
+        return User.query.get(user_id)
+
+    @staticmethod
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email).first()
 
     def __repr__(self):
         return f'<User {self.email}>'
