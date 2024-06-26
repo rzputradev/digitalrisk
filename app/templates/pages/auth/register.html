@@ -1,49 +1,52 @@
 {% extends 'layouts/auth.html' %} {% block title %} Sign Up {% endblock title %} {% block main %}
 
-<main class="py-8">
-   <!-- First section -->
-   <section class="container mx-auto">
+<main>
+   <section class="container mx-auto my-8">
       <div class="max-w-md w-full mx-auto border border-secondaryForeground/20 rounded-xl px-8 py-10">
          <div class="flex flex-col space-y-1 text-center mb-8">
             <a href="#" class="text-xl font-bold text-primary/90">DigitalRisk </a>
-            <span class="text-mutedForeground">Ceate an account</span>
+            <span class="text-mutedForeground">Create an account</span>
          </div>
 
-         <form>
+         <form action="#" method="POST">
+            {{ form.hidden_tag() }}
             <div class="space-y-6">
                <div>
+                  <label class="text-primary/90 text-sm mb-2 block">Name</label>
+                  {{ form.name(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
+                  rounded-md outline-secondaryForeground/20', placeholder='Enter name') }} 
+                  {% for error in form.name.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
+               </div>
+               <div>
                   <label class="text-primary/90 text-sm mb-2 block">Email</label>
-                  <input
-                     name="email"
-                     type="text"
-                     class="text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3 rounded-md outline-secondaryForeground/20"
-                     placeholder="Enter email"
-                  />
+                  {{ form.email(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
+                  rounded-md outline-secondaryForeground/20', placeholder='Enter email') }} {% for error in
+                  form.email.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
                </div>
                <div>
                   <label class="text-primary/90 text-sm mb-2 block">Password</label>
-                  <input
-                     required
-                     name="password"
-                     type="password"
-                     class="text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3 rounded-md outline-secondaryForeground/20"
-                     placeholder="Enter password"
-                  />
+                  {{ form.password(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
+                  rounded-md outline-secondaryForeground/20', placeholder='Enter password') }} 
+                  {% for error in form.password.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
                </div>
                <div>
                   <label class="text-primary/90 text-sm mb-2 block">Confirm Password</label>
-                  <input
-                     required
-                     name="cpassword"
-                     type="password"
-                     class="text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3 rounded-md outline-secondaryForeground/20"
-                     placeholder="Enter confirm password"
-                  />
+                  {{ form.cpassword(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4
+                  py-3 rounded-md outline-secondaryForeground/20', placeholder='Enter confirm password') }} 
+                  {% for error in form.cpassword.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
                </div>
 
                <div class="flex items-center">
                   <input
-                     required
+                     required=""
                      id="termcondition"
                      name="termcondition"
                      type="checkbox"
@@ -54,19 +57,44 @@
                      <a href="" class="text-primary/90 font-semibold hover:underline ml-1">Terms and Conditions</a>
                   </label>
                </div>
-            </div>
 
-            <div class="!mt-12">
+               <!-- Flash messages -->
+               {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                     <div class="space-y-4">
+                           {% for category, message in messages %}
+                              <div
+                                 class="flex space-x-2 items-center px-4 py-3 rounded-md text-sm 
+                                 {% if category == 'warning' %}
+                                       bg-yellow-100 text-yellow-800 
+                                 {% elif category == 'danger' %}
+                                       bg-red-100 text-red-800 
+                                 {% endif %}"
+                              >
+                                 <img
+                                       src="{{ url_for('static', filename='icons/alert-triangle.svg') }}"
+                                       alt="Alert"
+                                       class="w-4 h-4"
+                                 />
+                                 <p>{{ message }}</p>
+                              </div>
+                           {% endfor %}
+                     </div>
+                  {% endif %}
+               {% endwith %}
+
+
+            <div class="!mt-8">
                <button
-                  type="button"
+                  type="submit"
                   class="cursor-pointer w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md bg-primary/95 hover:bg-primary text-secondary focus:outline-none"
                >
-                  Create an account
+                  Sign Up
                </button>
             </div>
             <p class="text-primary/90 text-sm mt-6 text-center">
                Already have an account?
-               <a href="{{url_for('auth.login')}}" class="text-primary/90 font-semibold hover:underline ml-1"
+               <a href="{{ url_for('auth.login') }}" class="text-primary/90 font-semibold hover:underline ml-1"
                   >Login here</a
                >
             </p>

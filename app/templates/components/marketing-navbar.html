@@ -37,7 +37,11 @@
             </div>
          </div>
          <div class="flex items-center h-full">
-            <a href="{{url_for('auth.login')}}" class="primary-button text-sm">Sign In</a>
+            {% if user.is_authenticated %}
+               <a href="{{url_for('platform.index')}}" class="primary-button text-sm">Dashboard</a> 
+            {% else %}
+               <a href="{{url_for('auth.login')}}" class="primary-button text-sm">Sign In</a>  
+            {% endif %}
             <button onclick="onToggleMenu(this)" class="lg:hidden ml-4 focus:outline-none">
                <img
                   id="mode-toggle"

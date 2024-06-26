@@ -1,0 +1,23 @@
+{% extends 'layouts/platform.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<main class="flex flex-col items-center justify-center h-screen">
+   <!-- Navbar -->
+   <nav class="bg-gray-800 text-white w-full py-4 px-6 fixed top-0 left-0 z-10">
+      <div class="container mx-auto flex justify-between items-center">
+         <a href="#" class="text-xl font-bold">Your App</a>
+         <form action="{{ url_for('auth.logout') }}">
+            <button type="submit" class="text-sm font-semibold px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 focus:outline-none">Logout</button>
+         </form>
+      </div>
+   </nav>
+
+   <!-- User information -->
+   <section class="container mx-auto text-center mt-20">
+      <span class="text-2xl">Welcome to the dashboard, {{ user.name }}</span>
+      <!-- Display other user information as needed -->
+   </section>
+</main>
+{% endblock %}
