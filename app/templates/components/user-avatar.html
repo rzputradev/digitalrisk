@@ -1,25 +1,34 @@
 <div class="relative inline-block">
    <!-- Trigger user dropdown -->
    <div id="avatarButton" class="flex space-x-3 items-center cursor-pointer max-w-xl">
-      <img
-         type="button"
-         class="size-10 rounded-full border p-2"
-         src="{{ url_for('static', filename='icons/user.svg') }}"
-         alt="User dropdown"
-      />
+      <svg
+         xmlns="http://www.w3.org/2000/svg"
+         width="24"
+         height="24"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         class="feather feather-user text-mutedForeground size-10 border-2 rounded-full p-2"
+      >
+         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+         <circle cx="12" cy="7" r="4"></circle>
+      </svg>
       <span class="lg:inline hidden text-mutedForeground truncate">{{user.name}}</span>
    </div>
 
    <!-- Dropdown menu -->
    <div
       id="userDropdown"
-      class="absolute right-0 top-12 z-0 hidden border rounded-md bg-background divide-y divide-muted space-y-2 p-2 text-mutedForeground max-w-2xl"
+      class="absolute right-0 top-12 z-0 hidden border rounded-md bg-background divide-y divide-muted space-y-2 p-2 text-mutedForeground min-w-60"
    >
       <div class="px-4 py-3 text-sm lg:text-base">
          <!-- <div>{{user.name}}</div> -->
          <div class="font-medium truncate">{{user.email}}</div>
       </div>
-      <ul class="py-2 text-sm lg:text-base" aria-labelledby="avatarButton">
+      <ul class="py-2 text-sm lg:text-base space-y-1" aria-labelledby="avatarButton">
          <li
             class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary {% if request.path == url_for('platform.dashboard') %} bg-secondary {% endif %}"
          >

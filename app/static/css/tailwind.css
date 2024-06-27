@@ -822,6 +822,14 @@ video {
   width: 100%;
 }
 
+.min-w-80 {
+  min-width: 20rem;
+}
+
+.min-w-60 {
+  min-width: 15rem;
+}
+
 .max-w-2xl {
   max-width: 42rem;
 }
@@ -876,6 +884,10 @@ video {
 
 .gap-4 {
   gap: 1rem;
+}
+
+.gap-2 {
+  gap: 0.5rem;
 }
 
 .gap-x-0 {
@@ -995,6 +1007,10 @@ video {
 
 .border {
   border-width: 1px;
+}
+
+.border-2 {
+  border-width: 2px;
 }
 
 .border-b {
