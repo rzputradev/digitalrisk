@@ -1,0 +1,127 @@
+<div class="relative inline-block">
+   <!-- Trigger user dropdown -->
+   <div id="avatarButton" class="flex space-x-3 items-center cursor-pointer max-w-xl">
+      <img
+         type="button"
+         class="size-10 rounded-full border p-2"
+         src="{{ url_for('static', filename='icons/user.svg') }}"
+         alt="User dropdown"
+      />
+      <span class="lg:inline hidden text-mutedForeground truncate">{{user.name}}</span>
+   </div>
+
+   <!-- Dropdown menu -->
+   <div
+      id="userDropdown"
+      class="absolute right-0 top-12 z-0 hidden border rounded-md bg-background divide-y divide-muted space-y-2 p-2 text-mutedForeground max-w-xl"
+   >
+      <div class="px-4 py-3 text-sm lg:text-base">
+         <!-- <div>{{user.name}}</div> -->
+         <div class="font-medium truncate">{{user.email}}</div>
+      </div>
+      <ul class="py-2 text-sm lg:text-base" aria-labelledby="avatarButton">
+         <li
+            class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary {% if request.path == url_for('platform.dashboard') %} bg-secondary {% endif %}"
+         >
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-home text-mutedForeground size-4 hidden lg:inline"
+            >
+               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+               <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <a href="{{url_for('platform.dashboard')}}" class="">Dashboard</a>
+         </li>
+         <li class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-settings text-mutedForeground size-4 hidden lg:inline"
+            >
+               <circle cx="12" cy="12" r="3"></circle>
+               <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+               ></path>
+            </svg>
+
+            <a href="{{url_for('platform.dashboard')}}" class="">Settings</a>
+         </li>
+         <li class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-users text-mutedForeground size-4 hidden lg:inline"
+            >
+               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+               <circle cx="9" cy="7" r="4"></circle>
+               <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+
+            <a href="{{url_for('platform.dashboard')}}" class="">My Customers</a>
+         </li>
+      </ul>
+
+      <ul class="py-2 text-sm lg:text-base" aria-labelledby="avatarButton">
+         <li class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-log-out text-mutedForeground size-4 hidden lg:inline"
+            >
+               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+               <polyline points="16 17 21 12 16 7"></polyline>
+               <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <a href="{{url_for('auth.logout')}}" class="">Sign Out</a>
+         </li>
+      </ul>
+   </div>
+</div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const avatarButton = document.getElementById("avatarButton");
+      const userDropdown = document.getElementById("userDropdown");
+
+      avatarButton.addEventListener("click", function () {
+         userDropdown.classList.toggle("hidden");
+      });
+
+      // Close the dropdown if the user clicks outside of it
+      document.addEventListener("click", function (event) {
+         if (!avatarButton.contains(event.target) && !userDropdown.contains(event.target)) {
+            userDropdown.classList.add("hidden");
+         }
+      });
+   });
+</script>

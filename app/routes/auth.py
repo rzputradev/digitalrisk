@@ -25,7 +25,7 @@ def login():
             try:
                 if check_password_hash(user.password, password):
                     login_user(user)
-                    return redirect(url_for('platform.index'))
+                    return redirect(url_for('platform.dashboard'))
                 else:
                     flash('Password is incorrect', 'warning')
             except Exception as e:
