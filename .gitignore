@@ -1,5 +1,13 @@
-migrations
-node_modules
+migrations/
+# Ignore Tailwind CSS configuration
+tailwind.config.js
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore package files and directories
+package.json
+prettierignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
