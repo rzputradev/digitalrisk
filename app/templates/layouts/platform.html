@@ -1,12 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %}
+<!-- Header -->
+{% include 'components/platform-navbar.html' %}
+<main class="container mx-auto flex min-h-[85vh] divide-x-2 divide-muted">
+   {% include 'components/platform-sidebar.html' %} {% block main %} {% endblock main %}
+</main>
 
-{% block content %}
-      <!-- Header -->
-      {% include 'components/platform-navbar.html' %} 
-      
-      {% block main %}
-      {% endblock main %}
-      
-      <!-- Footer -->
-      {% include 'components/platform-footer.html' %}
-{% endblock content %}
+<!-- Footer -->
+{% include 'components/platform-footer.html' %} {% endblock content %}

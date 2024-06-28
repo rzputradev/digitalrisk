@@ -30,7 +30,6 @@ def login():
                     flash('Password is incorrect', 'warning')
             except Exception as e:
                 flash('Something went wrong!', 'danger')
-                print(e)
 
     return render_template('pages/auth/login.html', form=form)
 

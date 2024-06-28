@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional
 
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[
@@ -31,3 +31,22 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[
         DataRequired(message='Password is required'),
     ])
+
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import Optional, EqualTo, ValidationError
+
+class SettingsForm(FlaskForm):
+    name = StringField('Name', validators=[Optional()])
+    password = PasswordField('Password', validators=[Optional()])
+    cpassword = PasswordField('Confirm Password', validators=[Optional(), EqualTo('password', message='Passwords must match')])
+    submit = SubmitField('Update')
+
+    def validate_name(form, field):
+        if field.data and len(field.data.strip()) < 2:
+            raise ValidationError('Name must be at least 2 character long.')
+
+    def validate_password(form, field):
+        if field.data and len(field.data) < 6:
+            raise ValidationError('Password must be at least 6 characters long.')
