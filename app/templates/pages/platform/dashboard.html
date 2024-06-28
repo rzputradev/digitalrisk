@@ -1,9 +1,8 @@
 {% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
-<main class="flex flex-col items-center justify-center min-h-screen">
-   <!-- User information -->
-   <section class="container mx-auto text-center mt-20">
-      <span class="text-2xl">Welcome to the dashboard, {{ user.name }}</span>
-      <!-- Display other user information as needed -->
-   </section>
-</main>
+
+<!-- User information -->
+<section class="w-full flex justify-center items-center">
+   <p class="text-xl">Welcome, {{user.name}}</p>
+</section>
+
 {% endblock main%}

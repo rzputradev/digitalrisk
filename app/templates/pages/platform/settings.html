@@ -1,0 +1,82 @@
+{% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
+
+<!-- User information -->
+<section class="w-full flex justify-center items-center py-4">
+   <div class="max-w-md w-full mx-auto border border-secondaryForeground/20 rounded-xl px-8 py-10">
+      <div class="flex flex-col space-y-1 text-center mb-8">
+         <a href="#" class="text-xl font-bold text-primary/90">Settings</a>
+         <span class="text-mutedForeground">Update user information</span>
+      </div>
+
+      <form action="{{ url_for('platform.settings') }}" method="POST">
+         {{ form.hidden_tag() }}
+         <div class="space-y-6">
+            <div>
+               <label class="text-primary/90 text-sm mb-2 block">Name</label>
+               {{ form.name(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
+               rounded-md outline-secondaryForeground/20', placeholder='Enter name') }} 
+               {% for error in form.name.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+               {% endfor %}
+            </div>
+            <div>
+               <label class="text-primary/90 text-sm mb-2 block">New password</label>
+               {{ form.password(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
+               rounded-md outline-secondaryForeground/20', placeholder='Enter password') }} 
+               {% for error in form.password.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+               {% endfor %}
+            </div>
+            <div>
+               <label class="text-primary/90 text-sm mb-2 block">Confirm Password</label>
+               {{ form.cpassword(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4
+               py-3 rounded-md outline-secondaryForeground/20', placeholder='Enter confirm password') }} 
+               {% for error in form.cpassword.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+               {% endfor %}
+            </div>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+               {% if messages %}
+                  <div class="space-y-4">
+                        {% for category, message in messages %}
+                           <div
+                              class="flex space-x-2 items-center px-4 py-3 rounded-md text-sm 
+                              {% if category == 'success' %}
+                                    bg-green-100 text-green-800 
+                              {% elif category == 'warning' %}
+                                    bg-yellow-100 text-yellow-800 
+                              {% elif category == 'danger' %}
+                                    bg-red-100 text-red-800 
+                              {% endif %}"
+                           >
+                              {% if category == 'success' %}
+                              <img src="{{ url_for('static', filename='icons/check-circle.svg') }}" alt="Success" class="w-4 h-4"/>
+                              {% elif category == 'warning' %}
+                                    <img src="{{ url_for('static', filename='icons/alert-triangle.svg') }}" alt="Warning" class="w-4 h-4"/>
+                              {% elif category == 'danger' %}
+                                    <img src="{{ url_for('static', filename='icons/x-circle.svg') }}" alt="Danger" class="w-4 h-4"/>
+                              {% endif %}
+
+                              <p>{{ message }}</p>
+                           </div>
+                        {% endfor %}
+                  </div>
+               {% endif %}
+            {% endwith %}
+
+
+         <div class="!mt-8">
+            <button
+               type="submit"
+               class="cursor-pointer w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md bg-primary/95 hover:bg-primary text-secondary focus:outline-none"
+            >
+               Update
+            </button>
+         </div>
+      </form>
+   </div>
+</section>
+
+{% endblock main%}
