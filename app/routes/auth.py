@@ -18,7 +18,7 @@ def login():
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-        user = User.query.filter_by(email=email).first()
+        user = User.get_user_by_email(email=email)
         if user is None:
             flash('Email does not exist!', 'warning')
         else:
