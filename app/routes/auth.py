@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 from app.utils.form import RegistrationForm, LoginForm
 
 from app import db
-from app.models import User
+from app.models.user import User
 from app.utils.decorators import prevent_logged_in_user
 
 
@@ -22,17 +22,12 @@ def login():
         if user is None:
             flash('Email does not exist!', 'warning')
         else:
-            try:
-                if check_password_hash(user.password, password):
-                    login_user(user)
-                    return redirect(url_for('platform.dashboard'))
-                else:
-                    flash('Password is incorrect', 'warning')
-            except Exception as e:
-                flash('Something went wrong!', 'danger')
-
+            if user.check_password(password):
+                login_user(user)
+                return redirect(url_for('platform.dashboard'))
+            else:
+                flash('Password is incorrect', 'warning')
     return render_template('pages/auth/login.html', form=form)
-
 
 
 @login_required

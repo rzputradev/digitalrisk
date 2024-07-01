@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, ValidationError
+from wtforms import StringField, PasswordField, SubmitField, SelectField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, Regexp
+from app.models.customer import IdTypeEnum
 
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[
@@ -36,11 +37,12 @@ class LoginForm(FlaskForm):
 
 class UpdateNameForm(FlaskForm):
     name = StringField('Name', validators=[Optional(), Length(min=2, message="Name too short")])
-    submit = SubmitField('Update')
+    submit = SubmitField('Update Name')
+
 
 
 class UpdatePasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[Optional(), Length(min=1, message="Password is required")])
     npassword = PasswordField('New Password', validators=[Optional(), Length(min=6, message="Password too short")])
     cnpassword = PasswordField('Confirm New Password', validators=[Optional(), EqualTo('npassword', message='Passwords must match')])
-    submit = SubmitField('Update')
+    submit = SubmitField('Update Password')

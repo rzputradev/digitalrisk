@@ -5,32 +5,23 @@ from flask_login import LoginManager
 import os
 from app.config import config
 
-
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
-
 def create_app():
     app = Flask(__name__)
-    env = os.getenv('FLASK_ENV')
+    env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
-
-    # if os.getenv('FLASK_ENV') == 'development':
-    #     @app.after_request
-    #     def add_header(response):
-    #         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    #         return response
-
-    migrate.init_app(app, db)
+    
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    from app.models import User
-    @login_manager.user_loader
-    def load_user(user_email):
-        return User.query.get(user_email)
+    from app.models.user import User
+    from app.models.address import Address
+    from app.models.customer import Customer
 
     from .routes.auth import auth as auth_blueprint
     from .routes.marketing import marketing as marketing_blueprint
@@ -38,5 +29,9 @@ def create_app():
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(marketing_blueprint)
     app.register_blueprint(platform_blueprint)
-    
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.get_user_by_id(user_id)
+
     return app
