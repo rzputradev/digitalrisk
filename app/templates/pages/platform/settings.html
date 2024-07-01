@@ -73,7 +73,7 @@
             <p class="font-semibold text-mutedForeground">Change Password</p>
             <div class="border-b border-secondaryForeground/20 py-2">
                {{ password_form.password(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3
-               py-1 px-2 leading-tight focus:outline-none', placeholder='Password') }} {% for error in
+               py-1 px-2 leading-tight focus:outline-none', placeholder='Old password') }} {% for error in
                password_form.password.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
@@ -87,7 +87,7 @@
             </div>
             <div class="border-b border-secondaryForeground/20 py-2">
                {{ password_form.cnpassword(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3
-               py-1 px-2 leading-tight focus:outline-none', placeholder='Confirm password') }} {% for error in
+               py-1 px-2 leading-tight focus:outline-none', placeholder='Confirm new password') }} {% for error in
                password_form.cnpassword.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
