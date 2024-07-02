@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from flask_login import UserMixin
 from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import SQLAlchemyError
 from app import db
 
 
@@ -43,15 +44,21 @@ class User(UserMixin, db.Model):
         ).filter_by(email=email).first()
 
     def update_details(self, name=None, email=None, password=None, role=None):
-        if name:
-            self.name = name
-        if email:
-            self.email = email
-        if password:
-            self.password = generate_password_hash(password)
-        if role:
-            self.role = role
-        db.session.commit()
+            try:
+                if name:
+                    self.name = name
+                if email:
+                    self.email = email
+                if password:
+                    self.password = generate_password_hash(password)
+                if role:
+                    self.role = role
+                db.session.commit()
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                print(f"Error updating user details: {e}")
+                return False
+            return True
 
     @staticmethod
     def delete_user(user_id):

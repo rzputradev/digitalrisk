@@ -1,8 +1,105 @@
 {% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
 
-<!-- User information -->
-<section class="w-full flex justify-center items-center">
-   <p class="text-xl">My customer</p>
+<section class="w-full lg:p-6 p-3 bg-slate-50 flex justify-center">
+   <div class="bg-background w-full lg:p-14 p-8 rounded-xl shadow-sm space-y-6">
+      <!-- Search Form -->
+      <form method="POST" action="{{ url_for('platform.myCustomer') }}" class="mb-4 w-full max-w-md flex items-center">
+         <input
+            type="text"
+            name="search"
+            value="{{ search_query }}"
+            placeholder="Search..."
+            class="px-4 py-2 w-full border-b focus:outline-none focus:ring-0 focus:border-primary/40"
+         />
+         <button
+            type="submit"
+            class="px-4 py-2 bg-primary rounded-r-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+         >
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-search size-6 text-secondary"
+            >
+               <circle cx="11" cy="11" r="8"></circle>
+               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+         </button>
+      </form>
+
+      <table class="min-w-full table-auto border rounded-md overflow-hidden">
+         <thead class="bg-gray-200">
+            <tr>
+               <th class="py-2 px-4 border-b w-fit">No</th>
+               <th class="py-2 px-4 border-b">Name</th>
+               <th class="py-2 px-4 border-b">ID</th>
+               <th class="py-2 px-4 border-b">Address</th>
+            </tr>
+         </thead>
+         <tbody>
+            {% if customer_address_pairs %} {% for i, (customer, address) in enumerate(customer_address_pairs, start=1)
+            %}
+            <tr>
+               <td class="py-2 px-4 border-b w-fit">{{ i }}</td>
+               <td class="py-2 px-4 border-b">{{ customer.name }}</td>
+               <td class="py-2 px-4 border-b">{{ customer.id_no }}</td>
+               <td class="py-2 px-4 border-b">{{ address.street }}, {{ address.city }}, {{ address.province }}</td>
+            </tr>
+            {% endfor %} {% else %}
+            <tr>
+               <td class="py-2 px-4 border-b text-center" colspan="4">No customers found.</td>
+            </tr>
+            {% endif %}
+         </tbody>
+      </table>
+
+      {% if customer_address_pairs %}
+      <div class="mt-4">
+         <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if pagination.has_prev %}
+            <a
+               href="{{ url_for('platform.myCustomer', page=pagination.prev_num, search=search_query) }}"
+               class="px-3 py-2 border rounded-l-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+               >Previous</a
+            >
+            {% else %}
+            <span class="px-3 py-2 border rounded-l-md bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
+               >Previous</span
+            >
+            {% endif %} {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2,
+            right_current=2) %} {% if page_num %} {% if page_num != pagination.page %}
+            <a
+               href="{{ url_for('platform.myCustomer', page=page_num, search=search_query) }}"
+               class="px-3 py-2 border bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+               >{{ page_num }}</a
+            >
+            {% else %}
+            <span class="px-3 py-2 border bg-blue-500 border-gray-300 text-white cursor-not-allowed"
+               >{{ page_num }}</span
+            >
+            {% endif %} {% else %}
+            <span class="px-3 py-2 border bg-white border-gray-300 text-gray-500 cursor-not-allowed">...</span>
+            {% endif %} {% endfor %} {% if pagination.has_next %}
+            <a
+               href="{{ url_for('platform.myCustomer', page=pagination.next_num, search=search_query) }}"
+               class="px-3 py-2 border rounded-r-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+               >Next</a
+            >
+            {% else %}
+            <span class="px-3 py-2 border rounded-r-md bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
+               >Next</span
+            >
+            {% endif %}
+         </nav>
+      </div>
+      {% endif %}
+   </div>
 </section>
 
-{% endblock main%}
+{% endblock %}

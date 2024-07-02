@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, Regexp
-from app.models.customer import IdTypeEnum
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional
+
+
 
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[
@@ -22,6 +23,7 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message='Password must match')
     ])
     submit = SubmitField('Register')
+
 
 
 class LoginForm(FlaskForm):
