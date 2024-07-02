@@ -1,8 +1,8 @@
 {% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
 
 <!-- User information -->
-<section class="w-full flex flex-col justify-center items-center py-4">
-   <div class="max-w-xl w-full rounded-xl space-y-8 px-8 py-10">
+<section class="w-full flex flex-col justify-center items-center bg-slate-50 lg:p-6 p-3">
+   <div class="max-w-xl w-full bg-background rounded-xl space-y-8 shadow-sm lg:p-14 p-8">
       <div class="flex flex-col space-y-2 text-center mb-8">
          <div class="flex justify-center">
             <svg
@@ -31,9 +31,14 @@
          <div class="max-w-xl w-full">
             {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
             <div class="space-y-4">
-               {% for category, message in messages %}
+               {% set category_styles = { 'update-name-success': 'bg-green-100 text-green-700 border-green-300',
+               'update-name-warning': 'bg-yellow-100 text-yellow-700 border-yellow-300', 'update-name-danger':
+               'bg-red-100 text-red-700 border-red-300', 'password-update-success': 'bg-green-100 text-green-700
+               border-green-300', 'password-update-warning': 'bg-yellow-100 text-yellow-700 border-yellow-300',
+               'password-update-danger': 'bg-red-100 text-red-700 border-red-300' } %} {% for category, message in
+               messages %}
                <div
-                  class="p-4 rounded-md {% if category == 'success' %}bg-green-100 text-green-700 border-green-300 {% elif category == 'danger' %}bg-red-100 text-red-700 border-red-300 {% elif category == 'warning' %}bg-yellow-100 text-yellow-700 border-yellow-300 {% else %}bg-gray-100 text-gray-700 border-gray-300 {% endif %} border-l-4"
+                  class="p-4 rounded-md border-l-4 {{ category_styles.get(category, 'bg-gray-100 text-gray-700 border-gray-300') }}"
                >
                   <p>{{ message }}</p>
                </div>
@@ -48,9 +53,10 @@
          <input type="hidden" name="name-submit" value="1" />
          <div class="space-y-4">
             <p class="font-semibold text-mutedForeground">Update Name</p>
-            <div id="name-container" class="border-b border-secondaryForeground/20 py-2">
-               {{ name_form.name(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2
-               leading-tight focus:outline-none', placeholder='Enter name', id='name-input') }} {% for error in
+            <div id="name-container" class="">
+               {{ name_form.name(class_='px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+               text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none focus:ring-0
+               focus:border-mutedForeground/50', placeholder='Enter name', id='name-input') }} {% for error in
                name_form.name.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
@@ -71,23 +77,26 @@
          <input type="hidden" name="password-submit" value="1" />
          <div class="space-y-4">
             <p class="font-semibold text-mutedForeground">Change Password</p>
-            <div class="border-b border-secondaryForeground/20 py-2">
-               {{ password_form.password(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3
-               py-1 px-2 leading-tight focus:outline-none', placeholder='Old password') }} {% for error in
+            <div class="">
+               {{ password_form.password(class_='px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+               text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none focus:ring-0
+               focus:border-mutedForeground/50', placeholder='Old password') }} {% for error in
                password_form.password.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
             </div>
-            <div class="border-b border-secondaryForeground/20 py-2">
-               {{ password_form.npassword(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3
-               py-1 px-2 leading-tight focus:outline-none', placeholder='New password') }} {% for error in
+            <div class="">
+               {{ password_form.npassword(class_='px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+               text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none focus:ring-0
+               focus:border-mutedForeground/50', placeholder='New password') }} {% for error in
                password_form.npassword.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
             </div>
-            <div class="border-b border-secondaryForeground/20 py-2">
-               {{ password_form.cnpassword(class_='appearance-none bg-transparent border-none w-full text-gray-700 mr-3
-               py-1 px-2 leading-tight focus:outline-none', placeholder='Confirm new password') }} {% for error in
+            <div class="">
+               {{ password_form.cnpassword(class_='px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+               text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none focus:ring-0
+               focus:border-mutedForeground/50', placeholder='Confirm new password') }} {% for error in
                password_form.cnpassword.errors %}
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                {% endfor %}
