@@ -44,10 +44,10 @@ class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), unique=True)
     street = db.Column(db.String(100), nullable=True)
-    city = db.Column(db.String(50), nullable=False)
-    province = db.Column(db.Enum(ProvinceEnum), nullable=False)
+    city = db.Column(db.String(50), nullable=True)
+    province = db.Column(db.Enum(ProvinceEnum), nullable=True)
     country = db.Column(db.String(50), nullable=False, default='Indonesia')
-    zip_code = db.Column(db.String(20), nullable=False)
+    zip_code = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 

@@ -9,12 +9,11 @@ from app import db
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.address import Address
-
-
+from app.routes.customer import customer as customer_blueprint
 
 
 platform = Blueprint('platform', __name__, url_prefix='/dashboard')
-
+platform.register_blueprint(customer_blueprint)
 
 
 @platform.route('/')

@@ -22,13 +22,16 @@ class CustomerForm(FlaskForm):
     customer_type = SelectField('Customer Type', choices=[(choice.name, choice.value) for choice in CustomerTypeEnum], validators=[DataRequired()])
     
     # Address fields
-    street = StringField('Street', validators=[DataRequired(), Length(max=100)])
-    city = StringField('City / Regency', validators=[DataRequired(), Length(max=50)])
-    province = SelectField('Province', choices=[(province.name, province.value) for province in ProvinceEnum],
-                           validators=[DataRequired()])
+    street = StringField('Street', validators=[Optional(), Length(max=100)])
+    city = StringField('City / Regency', validators=[Optional(), Length(max=50)])
+    province = SelectField(
+        'Province',
+        choices=[(province.name, province.value) for province in ProvinceEnum],
+        validators=[Optional()],
+    )
     country = StringField('Country', default='Indonesia', validators=[DataRequired(), Length(max=50)])
     zip_code = StringField('Zip Code', validators=[
-        DataRequired(), 
+        Optional(), 
         Regexp('^\d+$', message="Zip code must contain only numbers"),
         Length(max=20)
     ])
