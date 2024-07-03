@@ -1,0 +1,162 @@
+<!-- Modal -->
+<div id="createUserModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden py-6">
+   <div class="bg-background rounded-md shadow-md w-full max-w-4xl h-full overflow-y-auto px-10 pb-8">
+      <!-- Form -->
+      <form method="POST" action="" class="">
+         {{ form.hidden_tag() }}
+         <!-- Modal title -->
+         <div class="text-primary/80 flex items-end justify-between sticky top-0 bg-background py-8 mb-4">
+            <span class="lg:text-2xl font-semibold text-xl line-clamp-1">New Customer Registration Form</span>
+            <button id="closeModalButton" class="">
+               <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="feather feather-x"
+               >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+               </svg>
+            </button>
+         </div>
+
+         <!-- Customer Details -->
+         <div class="space-y-12">
+            <div class="space-y-8">
+               <p class="font-semibold lg:text-lg text-base text-primary/80">Customer Details</p>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.name.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     {{ form.name(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+                     text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
+                     placeholder='Name') }} {% for error in form.name.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.phone_number.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     {{ form.phone_number(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                     w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                     focus:border-mutedForeground/50', placeholder='Phone Number', type='number') }} {% for error in
+                     form.phone_number.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.id_no.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4 flex gap-x-4">
+                     <div class="w-full">
+                        {{ form.id_no(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                        w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                        focus:border-mutedForeground/50', placeholder='ID Number', type='number') }} {% for error in
+                        form.id_no.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                     </div>
+                     <div class="lg:w-60 w-44">
+                        {{ form.id_type(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                        w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                        focus:border-mutedForeground/50') }} {% for error in form.id_type.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                     </div>
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.customer_type.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     {{ form.customer_type(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                     w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                     focus:border-mutedForeground/50') }} {% for error in form.customer_type.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+            </div>
+
+            <!-- Address Details -->
+            <div class="space-y-10">
+               <p class="font-semibold lg:text-lg text-base text-primary/80">Address Details</p>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.street.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     {{ form.street(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+                     text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
+                     placeholder='Street') }} {% for error in form.street.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.city.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     {{ form.city(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+                     text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
+                     placeholder='City or Regency') }} {% for error in form.city.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.province.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4 flex space-x-4">
+                     <div class="w-full">
+                        {{ form.province(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                        w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                        focus:border-mutedForeground/50', placeholder='Province') }} {% for error in
+                        form.province.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                     </div>
+                     <div class="lg:w-60 w-44">
+                        {{ form.zip_code(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2
+                        w-full text-gray-700 leading-tight focus:outline-none focus:ring-0
+                        focus:border-mutedForeground/50', placeholder='Zip Code', type='number') }} {% for error in
+                        form.zip_code.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                     </div>
+                  </div>
+               </div>
+
+               <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+                  {{ form.country.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+                  <div class="lg:w-3/4">
+                     <input
+                        type="text"
+                        class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50"
+                        placeholder="Indonesia"
+                        disabled
+                     />
+                  </div>
+               </div>
+            </div>
+
+            <div class="w-full flex justify-center">
+               <button
+                  type="submit"
+                  class="w-full py-2 bg-primary text-secondary font-semibold rounded-md shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+               >
+                  Submit
+               </button>
+            </div>
+         </div>
+      </form>
+   </div>
+</div>

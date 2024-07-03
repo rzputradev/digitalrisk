@@ -75,8 +75,10 @@
                <span>Settings</span>
             </li>
          </a>
-         <a href="{{url_for('platform.myCustomer')}}" class="">
-            <li class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary">
+         <a href="{{ url_for('platform.customer.index', data='all') }}" class="">
+            <li
+               class="flex gap-x-2 items-center px-4 py-2 rounded-md hover:bg-secondary {% if request.path == url_for('platform.customer.index') %} bg-secondary {% endif %}"
+            >
                <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -95,7 +97,7 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                </svg>
 
-               My Customers
+               Customers
             </li>
          </a>
       </ul>

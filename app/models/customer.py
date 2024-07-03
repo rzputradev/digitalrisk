@@ -17,13 +17,12 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100), nullable=False)
-    phone_number = db.Column(db.String(20), unique=True, nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False, unique=True,)
     id_type = db.Column(db.Enum(IdTypeEnum), nullable=False)
-    id_no = db.Column(db.String(100), nullable=False)
+    id_no = db.Column(db.String(100), nullable=False, unique=True)
     customer_type = db.Column(db.Enum(CustomerTypeEnum), nullable=False, default=CustomerTypeEnum.Individual)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-
     
     user = db.relationship('User', back_populates='customers')
     address = db.relationship('Address', back_populates='customer', uselist=False, cascade="all, delete-orphan")
