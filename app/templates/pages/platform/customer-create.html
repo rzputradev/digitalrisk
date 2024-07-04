@@ -1,0 +1,95 @@
+{% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
+
+<section class="w-full lg:p-6 p-2 flex bg-secondary/80 gap-y-4">
+   <!-- Title -->
+   <a
+      href="{{url_for('platform.customer.index', data='all')}}"
+      class="py-2 text-mutedForeground gap-x-2 fixed lg:flex items-center hidden"
+   >
+      <svg
+         xmlns="http://www.w3.org/2000/svg"
+         width="24"
+         height="24"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         class="feather feather-arrow-left"
+      >
+         <line x1="19" y1="12" x2="5" y2="12"></line>
+         <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span class="font-semibold">Back</span>
+   </a>
+   <div class="mx-auto bg-background w-full lg:p-14 p-8 max-w-4xl rounded-md shadow-md space-y-6">
+      <!-- Title -->
+      <div class="text-primary/80">
+         <p class="lg:text-xl font-semibold text-lg line-clamp-1">New Customer Registration Form</p>
+      </div>
+
+      <!-- Form -->
+      <form method="POST" action="" class="space-y-10">
+         {{ form.hidden_tag() }}
+         <!-- Customer Details -->
+         <div class="space-y-6">
+            <p class="font-semibold text-base text-primary/80">Customer Details</p>
+
+            {% for field in [form.name, form.phone_number, form.id_no, form.id_type, form.customer_type] %}
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+               {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+               <div class="lg:w-3/4">
+                  {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
+                  placeholder=field.label.text) }} {% for error in field.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
+               </div>
+            </div>
+            {% endfor %}
+         </div>
+
+         <!-- Address Details -->
+         <div class="space-y-6">
+            <p class="font-semibold text-base text-primary/80">Address Details</p>
+
+            {% for field in [form.street, form.city, form.province, form.zip_code] %}
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+               {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+               <div class="lg:w-3/4">
+                  {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
+                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
+                  placeholder=field.label.text) }} {% for error in field.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
+               </div>
+            </div>
+            {% endfor %}
+         </div>
+
+         <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+            {{ form.country.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+            <div class="lg:w-3/4">
+               <input
+                  type="text"
+                  class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50"
+                  placeholder="Indonesia"
+                  disabled
+               />
+            </div>
+         </div>
+
+         <div class="w-full flex justify-center">
+            <button
+               type="submit"
+               class="w-full py-2 bg-primary text-secondary font-semibold rounded-md shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+               Submit
+            </button>
+         </div>
+      </form>
+   </div>
+</section>
+
+{% endblock %}

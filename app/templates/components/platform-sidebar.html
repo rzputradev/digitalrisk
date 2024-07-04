@@ -1,6 +1,6 @@
 <aside
    id="platform-sidebar"
-   class="flex flex-col sticky top-20 w-max lg:w-72 h-full space-y-8 lg:pr-4 pr-2 py-4 text-primary/90 font-normal transition-all duration-150"
+   class="flex flex-col sticky top-20 w-max lg:w-64 h-full space-y-8 lg:pr-4 pr-2 py-4 text-primary/90 font-normal transition-all duration-150"
 >
    <div>
       <a
@@ -79,7 +79,7 @@
       </a>
       <a
          href="{{ url_for('auth.logout') }}"
-         class="flex items-center space-x-4 w-fullhover:bg-secondary rounded-md p-3"
+         class="flex items-center space-x-4 w-full hover:bg-secondary rounded-md p-3"
       >
          <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -110,14 +110,14 @@
 
       // Apply the saved state on page load
       if (sidebarState === "closed") {
-         sidebar.classList.remove("lg:w-72");
+         sidebar.classList.remove("lg:w-64");
          sidebar.classList.add("w-max");
          sidebar.querySelectorAll(".sidebar-text").forEach((text) => {
             text.classList.add("hidden");
             text.classList.remove("lg:inline");
          });
       } else {
-         sidebar.classList.add("lg:w-72");
+         sidebar.classList.add("lg:w-64");
          sidebar.classList.remove("w-max");
          sidebar.querySelectorAll(".sidebar-text").forEach((text) => {
             text.classList.remove("hidden");
@@ -128,7 +128,7 @@
       // Toggle sidebar state on button click
       sidebarTrigger.addEventListener("click", function () {
          sidebar.classList.toggle("w-max");
-         sidebar.classList.toggle("lg:w-72");
+         sidebar.classList.toggle("lg:w-64");
 
          const isClosed = sidebar.classList.contains("w-max");
          localStorage.setItem("sidebarState", isClosed ? "closed" : "open");
