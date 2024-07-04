@@ -1,24 +1,25 @@
+// Function to open the modal
+function openModal(modalId) {
+   var modal = document.getElementById(modalId);
+   if (modal) {
+      modal.style.display = 'flex'; 
+   } else {
+      console.error('Modal element not found.');
+   }
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-   const openModalButton = document.getElementById("openModalButton");
-   const closeModalButtons = document.querySelectorAll("#closeModalButton, #closeModalButtonBottom");
-   const createUserModal = document.getElementById("createUserModal");
+// Function to close the modal
+function closeModal(modalId) {
+   var modal = document.getElementById(modalId);
+   if (modal) {
+      modal.style.display = 'none'; 
+   } else {
+      console.error('Modal element not found.');
+   }
+}
 
-   openModalButton.addEventListener("click", function () {
-      createUserModal.classList.remove("hidden");
-      createUserModal.classList.add("flex");
-   });
-
-   closeModalButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-         createUserModal.classList.add("hidden");
-         createUserModal.classList.remove("flex");
-      });
-   });
-
-   // window.addEventListener("click", function (event) {
-   //    if (event.target == createUserModal) {
-   //       createUserModal.classList.add("hidden");
-   //    }
-   // });
-});
+// Close flash message
+function closeFlashMessage(button) {
+   var flashMessage = button.parentElement;
+   flashMessage.style.display = "none";
+}

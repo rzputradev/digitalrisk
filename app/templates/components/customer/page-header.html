@@ -1,0 +1,45 @@
+<!-- Header -->
+<div class="flex justify-between items-center px-2">
+   <span class="text-2xl font-normal line-clamp-1">Customer Data</span>
+
+   <div class="flex items-center divide-x-2">
+      <form class="flex items-center">
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-search text-mutedForeground size-5"
+         >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+         </svg>
+         <input
+            type="text"
+            id="search"
+            name="search"
+            class="max-w-48 pl-2 rounded-md focus:outline-none bg-inherit"
+            placeholder="Search customer..."
+         />
+      </form>
+      <div class="pl-4 flex divide-mutedForeground gap-x-1 text-mutedForeground font-semibold items-center">
+         <a
+            href="{{ url_for('platform.customer.index', data='all') }}"
+            class="px-2 py-1 rounded-sm {% if request.args.get('data') == 'all' or request.args.get('search')%} font-semibold bg-secondaryForeground/10 {% endif %}"
+         >
+            All
+         </a>
+         <a
+            href="{{ url_for('platform.customer.index', data='user') }}"
+            class="px-2 py-1 rounded-sm {% if request.args.get('data') == 'user' %} font-semibold bg-secondaryForeground/10 {% endif %}"
+         >
+            Mine
+         </a>
+      </div>
+   </div>
+</div>
