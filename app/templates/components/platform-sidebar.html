@@ -5,7 +5,7 @@
    <div>
       <a
          href="{{ url_for('platform.dashboard') }}"
-         class="flex items-center space-x-4 w-full px-2 hover:bg-secondary rounded-sm py-2 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.dashboard') else '' }}"
+         class="flex items-center space-x-4 w-full  hover:bg-secondary rounded-md p-3 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.dashboard') else '' }}"
       >
          <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="feather feather-pie-chart size-6 text-mutedForeground"
+            class="feather feather-pie-chart size-6 {{ '' if request.path == url_for('platform.dashboard') else 'text-mutedForeground' }}"
          >
             <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
             <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
@@ -30,7 +30,7 @@
    <div class="space-y-2">
       <a
          href="{{ url_for('platform.customer.index', data='all') }}"
-         class="flex items-center space-x-4 w-full px-2 hover:bg-secondary rounded-sm py-2 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.customer.index') else '' }}"
+         class="flex items-center space-x-4 w-full hover:bg-secondary rounded-md p-3 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.customer.index') else '' }}"
       >
          <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +42,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="feather feather-users size-6 text-mutedForeground"
+            class="feather feather-users size-6 {{ '' if request.path == url_for('platform.customer.index') else 'text-mutedForeground' }}"
          >
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -56,7 +56,7 @@
    <div class="space-y-2">
       <a
          href="{{ url_for('platform.settings') }}"
-         class="flex items-center space-x-4 w-full px-2 hover:bg-secondary rounded-sm py-2 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.settings') else '' }}"
+         class="flex items-center space-x-4 w-full hover:bg-secondary rounded-md p-3 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.settings') else '' }}"
       >
          <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -68,7 +68,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="feather feather-settings size-6 text-mutedForeground"
+            class="feather feather-settings size-6 {{ '' if request.path == url_for('platform.settings') else 'text-mutedForeground' }}"
          >
             <circle cx="12" cy="12" r="3"></circle>
             <path
@@ -79,7 +79,7 @@
       </a>
       <a
          href="{{ url_for('auth.logout') }}"
-         class="flex items-center space-x-4 w-full px-2 hover:bg-secondary rounded-md py-2"
+         class="flex items-center space-x-4 w-fullhover:bg-secondary rounded-md p-3"
       >
          <svg
             xmlns="http://www.w3.org/2000/svg"

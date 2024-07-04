@@ -1,36 +1,17 @@
 {% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
 
-<section class="w-full lg:p-6 p-3 flex bg-secondary/80 gap-y-4">
-   <!-- Title -->
-   <a href="javascript:history.go(-1)" class="text-mutedForeground gap-x-2 fixed lg:flex hidden">
-      <svg
-         xmlns="http://www.w3.org/2000/svg"
-         width="24"
-         height="24"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="2"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         class="feather feather-arrow-left"
-      >
-         <line x1="19" y1="12" x2="5" y2="12"></line>
-         <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      <span class="font-semibold">Back</span>
-   </a>
-   <div class="mx-auto bg-background w-full lg:p-14 p-8 max-w-4xl rounded-xl shadow-sm space-y-6">
+<section class="w-full lg:p-6 p-3 bg-slate-50 flex justify-center">
+   <div class="bg-background w-full lg:p-14 p-8 max-w-4xl rounded-xl shadow-sm space-y-6">
       <!-- Title -->
-      <div class="text-primary/80">
+      <div class="lg:space-y-8 space-y-4 text-primary/80">
          <p class="lg:text-2xl font-semibold text-xl line-clamp-1">New Customer Registration Form</p>
       </div>
 
       <!-- Form -->
-      <form method="POST" action="" class="space-y-10">
+      <form method="POST" action="" class="space-y-16">
          {{ form.hidden_tag() }}
          <!-- Customer Details -->
-         <div class="space-y-6">
+         <div class="space-y-10">
             <p class="font-semibold lg:text-lg text-base text-primary/80">Customer Details</p>
 
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
@@ -88,7 +69,7 @@
          </div>
 
          <!-- Address Details -->
-         <div class="space-y-6">
+         <div class="space-y-10">
             <p class="font-semibold lg:text-lg text-base text-primary/80">Address Details</p>
 
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
