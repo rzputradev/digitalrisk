@@ -1,0 +1,67 @@
+{% extends 'layouts/platform.html' %} {% block title %}Customer Preview{% endblock %} {% block main %}
+<section class="w-full lg:p-6 p-2 justify-center bg-secondary/80">
+   <div class="w-full bg-background p-8 rounded-md shadow-md text-primary/90">
+      <form action="#" class="flex flex-col gap-y-6">
+         {{ form.hidden_tag() }}
+
+         <div class="w-full lg:flex lg:flex-row flex-col items-center justify-between">
+            <!-- Customer Section -->
+            <div class="w-full space-y-6">
+               {% for field in [form.name, form.phone_number, form.id_type, form.id_no, form.customer_type] %}
+               <div class="flex items-center">
+                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium") }}
+                  <div class="">
+                     {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
+                     border-b focus:outline-none focus:ring-0', disabled=customer.user_id != current_user.id) }} {% for
+                     error in field.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+               {% endfor %}
+            </div>
+
+            <!-- Address Section -->
+            <div class="w-full space-y-6">
+               {% for field in [form.street, form.city, form.province, form.country, form.zip_code] %}
+               <div class="flex items-center">
+                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm line-clamp-1 truncate") }}
+                  <div class="">
+                     {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
+                     border-b focus:outline-none focus:ring-0', disabled=customer.user_id != current_user.id) }} {% for
+                     error in field.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+               {% endfor %}
+            </div>
+         </div>
+         {% if customer.user_id == user.id %}
+         <div class="flex items-end justify-between gap-x-2">
+            <p class="text-mutedForeground text-sm">Created at {{customer.created_at}}</p>
+            <div>
+               <button type="submit" class="px-4 py-2 text-sm text-secondary bg-primary/80 rounded-md font-semibold">
+                  Update
+               </button>
+               <button
+                  type="button"
+                  onclick="openModal('customer-delete-{{customer.id}}')"
+                  class="px-4 py-2 text-sm text-secondary bg-destructive rounded-md font-semibold"
+               >
+                  Remove
+               </button>
+            </div>
+         </div>
+         {% else %}
+         <div class="text-mutedForeground text-sm">
+            <span>Owned by </span>
+            <a href="{{ url_for('platform.customer.index', search=owner.name) }}" class="underline">{{ owner.name }}</a>
+         </div>
+         {% endif %}
+      </form>
+   </div>
+   {% include 'components/customer/delete-modal.html' %}
+</section>
+
+{% endblock %}

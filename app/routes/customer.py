@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, request
-from flask_login import current_user, login_required, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, render_template, flash, redirect, url_for, request, abort
+from flask_login import current_user, login_required
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.orm import joinedload
 import pytz
 
-from app.utils.form.user import UpdateNameForm, UpdatePasswordForm
-from app.utils.form.customer import CustomerForm
+from app.utils.form.customer import CreateCustomerForm, UpdateCustomerForm
 from app import db
 from app.models.user import User
 from app.models.customer import Customer
@@ -34,12 +34,15 @@ def index():
     per_page = 12
 
     if data == 'all':
-        query = Customer.query
+        query = Customer.query.options(joinedload(Customer.user))
     else:
-        query = Customer.query.filter_by(user_id=current_user.id)
+        query = Customer.query.filter_by(user_id=current_user.id).options(joinedload(Customer.user))
 
     if search:
-        query = query.filter(Customer.name.ilike(f"%{search}%"))
+        query = query.join(Customer.user).filter(or_(
+            User.name.ilike(f"%{search}%"),
+            Customer.name.ilike(f"%{search}%")
+        ))
 
     pagination = query.order_by(Customer.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     customers = pagination.items
@@ -48,15 +51,17 @@ def index():
     for customer in customers:
         # customer.created_at = customer.created_at.astimezone(wib)
         created_at_local = customer.created_at.astimezone(wib)
-        formatted_created_at = created_at_local.strftime('%d-%m-%Y')
+        formatted_created_at = created_at_local.strftime('%Y/%m/%d %H')
         customer.created_at = formatted_created_at
 
     return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all')
 
+
+
 @customer.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    form = CustomerForm()
+    form = CreateCustomerForm()
     if form.validate_on_submit():
         # if Customer.query.filter_by(phone_number=form.phone_number.data).first():
         #     flash('Warning: This Phone Number is already in use!', 'customer-warning')
@@ -90,7 +95,8 @@ def create():
             db.session.commit()
 
             flash(f'Customer {new_customer.name} added successfully!', 'customer-success')
-            return redirect(url_for('platform.customer.preview', user=current_user, customer=new_customer))
+            preview_url = url_for('platform.customer.preview', id=new_customer.id)
+            return redirect(preview_url)
 
         # except IntegrityError as e:
         #     db.session.rollback()
@@ -103,12 +109,50 @@ def create():
             flash(f'Danger: Something went wrong!', 'customer-danger')
             print(f'Failed to add customer: {str(e)}')
 
-    return render_template('pages/platform/create-customer.html', user=current_user, form=form)
+    return render_template('pages/platform/customer-create.html', user=current_user, form=form)
 
 
-@customer.route('/preview', methods=['GET', 'POST'])
-def preview():
+
+@customer.route('/<int:id>')
+@login_required
+def preview(id):
+    form = UpdateCustomerForm()
+    # if form.validate_on_submit():
+
+    customer = Customer.query.get(id)
+    if not customer:
+        abort(404, description=f"Customer {id} not found")
+    
+    wib = pytz.timezone('Asia/Jakarta')
+    wib_time = customer.created_at.astimezone(wib)
+    customer.created_at = wib_time.strftime('%Y/%m/%d %H:%M:%S')
+
+    address = Address.query.filter_by(customer_id=customer.id).first()
+
+    owner = User.query.filter_by(id=customer.user_id).first()
+
+    form.id.data = customer.id
+    form.name.data = customer.name
+    form.phone_number.data = customer.phone_number
+    form.id_type.data = customer.id_type
+    form.id_no.data = customer.id_no
+    form.customer_type.data = customer.customer_type.value
+    
+    form.street.data = address.street
+    form.city.data = address.city
+    form.province.data = address.province.value
+    form.zip_code.data = address.zip_code
+    form.country.data = address.country
+
+    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, address=address, owner=owner, form=form)
+
+
+
+@customer.route('/update', methods=['POST'])
+@login_required
+def update():
     pass
+
 
 @customer.route('/delete', methods=['POST'])
 @login_required

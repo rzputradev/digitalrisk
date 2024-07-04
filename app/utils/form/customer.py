@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, DateField, SubmitField, ValidationError
+from wtforms import StringField, SelectField, DateField, SubmitField, ValidationError, HiddenField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 from app.models.address import ProvinceEnum
 from app.models.customer import IdTypeEnum, CustomerTypeEnum
@@ -13,8 +13,11 @@ def phone_number_not_duplicate(form, field):
     if Customer.query.filter_by(phone_number=field.data).first():
         raise ValidationError('This Phone Number is already in use')
 
+province_choices = [('','Select Province')] + [(province.name, province.value) for province in ProvinceEnum]
 
-class CustomerForm(FlaskForm):
+
+
+class CreateCustomerForm(FlaskForm):
     # Customer fields
     name = StringField('Name', validators=[DataRequired(), Length(max=100)])
     phone_number = StringField('Phone Number', validators=[
@@ -37,8 +40,8 @@ class CustomerForm(FlaskForm):
     city = StringField('City / Regency', validators=[Optional(), Length(max=50)])
     province = SelectField(
         'Province',
-        choices=[(province.name, province.value) for province in ProvinceEnum],
-        validators=[Optional()],
+        choices=province_choices,
+        validators=[DataRequired()],
     )
     country = StringField('Country', default='Indonesia', validators=[DataRequired(), Length(max=50)])
     zip_code = StringField('Zip Code', validators=[
@@ -46,3 +49,41 @@ class CustomerForm(FlaskForm):
         Regexp('^\d+$', message="Zip code must contain only numbers"),
         Length(max=20)
     ])
+    submit = SubmitField('Create')
+
+
+
+
+class UpdateCustomerForm(FlaskForm):
+    id = HiddenField('Id', validators=[DataRequired(), Length(max=10)])
+    name = StringField('Name', validators=[Optional(), Length(max=100)])
+    phone_number = StringField('Phone Number', validators=[
+        Optional(), 
+        Regexp('^\d+$', message="Phone number must contain only numbers"),
+        Length(max=20),
+    ])
+    id_type = SelectField('ID Type', choices=[(choice.name, choice.value) for choice in IdTypeEnum], validators=[Optional()])
+    id_no = StringField('ID Number', validators=[
+        Optional(), 
+        Regexp('^\d+$', message="ID number must contain only numbers"),
+        Length(max=100),
+    ])
+    customer_type = SelectField('Customer Type', choices=[(choice.name, choice.value) for choice in CustomerTypeEnum], validators=[Optional()])
+    
+    street = StringField('Street', validators=[Optional(), Length(max=100)])
+    city = StringField('City / Regency', validators=[Optional(), Length(max=50)])
+    province = SelectField(
+        'Province',
+        choices=[(province.name, province.value) for province in ProvinceEnum],
+        validators=[Optional()],
+    )
+    country = StringField('Country', default='Indonesia', validators=[Optional(), Length(max=50)])
+    zip_code = StringField('Zip Code', validators=[
+        Optional(), 
+        Regexp('^\d+$', message="Zip code must contain only numbers"),
+        Length(max=20)
+    ])
+    
+    submit = SubmitField('Update')
+
+    
