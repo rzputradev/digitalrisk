@@ -14,9 +14,9 @@
                <div>
                   <label class="text-primary/90 text-sm mb-2 block">Name</label>
                   {{ form.name(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
-                  rounded-md outline-secondaryForeground/20', placeholder='Enter name') }} 
-                  {% for error in form.name.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  rounded-md outline-secondaryForeground/20', placeholder='Enter name') }} {% for error in
+                  form.name.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
                <div>
@@ -30,17 +30,17 @@
                <div>
                   <label class="text-primary/90 text-sm mb-2 block">Password</label>
                   {{ form.password(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4 py-3
-                  rounded-md outline-secondaryForeground/20', placeholder='Enter password') }} 
-                  {% for error in form.password.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  rounded-md outline-secondaryForeground/20', placeholder='Enter password') }} {% for error in
+                  form.password.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
                <div>
                   <label class="text-primary/90 text-sm mb-2 block">Confirm Password</label>
                   {{ form.cpassword(class_='text-primary/90 border border-secondaryForeground/10 w-full text-sm px-4
-                  py-3 rounded-md outline-secondaryForeground/20', placeholder='Enter confirm password') }} 
-                  {% for error in form.cpassword.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  py-3 rounded-md outline-secondaryForeground/20', placeholder='Enter confirm password') }} {% for error
+                  in form.cpassword.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
 
@@ -52,52 +52,56 @@
                      type="checkbox"
                      class="h-4 w-4 shrink-0 text-primary/90 focus:bg-primary/80 border-secondaryForeground/20 rounded accent-primary"
                   />
-                  <label for="termcondition" class="text-primary/90 text-xs lg:text-sm ml-3 block ">
+                  <label for="termcondition" class="text-primary/90 text-xs lg:text-sm ml-3 block">
                      I accept the
                      <a href="" class="text-primary/90 font-semibold hover:underline ml-1">Terms and Conditions</a>
                   </label>
                </div>
 
-               <!-- Flash messages -->
-               {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                     <div class="space-y-4">
-                           {% for category, message in messages %}
-                              <div
-                                 class="flex space-x-2 items-center px-4 py-3 rounded-md text-sm 
-                                 {% if category == 'warning' %}
-                                       bg-yellow-100 text-yellow-800 
-                                 {% elif category == 'danger' %}
-                                       bg-red-100 text-red-800 
-                                 {% endif %}"
-                              >
-                                 <img
-                                       src="{{ url_for('static', filename='icons/alert-triangle.svg') }}"
-                                       alt="Alert"
-                                       class="w-4 h-4"
-                                 />
-                                 <p>{{ message }}</p>
-                              </div>
-                           {% endfor %}
-                     </div>
-                  {% endif %}
-               {% endwith %}
+               <!-- Flash Messages -->
+               <div class="w-full text-left items-center">
+                  {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category,
+                  message in messages %} {% if category in ['auth-success', 'auth-warning', 'auth-danger'] %}
+                  <div
+                     class="flex items-center text-sm justify-between p-2 rounded-md {% if category == 'auth-success' %} bg-green-100 text-green-700 border-green-300 {% elif category == 'auth-warning' %} bg-orange-100 text-orange-700 border-orange-300 {% elif category == 'auth-danger' %} bg-red-100 text-red-700 border-red-300 {% endif %} border-l-4"
+                  >
+                     <p>{{ message }}</p>
+                     <button onclick="closeFlashMessage(this)">
+                        <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           width="24"
+                           height="24"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="currentColor"
+                           stroke-width="2"
+                           stroke-linecap="round"
+                           stroke-linejoin="round"
+                           class="feather feather-x size-4 text-primary"
+                        >
+                           <line x1="18" y1="6" x2="6" y2="18"></line>
+                           <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                     </button>
+                  </div>
+                  {% endif %} {% endfor %} {% endif %} {% endwith %}
+               </div>
 
-
-            <div class="!mt-8">
-               <button
-                  type="submit"
-                  class="cursor-pointer w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md bg-primary/95 hover:bg-primary text-secondary focus:outline-none"
-               >
-                  Sign Up
-               </button>
+               <div class="!mt-8">
+                  <button
+                     type="submit"
+                     class="cursor-pointer w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md bg-primary/95 hover:bg-primary text-secondary focus:outline-none"
+                  >
+                     Sign Up
+                  </button>
+               </div>
+               <p class="text-primary/90 text-sm mt-6 text-center">
+                  Already have an account?
+                  <a href="{{ url_for('auth.login') }}" class="text-primary/90 font-semibold hover:underline ml-1"
+                     >Login here</a
+                  >
+               </p>
             </div>
-            <p class="text-primary/90 text-sm mt-6 text-center">
-               Already have an account?
-               <a href="{{ url_for('auth.login') }}" class="text-primary/90 font-semibold hover:underline ml-1"
-                  >Login here</a
-               >
-            </p>
          </form>
       </div>
    </section>

@@ -36,30 +36,38 @@
                         type="checkbox"
                         class="h-4 w-4 shrink-0 text-primary/90 focus:bg-primary/80 border-secondaryForeground/20 rounded accent-primary"
                      />
-                     <label for="remember-me" class="text-mutedForeground text-xs lg:text-sm ml-3 block ">
+                     <label for="remember-me" class="text-mutedForeground text-xs lg:text-sm ml-3 block">
                         Remember me
                      </label>
                   </div>
-                  <!-- Flash messages -->
-                  {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
-                  <div class="space-y-4 mb-6">
-                     {% set category_classes = { 'success': 'bg-green-100 text-green-800', 'danger': 'bg-red-100
-                     text-red-800', 'warning': 'bg-orange-200 text-orange-800' } %} {% set category_icons = { 'success':
-                     'check-circle.svg', 'danger': 'alert-triangle.svg', 'warning': 'alert-octagon.svg' } %} {% for
-                     category, message in messages %}
+                  <!-- Flash Messages -->
+                  <div class="w-full text-left items-center">
+                     {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category,
+                     message in messages %} {% if category in ['auth-success', 'auth-warning', 'auth-danger'] %}
                      <div
-                        class="flex space-x-2 items-center px-4 py-3 rounded-md text-sm {{ category_classes.get(category, 'bg-orange-200 text-orange-800') }}"
+                        class="text-sm flex items-center justify-between p-2 rounded-md {% if category == 'auth-success' %} bg-green-100 text-green-700 border-green-300 {% elif category == 'auth-warning' %} bg-orange-100 text-orange-700 border-orange-300 {% elif category == 'auth-danger' %} bg-red-100 text-red-700 border-red-300 {% endif %} border-l-4"
                      >
-                        <img
-                           src="{{ url_for('static', filename='icons/' + category_icons.get(category, 'alert-triangle.svg')) }}"
-                           alt="Alert"
-                           class="w-4 h-4"
-                        />
                         <p>{{ message }}</p>
+                        <button onclick="closeFlashMessage(this)">
+                           <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="feather feather-x size-4 text-primary"
+                           >
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                           </svg>
+                        </button>
                      </div>
-                     {% endfor %}
+                     {% endif %} {% endfor %} {% endif %} {% endwith %}
                   </div>
-                  {% endif %} {% endwith %}
                </div>
 
                <div class="!mt-8">
