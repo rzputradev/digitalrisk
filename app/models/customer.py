@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 class IdTypeEnum(Enum):
     KTP = 'KTP'
-    Passport = 'NPWP'
+    NPWP = 'NPWP'
 
 class CustomerTypeEnum(Enum):
     Company = 'Company'
