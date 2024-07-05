@@ -32,33 +32,27 @@ def settings():
     if name_form.validate_on_submit() and 'name-submit' in request.form:
         try:
             new_name = name_form.name.data.strip()
-            if current_user.update_details(name=new_name):
-                db.session.commit()
-                flash('Name updated successfully!', 'update-name-success')
-            else:
-                flash('Something went wrong while updating your name!', 'update-name-warning')
+            current_user.update_details(name=new_name)
+            flash('Name updated successfully!', 'settings-success')
             return redirect(url_for('platform.settings'))
         except Exception as e:
             print(e)
             db.session.rollback()
-            flash('Something went wrong!', 'update-name-danger')
+            flash('Something went wrong!', 'settings-danger')
 
     if password_form.validate_on_submit() and 'password-submit' in request.form:
         try:
             user = User.get_user_by_id(current_user.id)
             if current_user.check_password(password_form.password.data):
-                if user.update_details(password=password_form.npassword.data):
-                    db.session.commit()
-                    flash('Password changed successfully!', 'password-update-success')
-                else:
-                    flash('Something went wrong while changing your password!', 'password-update-warning')
+                user.update_details(password=password_form.npassword.data)
+                flash('Password changed successfully!', 'settings-success')
+                return redirect(url_for('platform.settings'))
             else:
-                flash('Incorrect current password!', 'password-update-warning')
-            return redirect(url_for('platform.settings'))
+                flash('Incorrect current password!', 'settings-warning')
         except Exception as e:
             print(e)
             db.session.rollback()
-            flash('Something went wrong!', 'password-update-danger')
+            flash('Something went wrong!', 'setting-danger')
 
     name_form.name.data = current_user.name
     return render_template('pages/platform/settings.html', user=current_user, name_form=name_form, password_form=password_form)

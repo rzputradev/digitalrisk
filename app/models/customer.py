@@ -38,22 +38,19 @@ class Customer(db.Model):
     def get_customer_by_phone(phone_number):
         return Customer.query.filter_by(phone_number=phone_number).first()
 
-    def update_details(self, name=None, phone_number=None, id_type=None, id_no=None):
-        try:
-            if name:
-                self.name = name
-            if phone_number:
-                self.phone_number = phone_number
-            if id_type:
-                self.id_type = id_type
-            if id_no:
-                self.id_no = id_no
-            db.session.commit()
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            print(f"Error updating customer details: {e}")
-            return False
-        return True
+    def update_details(self, name=None, phone_number=None, id_type=None, id_no=None, customer_type=None):
+        if name:
+            self.name = name
+        if phone_number:
+            self.phone_number = phone_number
+        if id_type:
+            self.id_type = id_type
+        if id_no:
+            self.id_no = id_no
+        if customer_type:
+            self.customer_type = customer_type
+        db.session.commit()
+
 
     @staticmethod
     def delete_customer(customer_id):

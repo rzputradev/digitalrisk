@@ -21,13 +21,13 @@ def login():
         password = form.password.data
         user = User.get_user_by_email(email=email)
         if user is None:
-            flash('Email does not exist!', 'warning')
+            flash('Email does not exist!', 'auth-warning')
         else:
             if user.check_password(password):
                 login_user(user)
                 return redirect(url_for('platform.dashboard'))
             else:
-                flash('Password is incorrect', 'warning')
+                flash('Password is incorrect', 'auth-warning')
     return render_template('pages/auth/login.html', form=form)
 
 
@@ -54,13 +54,13 @@ def register():
             try:
                 db.session.add(new_user)
                 db.session.commit()
-                flash('Registration successful!', 'success')
+                flash('Registration successful!', 'auth-success')
                 return redirect(url_for('auth.login'))
             except Exception as e:
                 db.session.rollback()
-                flash('Something went wrong!', 'danger')
+                flash('Something went wrong!', 'auth-danger')
                 print(e)
         else:
-            flash('Email already taken', 'warning')
+            flash('Email already taken', 'auth-warning')
 
     return render_template('pages/auth/register.html', form=form)

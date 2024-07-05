@@ -10,7 +10,7 @@
       <div class="flex items-center justify-between">
          <!-- Left -->
          <div class="flex items-center gap-x-2">
-            <span class=" font-semibold text-primary/85">Attributes</span>
+            <span class="font-semibold text-primary/85">Attributes</span>
             <span class="text-mutedForeground">{{ pagination.total }}</span>
          </div>
          <!-- Right -->
@@ -40,7 +40,7 @@
       <div class="px-4 max-w-full overflow-auto">
          {% if not customers %}
          <div class="text-center">
-            <p class="text-sm text-mutedForeground ">Customer not found!</p>
+            <p class="text-sm text-mutedForeground">Customer not found!</p>
          </div>
          {% else %}
          <table class="table-auto w-full border-collapse text-base text-primary/80">
@@ -50,6 +50,7 @@
                   <th class="px-4 py-2">Type</th>
                   <th class="px-4 py-2">Name</th>
                   <th class="px-4 py-2">Phone</th>
+                  <th class="px-4 py-2">Owned By</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
@@ -58,12 +59,24 @@
                {% for customer in customers %}
                <tr>
                   <td class="px-4 py-3 truncate w-[200px]">{{ customer.customer_type.value }}</td>
-                  <td class="px-4 py-3 truncate w-[100px]"><a href="{{ url_for('platform.customer.index', search=customer.user.name) }}" class="underline">{{ customer.name }}</a>
+                  <td class="px-4 py-3 truncate w-[100px]">
+                     <a href="{{ url_for('platform.customer.preview', id=customer.id) }}" class="underline"
+                        >{{ customer.name }}</a
+                     >
+                  </td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ customer.phone_number }}</td>
+                  <td class="px-4 py-3 truncate w-[200px]">
+                     <a href="{{ url_for('platform.customer.index', search=customer.user.name) }}" class="underline"
+                        >{{ customer.user.name }}</a
+                     >
+                  </td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ customer.created_at }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
-                        <a href="{{url_for('platform.customer.preview', id=customer.id)}}" class="flex items-center rounded-md px-2 py-1 hover:bg-secondary">
+                        <a
+                           href="{{url_for('platform.customer.preview', id=customer.id)}}"
+                           class="flex items-center rounded-md px-2 py-1 hover:bg-secondary"
+                        >
                            <button>
                               <svg
                                  xmlns="http://www.w3.org/2000/svg"
@@ -81,10 +94,11 @@
                               </svg>
                            </button>
                         </a>
-                       <button
-                        onclick="openModal('customer-delete-{{customer.id}}')"
-                        class="disabled:text-mutedForeground/50 disabled:bg-background rounded-md px-2 py-1 hover:bg-secondary"
-                        {{ 'disabled' if customer.user_id != user.id else '' }} >
+                        <button
+                           onclick="openModal('customer-delete-{{customer.id}}')"
+                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-md px-2 py-1 hover:bg-secondary"
+                           {{ 'disabled' if customer.user_id != user.id else '' }} 
+                        >
                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -95,12 +109,14 @@
                               stroke-width="2"
                               stroke-linecap="round"
                               stroke-linejoin="round"
-                              class="feather feather-user-x size-5"
+                              class="feather feather-trash-2 size-5"
                            >
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                              <circle cx="8.5" cy="7" r="4"></circle>
-                              <line x1="18" y1="8" x2="23" y2="13"></line>
-                              <line x1="23" y1="8" x2="18" y2="13"></line>
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path
+                                 d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                              ></path>
+                              <line x1="10" y1="11" x2="10" y2="17"></line>
+                              <line x1="14" y1="11" x2="14" y2="17"></line>
                            </svg>
                         </button>
                      </div>

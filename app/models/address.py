@@ -65,23 +65,18 @@ class Address(db.Model):
         return Address.query.filter_by(customer_id=customer_id).first()
 
     def update_details(self, street=None, city=None, province=None, country=None, zip_code=None):
-        try:       
-            if street:
-                self.street = street
-            if city:
-                self.city = city
-            if province:
-                self.province = province
-            if country:
-                self.country = country
-            if zip_code:
-                self.zip_code = zip_code
-            db.session.commit()
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            print(f"Error updating address details: {e}")
-            return False
-        return True
+        if street:
+            self.street = street
+        if city:
+            self.city = city
+        if province:
+            self.province = province
+        if country:
+            self.country = country
+        if zip_code:
+            self.zip_code = zip_code
+        db.session.commit()
+
 
     @staticmethod
     def delete_address(address_id):

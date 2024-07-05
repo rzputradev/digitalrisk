@@ -51,7 +51,7 @@ def index():
     for customer in customers:
         # customer.created_at = customer.created_at.astimezone(wib)
         created_at_local = customer.created_at.astimezone(wib)
-        formatted_created_at = created_at_local.strftime('%Y/%m/%d %H')
+        formatted_created_at = created_at_local.strftime('%Y/%m/%d')
         customer.created_at = formatted_created_at
 
     return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all')
@@ -113,19 +113,64 @@ def create():
 
 
 
-@customer.route('/<int:id>')
+@customer.route('/<int:id>', methods=['GET', 'POST'])
 @login_required
 def preview(id):
-    form = UpdateCustomerForm()
-    # if form.validate_on_submit():
+    
+    customer = Customer.query.get_or_404(id)
 
-    customer = Customer.query.get(id)
-    if not customer:
-        abort(404, description=f"Customer {id} not found")
+    form = UpdateCustomerForm(obj=customer)
+    if customer.address:
+        form = UpdateCustomerForm(obj=customer.address)
+
+    if form.validate_on_submit():
+        preview_url = url_for('platform.customer.preview', id=customer.id)
+        if customer.user_id != current_user.id:
+            flash('You are not authorized!', 'preview-denger')
+            return redirect(url_for('platform.customer.index', data='all'))
+        
+        # existing_phone_number = Customer.query.filter_by(phone_number=form.phone_number.data).first()
+        # if existing_phone_number and existing_id_no.id_no !=:
+        #     flash('Phone number already in use!', 'preview-warning')
+        #     return redirect(preview_url)
+        
+        # existing_id_no = Customer.query.filter_by(id_no=form.id_no.data).first()
+        # if existing_id_no:
+        #     flash('Id number already in use!', 'preview-warning')
+        #     return redirect(preview_url)
+        
+        try:
+            customer.update_details(
+                name=form.name.data,
+                phone_number=form.phone_number.data,
+                id_type=form.id_type.data,
+                id_no=form.id_no.data,
+                customer_type=form.customer_type.data
+            )
+
+            if not customer.address:
+                customer.address = Address()
+
+            customer.address.update_details(
+                street=form.street.data,
+                city=form.city.data,
+                province=form.province.data,
+                country=form.country.data,
+                zip_code=form.zip_code.data
+            )
+
+            flash('Customer updated successfully!', 'preview-success')
+            preview_url = url_for('platform.customer.preview', id=customer.id)
+            return redirect(preview_url)
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f'Error updating customer details: {str(e)}', 'preview-danger')
     
     wib = pytz.timezone('Asia/Jakarta')
-    wib_time = customer.created_at.astimezone(wib)
-    customer.created_at = wib_time.strftime('%Y/%m/%d %H:%M:%S')
+    created_wib_time = customer.created_at.astimezone(wib)
+    updated_wib_time = customer.updated_at.astimezone(wib)
+    customer.created_at = created_wib_time.strftime('%Y/%m/%d %H:%M:%S')
+    customer.updated_at = updated_wib_time.strftime('%Y/%m/%d %H:%M:%S')
 
     address = Address.query.filter_by(customer_id=customer.id).first()
 
@@ -134,7 +179,7 @@ def preview(id):
     form.id.data = customer.id
     form.name.data = customer.name
     form.phone_number.data = customer.phone_number
-    form.id_type.data = customer.id_type
+    form.id_type.data = customer.id_type.value
     form.id_no.data = customer.id_no
     form.customer_type.data = customer.customer_type.value
     
