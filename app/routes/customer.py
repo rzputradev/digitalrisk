@@ -179,13 +179,13 @@ def preview(id):
     form.id.data = customer.id
     form.name.data = customer.name
     form.phone_number.data = customer.phone_number
-    form.id_type.data = customer.id_type.value
+    form.id_type.data = customer.id_type.name
     form.id_no.data = customer.id_no
-    form.customer_type.data = customer.customer_type.value
+    form.customer_type.data = customer.customer_type.name
     
     form.street.data = address.street
     form.city.data = address.city
-    form.province.data = address.province.value
+    form.province.data = address.province.name
     form.zip_code.data = address.zip_code
     form.country.data = address.country
 
