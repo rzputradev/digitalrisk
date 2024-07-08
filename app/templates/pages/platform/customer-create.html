@@ -2,10 +2,7 @@
 
 <section class="w-full lg:p-6 p-2 flex bg-secondary/80 gap-y-4">
    <!-- Title -->
-   <a
-      href="{{url_for('platform.customer.index', data='all')}}"
-      class="py-2 text-mutedForeground gap-x-2 fixed lg:flex items-center hidden"
-   >
+   <a href="javascript:history.go(-1)" class="py-2 text-mutedForeground gap-x-2 fixed lg:flex items-center hidden">
       <svg
          xmlns="http://www.w3.org/2000/svg"
          width="24"
@@ -16,10 +13,11 @@
          stroke-width="2"
          stroke-linecap="round"
          stroke-linejoin="round"
-         class="feather feather-arrow-left"
+         class="feather feather-arrow-left-circle"
       >
-         <line x1="19" y1="12" x2="5" y2="12"></line>
-         <polyline points="12 19 5 12 12 5"></polyline>
+         <circle cx="12" cy="12" r="10"></circle>
+         <polyline points="12 8 8 12 12 16"></polyline>
+         <line x1="16" y1="12" x2="8" y2="12"></line>
       </svg>
       <span class="font-semibold">Back</span>
    </a>

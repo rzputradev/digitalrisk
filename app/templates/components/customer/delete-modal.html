@@ -38,6 +38,7 @@
 
       <!-- Footer -->
       <form method="POST" action="{{ url_for('platform.customer.delete') }}">
+         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
          <input type="hidden" name="customer_id" value="{{ customer.id }}" />
          <div class="flex justify-end text-sm">
             <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>

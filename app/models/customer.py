@@ -1,60 +1,87 @@
-from datetime import datetime, timezone, date
-from app import db
-from app.models.user import User
-from app.models.address import Address
+from datetime import datetime, timezone
 from enum import Enum
 from sqlalchemy.exc import SQLAlchemyError
+from flask_login import current_user
+from flask import flash, redirect, url_for
+
+from app import db
+from app.models.address import Address
 
 class IdTypeEnum(Enum):
-    KTP = 'KTP'
-    NPWP = 'NPWP'
+    ktp = 'KTP'
+    npwp = 'NPWP'
+
 
 class CustomerTypeEnum(Enum):
-    Company = 'Company'
-    Individual = 'Individual'
+    company = 'Company'
+    individual = 'Individual'
+
 
 class Customer(db.Model):
+    __tablename__ = 'customer'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    phone_number = db.Column(db.String(20), nullable=False, unique=True,)
+    phone_number = db.Column(db.String(20), nullable=False, unique=True)
     id_type = db.Column(db.Enum(IdTypeEnum), nullable=False)
     id_no = db.Column(db.String(100), nullable=False, unique=True)
-    customer_type = db.Column(db.Enum(CustomerTypeEnum), nullable=False, default=CustomerTypeEnum.Individual)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    customer_type = db.Column(db.Enum(CustomerTypeEnum), nullable=False, default=CustomerTypeEnum.individual)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
     
     user = db.relationship('User', back_populates='customers')
     address = db.relationship('Address', back_populates='customer', uselist=False, cascade="all, delete-orphan")
+    customer_applications = db.relationship('CustomerApplication', back_populates='customer')
+
 
     def __repr__(self):
         return f'{self.name}'
+
 
     @staticmethod
     def get_customer_by_id(customer_id):
         return Customer.query.get(customer_id)
 
+
     @staticmethod
     def get_customer_by_phone(phone_number):
         return Customer.query.filter_by(phone_number=phone_number).first()
 
-    def update_details(self, name=None, phone_number=None, id_type=None, id_no=None, customer_type=None):
-        if name:
-            self.name = name
-        if phone_number:
-            self.phone_number = phone_number
-        if id_type:
-            self.id_type = id_type
-        if id_no:
-            self.id_no = id_no
-        if customer_type:
-            self.customer_type = customer_type
-        db.session.commit()
+
+    def update(self, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                if hasattr(self, key) and value is not None:
+                    setattr(self, key, value)
+            db.session.commit()
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('Something went wrong!', 'preview-danger')
+            print(f'Failed to update customer: {str(e)}')
 
 
     @staticmethod
-    def delete_customer(customer_id):
-        customer = Customer.get_customer_by_id(customer_id)
-        if customer:
+    def delete(customer_id):
+        customer = Customer.query.get(customer_id)
+
+        if customer.user_id != current_user.id:
+            flash('You do not have permission', 'customer-warning')
+            return redirect(url_for('platform.customer.index', data='user'))
+
+        if not customer:
+            flash('Customer not found', 'customer-danger')
+            return redirect(url_for('platform.customer.index', data='user'))
+        
+        try:
             db.session.delete(customer)
             db.session.commit()
+            flash('Your customer deleted successfully', 'customer-success')
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('Something went wrong!', 'customer-danger')
+            print(f'Failed to delete customer: {str(e)}')
+
+

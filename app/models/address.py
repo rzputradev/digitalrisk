@@ -1,86 +1,88 @@
-from datetime import datetime, timezone
-from app import db
-from enum import Enum
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime, timezone
+from enum import Enum
+from flask import flash 
+
+from app import db
 
 
 class ProvinceEnum(Enum):
-    Aceh = 'Aceh'
-    Bali = 'Bali'
-    Banten = 'Banten'
-    Bengkulu = 'Bengkulu'
-    JawaTengah = 'Jawa Tengah' 
-    KalimantanTengah = 'Kalimantan Tengah'  
-    SulawesiTengah = 'Sulawesi Tengah' 
-    JawaTimur = 'Jawa Timur'  
-    KalimantanTimur = 'Kalimantan Timur'  
-    NusaTenggaraTimur = 'Nusa Tenggara Timur'  
-    Gorontalo = 'Gorontalo'
-    DKIJakarta = 'DKI Jakarta'  
-    Jambi = 'Jambi'
-    Lampung = 'Lampung'
-    Maluku = 'Maluku'
-    KalimantanUtara = 'Kalimantan Utara' 
-    MalukuUtara = 'Maluku Utara' 
-    SulawesiUtara = 'Sulawesi Utara' 
-    SumatraUtara = 'Sumatra Utara'  
-    Papua = 'Papua'
-    Riau = 'Riau'
-    KepulauanRiau = 'Kepulauan Riau'  
-    SulawesiTenggara = 'Sulawesi Tenggara'  
-    KalimantanSelatan = 'Kalimantan Selatan' 
-    SulawesiSelatan = 'Sulawesi Selatan'  
-    SumatraSelatan = 'Sumatra Selatan' 
-    JawaBarat = 'Jawa Barat'  
-    KalimantanBarat = 'Kalimantan Barat'  
-    NusaTenggaraBarat = 'Nusa Tenggara Barat'  
-    PapuaBarat = 'Papua Barat' 
-    SulawesiBarat = 'Sulawesi Barat' 
-    SumatraBarat = 'Sumatra Barat' 
-    Yogyakarta = 'Yogyakarta'
+    aceh = 'Aceh'
+    bali = 'Bali'
+    banten = 'Banten'
+    bengkulu = 'Bengkulu'
+    jawa_tengah = 'Jawa Tengah'
+    kalimantan_tengah = 'Kalimantan Tengah'
+    sulawesi_tengah = 'Sulawesi Tengah'
+    jawa_timur = 'Jawa Timur'
+    kalimantan_timur = 'Kalimantan Timur'
+    nusa_tenggara_timur = 'Nusa Tenggara Timur'
+    gorontalo = 'Gorontalo'
+    dki_jakarta = 'DKI Jakarta'
+    jambi = 'Jambi'
+    lampung = 'Lampung'
+    maluku = 'Maluku'
+    kalimantan_utara = 'Kalimantan Utara'
+    maluku_utara = 'Maluku Utara'
+    sulawesi_utara = 'Sulawesi Utara'
+    sumatra_utara = 'Sumatra Utara'
+    papua = 'Papua'
+    riau = 'Riau'
+    kepulauan_riau = 'Kepulauan Riau'
+    sulawesi_tenggara = 'Sulawesi Tenggara'
+    kalimantan_selatan = 'Kalimantan Selatan'
+    sulawesi_selatan = 'Sulawesi Selatan'
+    sumatra_selatan = 'Sumatra Selatan'
+    jawa_barat = 'Jawa Barat'
+    kalimantan_barat = 'Kalimantan Barat'
+    nusa_tenggara_barat = 'Nusa Tenggara Barat'
+    papua_barat = 'Papua Barat'
+    sulawesi_barat = 'Sulawesi Barat'
+    sumatra_barat = 'Sumatra Barat'
+    yogyakarta = 'Yogyakarta'
+
 
 
 class Address(db.Model):
+    __tablename__ = 'address'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), unique=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), unique=True, nullable=False)
     street = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(50), nullable=True)
     province = db.Column(db.Enum(ProvinceEnum), nullable=True)
     country = db.Column(db.String(50), nullable=False, default='Indonesia')
     zip_code = db.Column(db.String(20), nullable=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
     customer = db.relationship('Customer', back_populates='address')
 
+
     def __repr__(self):
         return f'{self.street}, {self.city}, {self.province}, {self.country}'
+
 
     @staticmethod
     def get_address_by_id(address_id):
         return Address.query.get(address_id)
 
+
     @staticmethod
     def get_address_by_customer_id(customer_id):
         return Address.query.filter_by(customer_id=customer_id).first()
 
-    def update_details(self, street=None, city=None, province=None, country=None, zip_code=None):
-        if street:
-            self.street = street
-        if city:
-            self.city = city
-        if province:
-            self.province = province
-        if country:
-            self.country = country
-        if zip_code:
-            self.zip_code = zip_code
-        db.session.commit()
 
-
-    @staticmethod
-    def delete_address(address_id):
-        address = Address.get_address_by_id(address_id)
-        if address:
-            db.session.delete(address)
+    def update(self, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                if hasattr(self, key) and value is not None:
+                    setattr(self, key, value)
             db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('Something went wrong!', 'preview-danger')
+            print(f'Failed to update customer: {str(e)}')
+       
+       
+
