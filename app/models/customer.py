@@ -32,7 +32,7 @@ class Customer(db.Model):
     
     user = db.relationship('User', back_populates='customers')
     address = db.relationship('Address', back_populates='customer', uselist=False, cascade="all, delete-orphan")
-    customer_applications = db.relationship('CustomerApplication', back_populates='customer')
+    applications = db.relationship('Application', back_populates='customer')
 
 
     def __repr__(self):

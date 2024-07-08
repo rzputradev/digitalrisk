@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 from app.config import config
 
@@ -22,12 +24,18 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
 
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["1000 per day", "100 per hour"],
+        storage_uri="memory://",
+    )
+
     from app.models.user import User
     from app.models.address import Address
     from app.models.customer import Customer
-    from app.models.application import Application
-    from app.models.customer_application import CustomerApplication
-    from app.models.application_statement import ApplicationStatement
+    from app.models.application import ApplicationType, Application
+    from app.models.statement import Statement
 
     from .routes.auth import auth as auth_blueprint
     from .routes.marketing import marketing as marketing_blueprint

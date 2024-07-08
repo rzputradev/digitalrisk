@@ -63,16 +63,6 @@ class Address(db.Model):
         return f'{self.street}, {self.city}, {self.province}, {self.country}'
 
 
-    @staticmethod
-    def get_address_by_id(address_id):
-        return Address.query.get(address_id)
-
-
-    @staticmethod
-    def get_address_by_customer_id(customer_id):
-        return Address.query.filter_by(customer_id=customer_id).first()
-
-
     def update(self, **kwargs):
         try:
             for key, value in kwargs.items():
