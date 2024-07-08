@@ -10,7 +10,7 @@ from app import db
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.address import Address
-from app.models.customer_application import CustomerApplication
+from app.models.application import Application
 
 
 application = Blueprint('application', __name__, url_prefix='/application')
@@ -19,6 +19,6 @@ application = Blueprint('application', __name__, url_prefix='/application')
 @application.route('/')
 @login_required
 def index():
-   applications = CustomerApplication.query.all()
+   applications = Application.query.all()
    
    return render_template('pages/platform/application.html', user=current_user, applications=applications)

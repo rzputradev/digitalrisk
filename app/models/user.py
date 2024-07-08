@@ -24,10 +24,10 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
     customers = db.relationship('Customer', back_populates='user')
-    customer_applications = db.relationship('CustomerApplication', back_populates='user', foreign_keys='CustomerApplication.user_id')
-    application_statements = db.relationship('ApplicationStatement', back_populates='user', foreign_keys='ApplicationStatement.user_id')
-    updated_customer_applications = db.relationship('CustomerApplication', back_populates='updated_by', foreign_keys='CustomerApplication.updated_by_id')
-    updated_application_statements = db.relationship('ApplicationStatement', back_populates='updated_by', foreign_keys='ApplicationStatement.updated_by_id')
+    applications = db.relationship('Application', foreign_keys='Application.user_id', back_populates='user')
+    statements = db.relationship('Statement', back_populates='user', foreign_keys='Statement.user_id')
+    updated_applications = db.relationship('Application', foreign_keys='Application.updated_by_id', back_populates='updated_by')
+    updated_statements = db.relationship('Statement', back_populates='updated_by', foreign_keys='Statement.updated_by_id')
 
     def __repr__(self):
         return f'{self.name}'
