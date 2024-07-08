@@ -32,13 +32,6 @@ def login():
 
 
 
-@login_required
-@auth.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('marketing.homepage'))
-
-
 
 @auth.route('/register', methods=['GET', 'POST'])
 @prevent_logged_in_user
@@ -64,3 +57,12 @@ def register():
             flash('Email already taken', 'auth-warning')
 
     return render_template('pages/auth/register.html', form=form)
+
+
+
+
+@login_required
+@auth.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('marketing.homepage'))

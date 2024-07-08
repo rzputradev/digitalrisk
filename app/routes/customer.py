@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import joinedload
-import pytz
+from pytz import timezone
 
 from app.utils.form.customer import CreateCustomerForm, UpdateCustomerForm
 from app import db
@@ -14,15 +14,6 @@ from app.models.address import Address
 
 customer = Blueprint('customer', __name__, url_prefix='/customer')
 
-
-# def handle_integrity_error(e):
-#     error_message = str(e.orig)
-    
-#     if 'Duplicate entry' in error_message:
-#         field = error_message.split("for key '")[1].split("'")[0]
-#         return f'Duplicate: {field} already exists.'
-#     else:
-#         return 'An error occurred while processing your request. Please try again later.'
 
 
 @customer.route('/')
@@ -44,15 +35,15 @@ def index():
             Customer.name.ilike(f"%{search}%")
         ))
 
-    pagination = query.order_by(Customer.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False)
     customers = pagination.items
 
-    wib = pytz.timezone('Asia/Jakarta')
+    wib = timezone('Asia/Jakarta')
     for customer in customers:
-        # customer.created_at = customer.created_at.astimezone(wib)
-        created_at_local = customer.created_at.astimezone(wib)
-        formatted_created_at = created_at_local.strftime('%Y/%m/%d')
-        customer.created_at = formatted_created_at
+        attributes = ['created_at', 'updated_at']
+        for attr in attributes:
+            wib_time = getattr(customer, attr).astimezone(wib)
+            setattr(customer, attr, wib_time.strftime('%B %d, %Y'))
 
     return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all')
 
@@ -62,15 +53,7 @@ def index():
 @login_required
 def create():
     form = CreateCustomerForm()
-    if form.validate_on_submit():
-        # if Customer.query.filter_by(phone_number=form.phone_number.data).first():
-        #     flash('Warning: This Phone Number is already in use!', 'customer-warning')
-        #     return redirect(url_for('platform.customer.index', data='all', form=form))
-        
-        # if Customer.query.filter_by(id_no=form.id_no.data).first():
-        #     flash('Warning: This ID Number is already in use!', 'customer-warning')
-        #     return redirect(url_for('platform.customer.index', data='all', form=form))
-        
+    if form.validate_on_submit():    
         try:            
             new_customer = Customer(
                 user_id=current_user.id,
@@ -94,19 +77,13 @@ def create():
             db.session.add(new_address)
             db.session.commit()
 
-            flash(f'Customer {new_customer.name} added successfully!', 'customer-success')
+            flash(f'{new_customer.name} added successfully!', 'customer-success')
             preview_url = url_for('platform.customer.preview', id=new_customer.id)
             return redirect(preview_url)
 
-        # except IntegrityError as e:
-        #     db.session.rollback()
-        #     error_message = handle_integrity_error(e)
-        #     flash(error_message, 'customer-create-error')
-        #     print(f'Failed to add customer: {error_message}')
-
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash(f'Danger: Something went wrong!', 'customer-danger')
+            flash('Something went wrong!', 'customer-danger')
             print(f'Failed to add customer: {str(e)}')
 
     return render_template('pages/platform/customer-create.html', user=current_user, form=form)
@@ -129,51 +106,37 @@ def preview(id):
             flash('You are not authorized!', 'preview-denger')
             return redirect(url_for('platform.customer.index', data='all'))
         
-        # existing_phone_number = Customer.query.filter_by(phone_number=form.phone_number.data).first()
-        # if existing_phone_number and existing_id_no.id_no !=:
-        #     flash('Phone number already in use!', 'preview-warning')
-        #     return redirect(preview_url)
-        
-        # existing_id_no = Customer.query.filter_by(id_no=form.id_no.data).first()
-        # if existing_id_no:
-        #     flash('Id number already in use!', 'preview-warning')
-        #     return redirect(preview_url)
-        
-        try:
-            customer.update_details(
-                name=form.name.data,
-                phone_number=form.phone_number.data,
-                id_type=form.id_type.data,
-                id_no=form.id_no.data,
-                customer_type=form.customer_type.data
-            )
+        customer.update(
+            name=form.name.data,
+            phone_number=form.phone_number.data,
+            id_type=form.id_type.data,
+            id_no=form.id_no.data,
+            customer_type=form.customer_type.data
+        )
 
-            if not customer.address:
-                customer.address = Address()
+        if not customer.address:
+            customer.address = Address()
 
-            customer.address.update_details(
-                street=form.street.data,
-                city=form.city.data,
-                province=form.province.data,
-                country=form.country.data,
-                zip_code=form.zip_code.data
-            )
+        customer.address.update(
+            street=form.street.data,
+            city=form.city.data,
+            province=form.province.data,
+            country=form.country.data,
+            zip_code=form.zip_code.data
+        )
 
-            flash('Customer updated successfully!', 'preview-success')
-            preview_url = url_for('platform.customer.preview', id=customer.id)
-            return redirect(preview_url)
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash(f'Error updating customer details: {str(e)}', 'preview-danger')
+        flash('Customer updated successfully!', 'preview-success')
+        preview_url = url_for('platform.customer.preview', id=customer.id)
+        return redirect(preview_url)
+
     
-    wib = pytz.timezone('Asia/Jakarta')
-    created_wib_time = customer.created_at.astimezone(wib)
-    updated_wib_time = customer.updated_at.astimezone(wib)
-    customer.created_at = created_wib_time.strftime('%Y/%m/%d %H:%M:%S')
-    customer.updated_at = updated_wib_time.strftime('%Y/%m/%d %H:%M:%S')
+    wib = timezone('Asia/Jakarta')
+    attributes = ['created_at', 'updated_at']
+    for attr in attributes:
+        wib_time = getattr(customer, attr).astimezone(wib)
+        setattr(customer, attr, wib_time.strftime('%Y/%m/%d %H:%M:%S'))
 
     address = Address.query.filter_by(customer_id=customer.id).first()
-
     owner = User.query.filter_by(id=customer.user_id).first()
 
     form.id.data = customer.id
@@ -193,35 +156,13 @@ def preview(id):
 
 
 
-@customer.route('/update', methods=['POST'])
-@login_required
-def update():
-    pass
-
-
 @customer.route('/delete', methods=['POST'])
 @login_required
 def delete():
-    customer_id = request.form.get('customer_id')
-    customer = Customer.query.get(customer_id)
+    customer_id = request.form.get('customer_id')  
+    Customer.delete(customer_id)
     
-    if not customer:
-        flash('Customer not found', 'customer-danger')
-        return redirect(url_for('platform.customer.index', data='user')) 
-    
-    if customer.user_id != current_user.id:
-        flash('You do not have permission', 'customer-danger')
-        return redirect(url_for('platform.customer.index', data='user'))  
-    
-    try:
-        db.session.delete(customer)
-        db.session.commit()
-        flash('Your customer deleted successfully', 'customer-success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Something went wrong!', 'customer-error')
-    
-    return redirect(url_for('platform.customer.index',  data='user'))  
+    return redirect(url_for('platform.customer.index', data='user'))
 
 
 

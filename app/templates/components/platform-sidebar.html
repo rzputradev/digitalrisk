@@ -51,6 +51,26 @@
          </svg>
          <span class="sidebar-text hidden lg:inline truncate">Customers</span>
       </a>
+      <a
+         href="{{ url_for('platform.application.index') }}"
+         class="flex items-center space-x-4 w-full hover:bg-secondary rounded-md p-3 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.application.index') else '' }}"
+      >
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-activity size-6 {{ '' if request.path == url_for('platform.application.index') else 'text-mutedForeground' }}"
+         >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+         </svg>
+         <span class="sidebar-text hidden lg:inline truncate">Application</span>
+      </a>
    </div>
 
    <div class="space-y-2">
