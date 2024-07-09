@@ -10,6 +10,7 @@ from app import db
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.address import Address
+from app.utils.form.application import ApplicationForm
 
 
 customer = Blueprint('customer', __name__, url_prefix='/customer')
@@ -23,19 +24,22 @@ def index():
     data = request.args.get('data', 'all', type=str)
     search = request.args.get('search', '', type=str)
     per_page = 12
+    form = ApplicationForm()
 
-    if data == 'all':
-        query = Customer.query.options(joinedload(Customer.user))
-    else:
-        query = Customer.query.filter_by(user_id=current_user.id).options(joinedload(Customer.user))
+    query = Customer.query.options(
+        joinedload(Customer.user)
+    )
 
+    if data != 'all':
+        query = query.filter_by(user_id=current_user.id)
+   
     if search:
         query = query.join(Customer.user).filter(or_(
             User.name.ilike(f"%{search}%"),
             Customer.name.ilike(f"%{search}%")
         ))
 
-    pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False,)
     customers = pagination.items
 
     wib = timezone('Asia/Jakarta')
@@ -45,7 +49,7 @@ def index():
             wib_time = getattr(customer, attr).astimezone(wib)
             setattr(customer, attr, wib_time.strftime('%B %d, %Y'))
 
-    return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all')
+    return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all',  form=form)
 
 
 

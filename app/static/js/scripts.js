@@ -2,17 +2,18 @@
 function openModal(modalId) {
    var modal = document.getElementById(modalId);
    if (modal) {
-      modal.style.display = 'flex'; 
+      modal.classList.toggle('flex'); // Add or remove the 'flex' class
+      modal.classList.toggle('hidden'); // Add or remove the 'hidden' class
    } else {
       console.error('Modal element not found.');
    }
 }
 
-// Function to close the modal
 function closeModal(modalId) {
    var modal = document.getElementById(modalId);
    if (modal) {
-      modal.style.display = 'none'; 
+      modal.classList.toggle('flex'); // Add or remove the 'flex' class
+      modal.classList.toggle('hidden'); // Add or remove the 'hidden' class
    } else {
       console.error('Modal element not found.');
    }

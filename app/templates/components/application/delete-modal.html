@@ -1,12 +1,12 @@
 <!-- Modal delete customer -->
 <div
-   id="customer-delete-modal{{customer.id}}"
-   class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 hidden"
+   id="application-delete-modal{{application.id}}"
+   class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <span class="font-semibold text-xl">Delete Customer</span
+         <span class="font-semibold text-xl">Delete Application</span
          ><svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('customer-delete-{{ customer.id }}')"
+            onclick="closeModal('application-delete-modal-{{ application.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -27,24 +27,18 @@
 
       <!-- Content -->
       <div class="space-y-2">
-         <p class="truncate">Are you sure you want to delete {{customer.name}}?</p>
-         <p class="text-sm">Deleting this customer will have the following consequences:</p>
-         <ul class="list-disc list-inside text-sm">
-            <li>Customer data cannot be recovered.</li>
-            <li>All customer transactions will be removed.</li>
-            <li>Customer history will also be deleted.</li>
-         </ul>
+         <p class="text-mutedForeground">Are you sure you want to delete {{application.name}}?</p>
       </div>
 
       <!-- Footer -->
-      <form method="POST" action="{{ url_for('platform.customer.delete') }}">
+      <form method="POST" action="{{ url_for('platform.application.delete') }}">
          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-         <input type="hidden" name="customer_id" value="{{ customer.id }}" />
+         <input type="hidden" name="application_id" value="{{ application.id }}" />
          <div class="flex justify-end text-sm">
             <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
             <button
                type="button"
-               onclick="closeModal('customer-delete-modal{{customer.id}}')"
+               onclick="closeModal('application-delete-modal{{application.id}}')"
                class="bg-secondary py-2 px-4 rounded-md"
             >
                Cancel
