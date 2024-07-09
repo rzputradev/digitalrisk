@@ -14,7 +14,7 @@ class Statement(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    updated_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # updated_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
     ocr_file = db.Column(db.String(100), nullable=True)
     sentiment_file = db.Column(db.String(100), nullable=True)
@@ -22,8 +22,8 @@ class Statement(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
-    user = db.relationship('User', foreign_keys=[user_id], back_populates='statements')
-    updated_by = db.relationship('User', foreign_keys=[updated_by_id], back_populates='updated_statements')
+    user = db.relationship('User', back_populates='statements')
+    # updated_by = db.relationship('User', foreign_keys=[updated_by_id], back_populates='updated_statements')
     application = db.relationship('Application', back_populates='statements')
 
 

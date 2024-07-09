@@ -1,0 +1,65 @@
+<!-- Modal search customer -->
+<div
+   id="application-search-modal"
+   class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
+   role="dialog"
+   aria-modal="true"
+   aria-labelledby="modal-title"
+>
+   <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+         <h2 id="modal-title" class="font-semibold text-xl">Create Application</h2>
+         <button
+            type="button"
+            class="text-secondary hover:text-secondary-dark"
+            onclick="closeModal('application-search-modal')"
+            aria-label="Close"
+         >
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-x"
+            >
+               <line x1="18" y1="6" x2="6" y2="18"></line>
+               <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+         </button>
+      </div>
+
+      <!-- Search Form -->
+      <form action="{{url_for('platform.customer.index')}}" method="GET" class="space-y-4">
+         <div class="space-y-2">
+            <p class="truncate">Please search for a customer first</p>
+            <span class="text-mutedForeground text-sm">You can search by customer name or ID number</span>
+         </div>
+         <input
+            type="text"
+            id="search"
+            name="search"
+            class="px-0 border-b rounded-md focus:outline-none bg-inherit w-full"
+            placeholder="Search..."
+         />
+
+         <div class="flex justify-end text-sm mt-4 gap-x-2">
+            <button type="submit" class="text-secondary rounded-md bg-primary/85 hover:bg-primary/90 py-2 px-4">
+               Search
+            </button>
+            <button
+               type="button"
+               onclick="closeModal('application-search-modal')"
+               class="bg-secondary py-2 px-4 rounded-md"
+            >
+               Cancel
+            </button>
+         </div>
+      </form>
+   </div>
+</div>

@@ -47,10 +47,10 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
-                  <th class="px-4 py-2">Type</th>
                   <th class="px-4 py-2">Name</th>
+                  <th class="px-4 py-2 text-center">Type</th>
                   <th class="px-4 py-2">Phone</th>
-                  <th class="px-4 py-2">Owned By</th>
+                  <th class="px-4 py-2">Created By</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
@@ -58,12 +58,12 @@
             <tbody class="divide-y divide-mutedForeground/20 text-left">
                {% for customer in customers %}
                <tr>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ customer.customer_type.value }}</td>
-                  <td class="px-4 py-3 truncate w-[100px]">
+                  <td class="px-4 py-3 truncate w-[100px] ">
                      <a href="{{ url_for('platform.customer.preview', id=customer.id) }}" class="underline"
                         >{{ customer.name }}</a
                      >
                   </td>
+                  <td class="px-4 py-3 truncate w-[200px] text-center">{{ customer.customer_type.value }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ customer.phone_number }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <a href="{{ url_for('platform.customer.index', search=customer.user.name) }}" class="underline"
@@ -73,29 +73,27 @@
                   <td class="px-4 py-3 truncate w-[200px]">{{ customer.created_at }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
-                        <a
-                           href="{{url_for('platform.customer.preview', id=customer.id)}}"
-                           class="flex items-center rounded-md px-2 py-1 hover:bg-secondary"
-                        >
-                           <button>
-                              <svg
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 width="24"
-                                 height="24"
-                                 viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="2"
-                                 stroke-linecap="round"
-                                 stroke-linejoin="round"
-                                 class="feather feather-activity size-5"
-                              >
-                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                              </svg>
-                           </button>
-                        </a>
                         <button
-                           onclick="openModal('customer-delete-{{customer.id}}')"
+                           onclick="openModal('create-application-modal-{{customer.id}}')"
+                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-md px-2 py-1 hover:bg-secondary"
+                        >
+                           <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="feather feather-activity size-5"
+                           >
+                              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                           </svg>
+                        </button>
+                        <button
+                           onclick="openModal('customer-delete-modal{{customer.id}}')"
                            class="disabled:text-mutedForeground/50 disabled:bg-background rounded-md px-2 py-1 hover:bg-secondary"
                            {{ 'disabled' if customer.user_id != user.id else '' }} 
                         >
@@ -123,10 +121,11 @@
                   </td>
                </tr>
 
-               {% include 'components/customer/delete-modal.html' %} {% endfor %}
+               {% include 'components/customer/application-modal.html' %} 
+               {% include 'components/customer/delete-modal.html' %} 
+               {% endfor %}
             </tbody>
          </table>
-
          {% endif %}
       </div>
       <!-- Pagination -->

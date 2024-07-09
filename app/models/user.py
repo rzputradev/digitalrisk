@@ -26,8 +26,8 @@ class User(UserMixin, db.Model):
     customers = db.relationship('Customer', back_populates='user')
     applications = db.relationship('Application', foreign_keys='Application.user_id', back_populates='user')
     statements = db.relationship('Statement', back_populates='user', foreign_keys='Statement.user_id')
-    updated_applications = db.relationship('Application', foreign_keys='Application.updated_by_id', back_populates='updated_by')
-    updated_statements = db.relationship('Statement', back_populates='updated_by', foreign_keys='Statement.updated_by_id')
+    # updated_applications = db.relationship('Application', foreign_keys='Application.updated_by_id', back_populates='updated_by')
+    # updated_statements = db.relationship('Statement', back_populates='updated_by', foreign_keys='Statement.updated_by_id')
 
     def __repr__(self):
         return f'{self.name}'
