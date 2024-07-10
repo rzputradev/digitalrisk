@@ -75,7 +75,7 @@ def create():
             db.session.add(new_application)
             db.session.commit()
             flash('Application created successfully!', 'application-success')
-            return redirect(url_for('platform.application.index', data='mine'))
+            return redirect(request.referrer or url_for('platform.application.index', data='user'))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('Something went wrong!', 'application-danger')
@@ -92,4 +92,4 @@ def delete():
     print(application_id)
     Application.delete(application_id)
     
-    return redirect(url_for('platform.application.index', data='user'))
+    return redirect(request.referrer or url_for('platform.application.index', data='user'))

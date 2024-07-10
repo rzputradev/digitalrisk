@@ -1,7 +1,7 @@
 <!-- Modal delete customer -->
 <div
-   id="customer-delete-modal{{customer.id}}"
-   class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 hidden"
+   id="customer-delete-modal-{{customer.id}}"
+   class="fixed inset-0 z-50 items-center justify-center bg-primary/50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('customer-delete-{{ customer.id }}')"
+            onclick="closeModal('customer-delete-modal-{{ customer.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -44,7 +44,7 @@
             <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
             <button
                type="button"
-               onclick="closeModal('customer-delete-modal{{customer.id}}')"
+               onclick="closeModal('customer-delete-modal-{{customer.id}}')"
                class="bg-secondary py-2 px-4 rounded-md"
             >
                Cancel

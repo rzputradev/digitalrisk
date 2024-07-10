@@ -40,6 +40,10 @@ class Application(db.Model):
     def get_customer_application_by_id(customer_application_id):
         return Application.query.get(customer_application_id)
     
+    @staticmethod
+    def get_application_by_customer_id(customer_id):
+        return Application.query.filter_by(customer_id=customer_id).all()
+    
 
     @staticmethod
     def get_all_customer_applications():
