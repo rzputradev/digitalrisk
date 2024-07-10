@@ -47,7 +47,7 @@
                <tr>
                   <th class="px-4 py-2">Customer</th>
                   <th class="px-4 py-2 text-center">Application</th>
-                  <th class="px-4 py-2">Status</th>
+                  <th class="px-4 py-2 text-center">Status</th>
                   <th class="px-4 py-2">Created By</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
@@ -55,10 +55,10 @@
             </thead>
             <tbody class="divide-y divide-mutedForeground/20 text-left">
                {% for application in applications %}
-               <tr>
+               <tr class="hover:bg-secondary">
                   <td class="px-4 py-3 truncate w-[200px]">{{ application.customer.name }}</td>
                   <td class="px-4 py-3 truncate w-[200px] text-center">{{ application.application_type.name }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.status.value }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] text-center">{{ application.status.value }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ application.user.name }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ application.created_at }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
@@ -84,7 +84,7 @@
                         </button> -->
                         <button
                            onclick="openModal('application-delete-modal{{application.id}}')"
-                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-md px-2 py-1 hover:bg-secondary"
+                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm px-2 py-1 hover:bg-primary/70 hover:text-secondary"
                            {{ 'disabled' if application.user_id != user.id else '' }} 
                         >
                            <svg

@@ -1,48 +1,29 @@
 {% extends 'layouts/platform.html' %} {% block title %}Customer Preview{% endblock %} {% block main %}
-<section class="w-full lg:p-6 p-2 justify-center bg-secondary/80 space-y-2">
-   <!-- Flash Messages -->
-   <div class="w-full text-left items-center">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in
-      messages %} {% if category in ['preview-success', 'customer-success', 'preview-warning', 'preview-danger'] %}
-      <div
-         class="flex items-center justify-between p-3 rounded-md {% if category == 'preview-success' or category == 'customer-success' %} bg-green-100 text-green-700 border-green-300 {% elif category == 'preview-warning' %} bg-orange-100 text-orange-700 border-orange-300 {% elif category == 'preview-danger' %} bg-red-100 text-red-700 border-red-300 {% endif %} border-l-4"
-      >
-         <p>{{ message }}</p>
-         <button onclick="closeFlashMessage(this)">
-            <svg
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round"
-               class="feather feather-x size-4 text-primary"
-            >
-               <line x1="18" y1="6" x2="6" y2="18"></line>
-               <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-         </button>
-      </div>
-      {% endif %} {% endfor %} {% endif %} {% endwith %}
-   </div>
-   <div class="w-full bg-background p-8 rounded-md shadow-md text-primary/90">
+
+<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-8 md:p-4 p-2">
+   {% include 'components/preview/flash-message.html' %}
+   <section class="w-full bg-background p-8 rounded-md shadow-md text-primary/85">
+      <!-- Customer detail with address -->
+      <h2 class="text-lg font-semibold">Customer Detail</h2>
+      <hr class="border-primary/20 my-4" />
+
       <form
          action="{{url_for('platform.customer.preview', id=customer.id)}}"
          method="POST"
-         class="flex flex-col gap-y-6"
+         class="flex flex-col gap-y-6 p-4"
       >
-         {{ form.hidden_tag() }}
+         {{ customer_form.hidden_tag() }}
 
-         <div class="w-full lg:flex lg:flex-row flex-col items-center justify-between">
+         <div
+            class="w-full flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-6 lg:space-y-0 lg:space-x-6"
+         >
             <!-- Customer Section -->
-            <div class="w-full space-y-6">
-               {% for field in [form.name, form.phone_number, form.id_type, form.id_no, form.customer_type] %}
-               <div class="flex items-center">
-                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium") }}
-                  <div class="">
+            <div class="w-full lg:w-1/2 space-y-6">
+               {% for field in [customer_form.name, customer_form.phone_number, customer_form.id_type,
+               customer_form.id_no, customer_form.customer_type] %}
+               <div class="flex flex-col lg:flex-row items-start lg:items-center">
+                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
+                  <div class="w-full lg:w-3/5">
                      {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
                      border-b focus:outline-none focus:ring-0', disabled=customer.user_id != current_user.id) }} {% for
                      error in field.errors %}
@@ -54,11 +35,12 @@
             </div>
 
             <!-- Address Section -->
-            <div class="w-full space-y-6">
-               {% for field in [form.street, form.city, form.province, form.country, form.zip_code] %}
-               <div class="flex items-center">
-                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm line-clamp-1 truncate") }}
-                  <div class="">
+            <div class="w-full lg:w-1/2 space-y-6">
+               {% for field in [customer_form.street, customer_form.city, customer_form.province, customer_form.country,
+               customer_form.zip_code] %}
+               <div class="flex flex-col lg:flex-row items-start lg:items-center">
+                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
+                  <div class="w-full lg:w-3/5">
                      {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
                      border-b focus:outline-none focus:ring-0', disabled=customer.user_id != current_user.id) }} {% for
                      error in field.errors %}
@@ -76,16 +58,16 @@
                   <p>Created at</p>
                   <p>{{customer.created_at}}</p>
                </div>
-               <div class="flex justify-between">
+               <!-- <div class="flex justify-between">
                   <p>Last updated</p>
                   <p>{{customer.updated_at}}</p>
-               </div>
+               </div> -->
             </div>
             {% if customer.user_id == user.id %}
             <div class="flex gap-x-2">
                <button
                   type="submit"
-                  class="px-4 py-2 text-sm text-secondary bg-primary/80 rounded-md font-semibold flex justify-center items-center gap-x-1"
+                  class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
                >
                   <svg
                      xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +87,7 @@
                </button>
                <button
                   type="button"
-                  onclick="openModal('customer-delete-{{customer.id}}')"
+                  onclick="openModal('customer-delete-modal-{{customer.id}}')"
                   class="px-4 py-2 text-sm text-secondary bg-destructive rounded-md font-semibold flex justify-center items-center gap-x-1"
                >
                   <svg
@@ -132,14 +114,17 @@
             <div class="text-mutedForeground text-sm">
                <span>Created by </span>
                <a href="{{ url_for('platform.customer.index', search=owner.name) }}" class="underline"
-                  >{{ owner.name }}</a
+                  >{{ customer.user.name }}</a
                >
             </div>
          </div>
          {% endif %}
       </form>
-   </div>
-   {% include 'components/customer/delete-modal.html' %}
-</section>
+      {% include 'components/customer/delete-modal.html' %}
+   </section>
+
+   <!-- Application and statement section -->
+   {% include 'components/preview/application-section.html' %}
+</div>
 
 {% endblock %}

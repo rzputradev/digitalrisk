@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
+    
 
     @staticmethod
     def get_user_by_id(user_id):
