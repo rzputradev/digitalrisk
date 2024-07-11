@@ -48,40 +48,35 @@ class Customer(db.Model):
     def get_customer_by_phone(phone_number):
         return Customer.query.filter_by(phone_number=phone_number).first()
 
-
+    @staticmethod
     def update(self, **kwargs):
+        if self.user_id != current_user.id:
+            flash('You do not have permission', 'warning')
+            return redirect(url_for('platform.customer.index', data='user'))
         try:
             for key, value in kwargs.items():
                 if hasattr(self, key) and value is not None:
                     setattr(self, key, value)
             db.session.commit()
-
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash('Something went wrong!', 'preview-danger')
+            flash('Something went wrong!', 'danger')
             print(f'Failed to update customer: {str(e)}')
 
 
     @staticmethod
-    def delete(customer_id):
-        customer = Customer.query.get(customer_id)
-
-        if customer.user_id != current_user.id:
-            flash('You do not have permission', 'customer-warning')
+    def delete(self):
+        if self.user_id != current_user.id:
+            flash('You do not have permission', 'warning')
             return redirect(url_for('platform.customer.index', data='user'))
-
-        if not customer:
-            flash('Customer not found', 'customer-danger')
-            return redirect(url_for('platform.customer.index', data='user'))
-        
         try:
-            db.session.delete(customer)
+            db.session.delete(self)
             db.session.commit()
-            flash('Your customer deleted successfully', 'customer-success')
+            flash(f'{self.name} deleted successfully!', 'success')
 
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash('Something went wrong!', 'customer-danger')
+            flash('Something went wrong!', 'danger')
             print(f'Failed to delete customer: {str(e)}')
 
 

@@ -39,8 +39,8 @@
                {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
                <div class="lg:w-3/4">
                   {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
-                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
-                  placeholder=field.label.text) }} {% for error in field.errors %}
+                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
+                  duration-150', placeholder=field.label.text) }} {% for error in field.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
@@ -57,8 +57,8 @@
                {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
                <div class="lg:w-3/4">
                   {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full
-                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50',
-                  placeholder=field.label.text) }} {% for error in field.errors %}
+                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
+                  duration-150', placeholder=field.label.text) }} {% for error in field.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
@@ -71,7 +71,7 @@
             <div class="lg:w-3/4">
                <input
                   type="text"
-                  class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/50"
+                  class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/80 transition duration-150"
                   placeholder="Indonesia"
                   disabled
                />

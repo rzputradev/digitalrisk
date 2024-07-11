@@ -11,7 +11,7 @@ from app.models.user import User
 from app.models.customer import Customer
 from app.models.address import Address
 from app.models.application import Application
-from app.utils.form.application import ApplicationForm
+from app.utils.form.application import CreateApplicationForm, UpdateApplicationForm
 
 
 application = Blueprint('application', __name__, url_prefix='/application')
@@ -57,39 +57,73 @@ def index():
 
 
 
+@application.route('/<int:id>', methods=['GET', 'POST'])
+@login_required
+def preview(id):
+    application = Application.query.options(joinedload(Application.statements)).get(id)
+    update_application_form = UpdateApplicationForm(obj=application)
+    if application is None:
+        abort(404, description="Application not found")
+    
+    if update_application_form.validate_on_submit():
+        try:
+            application.update(application, update_application_form.data)
+            flash('Application updated successfully!', 'success')
+            return redirect(request.referrer or url_for('platform.application.index', data='user'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('Something went wrong!', 'danger')
+            print(f'Failed to update application: {str(e)}')
+    
+    return render_template('pages/platform/application-preview.html', user=current_user, application=application, update_application_form=update_application_form)
+
+
 
 @application.route('/create', methods=['POST'])
 @login_required
 def create():
-    form = ApplicationForm()
+    form = CreateApplicationForm()
     if form.validate_on_submit():
         try:
-            print(form.customer_id.data)
-            print(form.application_type_id.data)
             new_application = Application(
                 user_id=current_user.id,
                 customer_id=form.customer_id.data,
                 application_type_id=form.application_type_id.data,
+                amount=form.amount.data,
+                duration=form.duration.data,
                 status='on_process'
             )
             db.session.add(new_application)
             db.session.commit()
-            flash('Application created successfully!', 'application-success')
-            return redirect(request.referrer or url_for('platform.application.index', data='user'))
+            flash('Application created successfully!', 'success')
+            return redirect(url_for('platform.application.preview', id=new_application.id))
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash('Something went wrong!', 'application-danger')
+            flash('Something went wrong!', 'danger')
             print(f'Failed to add application: {str(e)}')
 
-
+    return redirect(request.referrer or url_for('platform.application.index', data='user'))
 
 
 
 @application.route('/delete', methods=['POST'])
 @login_required
 def delete():
-    application_id = request.form.get('application_id')  
-    print(application_id)
-    Application.delete(application_id)
+    application_id = request.form.get('application_id')
+    application = Application.query.get(application_id)
+    if application.user_id != current_user.id:
+        flash('You do not have permission', 'warning')
+        return redirect(request.referrer or url_for('platform.application.index', data='user'))
+
+    if application is None:
+        return "Application not found", 404
     
-    return redirect(request.referrer or url_for('platform.application.index', data='user'))
+    application.delete(application)
+    
+
+    # Redirect to previous page if not 404
+    if request.referrer is None:
+        return redirect(url_for('platform.application.index', data='user'))
+
+    return redirect(request.referrer)
+

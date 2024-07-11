@@ -2,7 +2,8 @@
 
 <!-- User information -->
 <section class="w-full lg:p-6 p-2 justify-center bg-secondary/80 space-y-4">
-   {% include 'components/application/page-header.html' %} {% include 'components/application/flash-message.html'%}
+   {% include 'components/application/page-header.html' %} 
+   
 
    <!-- Content -->
    <div class="mx-auto w-full rounded-md bg-background shadow-md py-6 px-8 space-y-4">
@@ -32,7 +33,7 @@
                <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
          </button>
-    
+         {% include 'components/application/search-modal.html' %} 
       </div>
       <!-- Table -->
       <div class="px-4 max-w-full overflow-auto">
@@ -45,21 +46,27 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
+                  <th class="px-4 py-2">Amount</th>
+                  <th class="px-4 py-2 text-center ">Type</th>
+                  <th class="px-4 py-2 ">Status</th>
                   <th class="px-4 py-2">Customer</th>
-                  <th class="px-4 py-2 text-center">Application</th>
-                  <th class="px-4 py-2 text-center">Status</th>
-                  <th class="px-4 py-2">Created By</th>
-                  <th class="px-4 py-2">Created At</th>
+                  <th class="px-4 py-2">Applied On</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
             </thead>
             <tbody class="divide-y divide-mutedForeground/20 text-left">
                {% for application in applications %}
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.customer.name }}</td>
+                  <td class="px-4 py-3 truncate w-[200px]"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR in {{application.duration}} Months</a></td>
                   <td class="px-4 py-3 truncate w-[200px] text-center">{{ application.application_type.name }}</td>
-                  <td class="px-4 py-3 truncate w-[200px] text-center">{{ application.status.value }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.user.name }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] ">{{ application.status.value }}</td>
+                  <td class="px-4 py-3 truncate w-[200px]">
+                     <a
+                        href="{{ url_for('platform.application.index', search=application.customer.name) }}"
+                        class="hover:underline">
+                        {{ application.customer.name }}
+                     </a>
+                  </td>
                   <td class="px-4 py-3 truncate w-[200px]">{{ application.created_at }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
@@ -83,7 +90,7 @@
                            </svg>
                         </button> -->
                         <button
-                           onclick="openModal('application-delete-modal{{application.id}}')"
+                           onclick="openModal('application-delete-modal-{{application.id}}')"
                            class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm px-2 py-1 hover:bg-primary/70 hover:text-secondary"
                            {{ 'disabled' if application.user_id != user.id else '' }} 
                         >
@@ -112,7 +119,7 @@
                </tr>
 
                {% include 'components/application/delete-modal.html' %} 
-               {% include 'components/application/search-modal.html' %} 
+               
                {% endfor %}
             </tbody>
          </table>

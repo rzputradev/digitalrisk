@@ -1,6 +1,6 @@
 <!-- Modal delete customer -->
 <div
-   id="application-delete-modal{{application.id}}"
+   id="application-delete-modal-{{application.id}}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
@@ -38,7 +38,7 @@
             <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
             <button
                type="button"
-               onclick="closeModal('application-delete-modal{{application.id}}')"
+               onclick="closeModal('application-delete-modal-{{application.id}}')"
                class="bg-secondary py-2 px-4 rounded-md"
             >
                Cancel

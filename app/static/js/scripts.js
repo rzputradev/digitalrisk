@@ -24,3 +24,37 @@ function closeFlashMessage(button) {
    var flashMessage = button.parentElement;
    flashMessage.style.display = "none";
 }
+
+
+document.addEventListener('DOMContentLoaded', function () {
+   const flashContainer = document.getElementById('flash-messages');
+
+   if (flashContainer) {
+      const flashMessages = flashContainer.querySelectorAll('.flash-message');
+
+      flashMessages.forEach(function (message, index) {
+         setTimeout(function () {
+            message.classList.add('show');
+         }, 100 * index); // Staggered delay for each message
+
+         // Add event listener to close button
+         const closeButton = message.querySelector('.close-toast');
+         closeButton.addEventListener('click', function () {
+            closeToast(message);
+         });
+      });
+
+      flashMessages.forEach(function (message) {
+         setTimeout(function () {
+            closeToast(message);
+         }, 5000); // Adjust removal time as needed
+      });
+   }
+
+   function closeToast(message) {
+      message.classList.remove('show');
+      setTimeout(function () {
+         message.remove();
+      }, 600); // Match this with the transition duration
+   }
+});

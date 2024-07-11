@@ -71,7 +71,7 @@ class Address(db.Model):
             db.session.commit()
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash('Something went wrong!', 'preview-danger')
+            flash('Something went wrong!', 'danger')
             print(f'Failed to update customer: {str(e)}')
        
        
