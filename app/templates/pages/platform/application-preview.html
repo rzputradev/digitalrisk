@@ -1,0 +1,103 @@
+{% extends 'layouts/platform.html' %} {% block title %}Application Preview{% endblock %} {% block main %}
+<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-8 md:p-4 p-2">
+   {% include 'components/application/delete-modal.html' %}
+   <section class="flex flex-col lg:flex-row gap-x-4 text-primary/85">
+      <!-- All statements -->
+      <div class="w-full lg:w-3/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max mt-4 lg:mt-0">
+         Application Statements
+      </div>
+      <!-- Application detail and update form -->
+      <div class="w-full lg:w-2/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max">
+         <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Application Detail</h2>
+            <button
+               type="button"
+               onclick="openModal('application-delete-modal-{{application.id}}')"
+               class="px-4 py-2 text-sm text-secondary bg-destructive rounded-md font-semibold flex justify-center items-center gap-x-1"
+            >
+               <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="feather feather-trash-2 size-4"
+               >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+               </svg>
+            </button>
+         </div>
+         <hr class="border-primary/20 my-4" />
+
+         <form
+            action="{{ url_for('platform.application.preview', id=application.id) }}"
+            method="POST"
+            class="flex flex-col gap-y-6 p-4"
+         >
+            {{ update_application_form.hidden_tag() }}
+
+            <!-- Application Section -->
+            <div class="w-full space-y-6">
+               {% for field in [update_application_form.status, update_application_form.application_type_id,
+               update_application_form.amount, update_application_form.duration] %}
+               <div class="flex flex-col items-start space-y-1">
+                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
+                  <div class="w-full">
+                     {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
+                     border-b focus:outline-none focus:ring-0', disabled=application.user_id != current_user.id) }} {%
+                     for error in field.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+               </div>
+               {% endfor %}
+            </div>
+
+            <div class="flex items-end justify-between gap-x-2">
+               <div class="w-[250px] text-mutedForeground text-sm font-light">
+                  <p>Last updated</p>
+                  <p>{{ application.updated_at }}</p>
+               </div>
+               {% if application.user_id == user.id %}
+               <button
+                  type="submit"
+                  class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
+               >
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-edit-2 size-4"
+                  >
+                     <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                  </svg>
+                  <span>Update</span>
+               </button>
+
+               {% else %}
+               <div class="text-mutedForeground text-sm">
+                  <span>Created by </span>
+                  <a href="{{ url_for('platform.application.index', search=owner.name) }}" class="underline"
+                     >{{ application.user.name }}</a
+                  >
+               </div>
+               {% endif %}
+            </div>
+         </form>
+      </div>
+   </section>
+</div>
+{% endblock %}

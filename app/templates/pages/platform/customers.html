@@ -2,7 +2,7 @@
 
 <!-- User information -->
 <section class="w-full lg:p-6 p-2 justify-center bg-secondary/80 space-y-4">
-   {% include 'components/customer/page-header.html' %} {% include 'components/customer/flash-message.html'%}
+   {% include 'components/customer/page-header.html' %}
 
    <!-- Content -->
    <div class="mx-auto w-full rounded-md bg-background shadow-md py-6 px-8 space-y-4">
@@ -99,8 +99,8 @@
                         <button
                            onclick="openModal('customer-delete-modal-{{customer.id}}')"
                            class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm px-2 py-1 hover:bg-primary/70 hover:text-secondary"
-                        >
-                           <!-- {{ 'disabled' if customer.user_id != user.id else '' }}  -->
+                           {{ 'disabled' if customer.user_id != user.id else '' }} 
+                           >
                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"

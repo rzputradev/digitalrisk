@@ -37,20 +37,22 @@
          <table class="table-auto w-full">
             <thead class="text-left">
                <tr>
+                  <th class="px-4 py-2 ">Amount</th>
                   <th class="px-4 py-2">Type</th>
-                  <th class="px-4 py-2 text-center">Status</th>
+                  <th class="px-4 py-2">Status</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
             </thead>
             <tbody class="text-left">
                {% for application in applications %}
                <tr class="border-b hover:bg-secondary">
-                  <td class="px-4 py-3 truncate"><a href="" class="hover:underline">{{application.id}} - {{ application.application_type.name }}</a></td>
-                  <td class="px-4 py-3 text-center">{{ application.status.value }}</td>
+                  <td class="px-4 py-3 truncate"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR in {{application.duration}} Months</a></td>
+                  <td class="px-4 py-3 ">{{application.application_type.name}}</td>
+                  <td class="px-4 py-3 ">{{ application.status.value }}</td>
                   <td class="px-4 py-3 truncate">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <button
-                           onclick="openModal('application-delete-modal{{application.id}}')"
+                           onclick="openModal('application-delete-modal-{{application.id}}')"
                            class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm hover:text-secondary px-2 py-1 hover:bg-primary/70"
                            {{ 'disabled' if application.user_id != user.id else '' }} 
                         >
@@ -143,7 +145,7 @@
             <tbody class="text-left max-h-[500px] overflow-y-auto">
                {% for statement in statements %}
                <tr class="border-b">
-                  <td class="px-4 py-3 truncate">{{ statement.application_type.name }}</td>
+                  <!-- <td class="px-4 py-3 truncate">{{ statement.bank.value }} - {{statement.id}}</td> -->
                   <td class="px-4 py-3 text-center">{{ statement.sentiment.value }}</td>
                </tr>
                {% endfor %}

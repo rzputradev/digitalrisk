@@ -1,7 +1,8 @@
 {% extends 'layouts/platform.html' %} {% block title %}Customer Preview{% endblock %} {% block main %}
 
 <div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-8 md:p-4 p-2">
-   {% include 'components/preview/flash-message.html' %}
+   <!-- Header -->
+   <!-- <div>Back</div> -->
    <section class="w-full bg-background p-8 rounded-md shadow-md text-primary/85">
       <!-- Customer detail with address -->
       <h2 class="text-lg font-semibold">Customer Detail</h2>
@@ -54,14 +55,14 @@
 
          <div class="flex items-end justify-between gap-x-2">
             <div class="w-[250px] text-mutedForeground text-sm font-light">
-               <div class="flex justify-between">
+               <!-- <div class="flex justify-between">
                   <p>Created at</p>
                   <p>{{customer.created_at}}</p>
-               </div>
-               <!-- <div class="flex justify-between">
+               </div> -->
+               <div class="flex justify-between">
                   <p>Last updated</p>
                   <p>{{customer.updated_at}}</p>
-               </div> -->
+               </div>
             </div>
             {% if customer.user_id == user.id %}
             <div class="flex gap-x-2">

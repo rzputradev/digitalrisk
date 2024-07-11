@@ -34,14 +34,14 @@ def settings():
     if name_form.validate_on_submit() and 'name-submit' in request.form:
         new_name = name_form.name.data.strip()
         current_user.update(name=new_name)
-        flash('Name updated successfully!', 'settings-success')
+        flash('Name updated successfully!', 'success')
         return redirect(url_for('platform.settings'))
 
     if password_form.validate_on_submit() and 'password-submit' in request.form:
         user = User.get_user_by_id(current_user.id)
         if current_user.check_password(password_form.password.data):
             user.update(password=password_form.npassword.data)
-            flash('Password changed successfully!', 'settings-success')
+            flash('Password changed successfully!', 'success')
             return redirect(url_for('platform.settings'))
 
     name_form.name.data = current_user.name

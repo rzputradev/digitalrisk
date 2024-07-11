@@ -44,7 +44,9 @@ class UpdateNameForm(FlaskForm):
 
 
 class UpdatePasswordForm(FlaskForm):
-    password = PasswordField('Password', validators=[Optional(), Length(min=1, message="Password is required")])
-    npassword = PasswordField('New Password', validators=[Optional(), Length(min=6, message="Password too short")])
-    cnpassword = PasswordField('Confirm New Password', validators=[Optional(), EqualTo('npassword', message='Passwords must match')])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=1, message="Password is required")])
+    npassword = PasswordField('New Password', validators=[DataRequired(), Length(min=6, message="Password too short")])
+    cnpassword = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('npassword', message='Passwords must match')])
     submit = SubmitField('Update Password')
+
+

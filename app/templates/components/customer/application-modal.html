@@ -31,24 +31,34 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" name="customer_id" value="{{ customer.id }}" />
          </div>
-         <!-- Select application type -->
-         <div class="space-y-2">
-            <p class="text-mutedForeground">
-               Create new application for <span class="font-semibold">{{customer.name}}</span>?
-            </p>
+
+         <!-- Application Header -->
+         <div class="text-mutedForeground">
+            Create new application for <span class="font-semibold">{{ customer.name }}</span>?
+         </div>
+         <!-- Form Fields -->
+         <div class="space-y-4">
+            {% for field in [application_form.application_type_id, application_form.amount, application_form.duration]
+            %}
             <div class="flex items-center w-full gap-x-4">
-               <label for="application_type_id" class="w-2/5 text-mutedForeground"
-                  >{{ application_form.application_type_id.label.text }}</label
-               >
+               <label for="{{ field.id }}" class="w-2/5 text-mutedForeground">{{ field.label.text }}</label>
                <div class="w-3/5">
-                  {{ application_form.application_type_id(class="w-full px-0 appearance-none bg-transparent border-0
-                  border-b-2 border-mutedForeground/50 focus:outline-none focus:ring-0 focus:border-primary transition
-                  duration-150") }}
+                  {{ field(class="w-full px-0 appearance-none bg-transparent border-0 border-b border-mutedForeground/50
+                  focus:outline-none focus:ring-0 focus:border-primary/80 transition duration-150") }} {% if
+                  field.errors %}
+                  <div>
+                     {% for error in field.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+                  {% endif %}
                </div>
             </div>
+            {% endfor %}
          </div>
-         <!-- Buttons -->
-         <div class="flex justify-end text-sm">
+
+         <!-- Footer -->
+         <div class="flex justify-end text-sm mt-4 pt-4">
             <button
                type="submit"
                class="text-secondary bg-primary/85 hover:bg-primary/90 rounded-md py-2 px-4 mr-2 transition duration-150"
