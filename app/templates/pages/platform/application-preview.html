@@ -1,19 +1,42 @@
 {% extends 'layouts/platform.html' %} {% block title %}Application Preview{% endblock %} {% block main %}
-<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-8 md:p-4 p-2">
-   {% include 'components/application/delete-modal.html' %}
-   <section class="flex flex-col lg:flex-row gap-x-4 text-primary/85">
+<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-6 md:p-4 p-2">
+   {% include 'components/application/delete-modal.html' %} {% include 'components/application/application-modal.html'
+   %}
+
+   <!-- Header -->
+   <div class="flex justify-between items-end text-primary/85">
+      {% include 'components/back-button.html' %}
+      <button
+         onclick="openModal('create-application-modal-{{application.id}}')"
+         class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
+      >
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-plus size-4"
+         >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+         </svg>
+         <span>Add Application</span>
+      </button>
+   </div>
+   <section class="flex flex-col-reverse lg:flex-row gap-x-4 text-primary/85">
       <!-- All statements -->
-      <div class="w-full lg:w-3/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max mt-4 lg:mt-0">
-         Application Statements
-      </div>
-      <!-- Application detail and update form -->
-      <div class="w-full lg:w-2/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max">
+      <div class="w-full lg:w-[70%] bg-background p-8 rounded-md shadow-md text-primary/85">
          <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Application Detail</h2>
+            <div class="flex items-center gap-x-2">
+               <h2 class="text-lg font-semibold">Statements</h2>
+            </div>
             <button
-               type="button"
-               onclick="openModal('application-delete-modal-{{application.id}}')"
-               class="px-4 py-2 text-sm text-secondary bg-destructive rounded-md font-semibold flex justify-center items-center gap-x-1"
+               class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
             >
                <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -25,47 +48,115 @@
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  class="feather feather-trash-2 size-4"
+                  class="feather feather-plus size-4"
                >
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
                </svg>
+               <span>Create</span>
             </button>
          </div>
-         <hr class="border-primary/20 my-4" />
-
-         <form
-            action="{{ url_for('platform.application.preview', id=application.id) }}"
-            method="POST"
-            class="flex flex-col gap-y-6 p-4"
-         >
-            {{ update_application_form.hidden_tag() }}
-
-            <!-- Application Section -->
-            <div class="w-full space-y-6">
-               {% for field in [update_application_form.status, update_application_form.application_type_id,
-               update_application_form.amount, update_application_form.duration] %}
-               <div class="flex flex-col items-start space-y-1">
-                  {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
-                  <div class="w-full">
-                     {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
-                     border-b focus:outline-none focus:ring-0', disabled=application.user_id != current_user.id) }} {%
-                     for error in field.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-                     {% endfor %}
-                  </div>
-               </div>
-               {% endfor %}
+         <div class="flex flex-col gap-y-4 mt-4 max-h-[450px] overflow-y-auto">
+            {% if not application.statements %}
+            <div class="text-center">
+               <p class="text-sm text-mutedForeground">No statement found</p>
             </div>
+            {% else %}
+            <table class="table-auto w-full">
+               <thead class="text-left">
+                  <tr>
+                     <th class="px-4 py-2">File</th>
+                     <th class="px-4 py-2">Bank</th>
+                     <th class="px-4 py-2">Sentiment</th>
+                     <th class="px-4 py-2">Created At</th>
+                     <th class="px-4 py-2 text-center">Actions</th>
+                  </tr>
+               </thead>
+               <tbody class="text-left">
+                  {% for statement in application.statements %}
+                  <tr class="border-b hover:bg-secondary">
+                     <td class="px-4 py-3 truncate">
+                        <a href="" class="hover:underline">File - {{ statement.id }} </a>
+                     </td>
+                     <td class="px-4 py-3">{{statement.bank.name}}</td>
+                     <td class="px-4 py-3">{{statement.sentiment}}</td>
+                     <td class="px-4 py-3">{{ statement.created_at | utc_to_wib }}</td>
+                     <td class="px-4 py-3 truncate">
+                        <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
+                           <button
+                              onclick="openModal('application-delete-modal-{{application.id}}')"
+                              class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm hover:text-secondary px-2 py-1 hover:bg-primary/70"
+                           >
+                              <!-- {{ 'disabled' if application.user_id != user.id else '' }}  -->
+                              <svg
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 width="24"
+                                 height="24"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round"
+                                 class="feather feather-trash-2 size-5"
+                              >
+                                 <polyline points="3 6 5 6 21 6"></polyline>
+                                 <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                 ></path>
+                                 <line x1="10" y1="11" x2="10" y2="17"></line>
+                                 <line x1="14" y1="11" x2="14" y2="17"></line>
+                              </svg>
+                           </button>
+                        </div>
+                     </td>
+                  </tr>
+                  {% include 'components/application/delete-modal.html' %} {% endfor %}
+               </tbody>
+            </table>
+            {% endif %}
+         </div>
+      </div>
 
-            <div class="flex items-end justify-between gap-x-2">
-               <div class="w-[250px] text-mutedForeground text-sm font-light">
-                  <p>Last updated</p>
-                  <p>{{ application.updated_at }}</p>
+      <!-- Application detail and update form -->
+      <form
+         action="{{ url_for('platform.application.preview', id=application.id) }}"
+         method="POST"
+         class="w-full lg:w-2/5 bg-background p-8 rounded-md shadow-md text-primary/85 flex flex-col justify-between"
+      >
+         {{ form.hidden_tag() }}
+
+         <input type="hidden" name="application_id" , value="{{application.id}}" />
+         <input type="hidden" name="user_id" , value="{{application.user_id}}" />
+         <input type="hidden" name="customer_id" , value="{{application.customer_id}}" />
+
+         <div class="flex items-center justify-between border-mutedForeground/70 border-b-2 pb-4">
+            <h2 class="text-lg font-semibold">Application Detail</h2>
+         </div>
+
+         <!-- Application Section -->
+         <div class="w-full space-y-6 px-2">
+            {% for field in [form.status, form.application_type_id, form.amount, form.duration] %}
+            <div class="flex flex-col items-start space-y-1">
+               {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
+               <div class="w-full">
+                  {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
+                  border-b focus:outline-none focus:ring-0', disabled=application.user_id != current_user.id) }} {% for
+                  error in field.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
                </div>
-               {% if application.user_id == user.id %}
+            </div>
+            {% endfor %}
+         </div>
+
+         <div class="items-end gap-x-2">
+            <div class="w-[250px] text-mutedForeground text-sm font-light">
+               <p>Last updated</p>
+               <p>{{ application.updated_at }}</p>
+            </div>
+            {% if application.user_id == user.id %}
+            <div class="flex justify-end gap-x-2">
                <button
                   type="submit"
                   class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
@@ -86,18 +177,41 @@
                   </svg>
                   <span>Update</span>
                </button>
-
-               {% else %}
-               <div class="text-mutedForeground text-sm">
-                  <span>Created by </span>
-                  <a href="{{ url_for('platform.application.index', search=owner.name) }}" class="underline"
-                     >{{ application.user.name }}</a
+               <button
+                  type="button"
+                  onclick="openModal('application-delete-modal-{{application.id}}')"
+                  class="px-4 py-2 text-sm text-secondary bg-destructive rounded-md font-semibold flex justify-center items-center gap-x-1"
+               >
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-trash-2 size-4"
                   >
-               </div>
-               {% endif %}
+                     <polyline points="3 6 5 6 21 6"></polyline>
+                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                     <line x1="10" y1="11" x2="10" y2="17"></line>
+                     <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  <span>Delete</span>
+               </button>
             </div>
-         </form>
-      </div>
+            {% else %}
+            <div class="text-mutedForeground text-sm">
+               <span>Created by </span>
+               <a href="{{ url_for('platform.application.index', search=owner.name) }}" class="underline"
+                  >{{ application.user.name }}</a
+               >
+            </div>
+            {% endif %}
+         </div>
+      </form>
    </section>
 </div>
 {% endblock %}

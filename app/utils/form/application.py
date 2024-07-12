@@ -35,8 +35,7 @@ class CreateApplicationForm(FlaskForm):
 
 
 class UpdateApplicationForm(FlaskForm):
-    application_id = HiddenField('Application ID', validators=[DataRequired()])
-    application_type_id = SelectField('Type', validators=[DataRequired()])
+    application_type_id = SelectField('Application Type', choices=[], coerce=int)
     status = SelectField('Status', choices=[(choice.name, choice.value) for choice in ApplicationStatusEnum], validators=[Optional()])
     amount = IntegerField('Amount (IDR)', 
                           validators=[
@@ -61,9 +60,9 @@ class UpdateApplicationForm(FlaskForm):
                             })
     submit = SubmitField('Update Application')
     
-    def __init__(self, *args, **kwargs):
-        super(UpdateApplicationForm, self).__init__(*args, **kwargs)
-        self.application_type_id.choices = [(type.id, type.name) for type in ApplicationType.query.all()]
+    # def __init__(self, *args, **kwargs):
+    #     super(UpdateApplicationForm, self).__init__(*args, **kwargs)
+    #     self.application_type.choices = [(type.id, type.name) for type in ApplicationType.query.all()]
 
 
 

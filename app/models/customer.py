@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from sqlalchemy.exc import SQLAlchemyError
 from flask_login import current_user
-from flask import flash, redirect, url_for
+from flask import flash, redirect, url_for, request
 
 from app import db
 from app.models.address import Address
@@ -32,7 +32,7 @@ class Customer(db.Model):
     
     user = db.relationship('User', back_populates='customers')
     address = db.relationship('Address', back_populates='customer', uselist=False, cascade="all, delete-orphan")
-    applications = db.relationship('Application', back_populates='customer')
+    applications = db.relationship('Application', back_populates='customer', cascade='all, delete-orphan')
 
 
     def __repr__(self):
@@ -69,11 +69,11 @@ class Customer(db.Model):
         if self.user_id != current_user.id:
             flash('You do not have permission', 'warning')
             return redirect(url_for('platform.customer.index', data='user'))
+        
         try:
             db.session.delete(self)
             db.session.commit()
             flash(f'{self.name} deleted successfully!', 'success')
-
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('Something went wrong!', 'danger')

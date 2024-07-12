@@ -10,7 +10,7 @@ from app import db
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.address import Address
-from app.models.application import Application
+from app.models.application import Application, ApplicationType
 from app.utils.form.application import CreateApplicationForm, UpdateApplicationForm
 
 
@@ -46,13 +46,6 @@ def index():
     pagination = query.order_by(Application.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     applications = pagination.items
 
-    wib = timezone('Asia/Jakarta')
-    for application in applications:
-        attributes = ['created_at', 'updated_at']
-        for attr in attributes:
-            wib_time = getattr(application, attr).astimezone(wib)
-            setattr(application, attr, wib_time.strftime('%B %d, %Y'))
-
     return render_template('pages/platform/application.html', user=current_user, applications=applications, pagination=pagination)
 
 
@@ -61,21 +54,37 @@ def index():
 @login_required
 def preview(id):
     application = Application.query.options(joinedload(Application.statements)).get(id)
-    update_application_form = UpdateApplicationForm(obj=application)
     if application is None:
         abort(404, description="Application not found")
     
-    if update_application_form.validate_on_submit():
+    form = UpdateApplicationForm(obj=application)
+    application_form = CreateApplicationForm()
+
+    form.application_type_id.choices = [(type.id, type.name) for type in ApplicationType.query.all()]
+    
+    if form.validate_on_submit():
+        if application.user_id != current_user.id:
+            flash('You do not have permission', 'warning')
+            return redirect(request.referrer or url_for('platform.application.index', data='user'))
         try:
-            application.update(application, update_application_form.data)
+            application.application_type_id = form.application_type_id.data
+            application.status = form.status.data
+            application.amount = form.amount.data
+            application.duration = form.duration.data
+            db.session.commit()
             flash('Application updated successfully!', 'success')
             return redirect(request.referrer or url_for('platform.application.index', data='user'))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('Something went wrong!', 'danger')
-            print(f'Failed to update application: {str(e)}')
     
-    return render_template('pages/platform/application-preview.html', user=current_user, application=application, update_application_form=update_application_form)
+
+    form.status.data = application.status.name
+    form.application_type_id.data = application.application_type_id
+
+    return render_template('pages/platform/application-preview.html', user=current_user, application=application, form=form, application_form=application_form)
+
+
 
 
 
@@ -120,9 +129,7 @@ def delete():
     
     application.delete(application)
     
-
-    # Redirect to previous page if not 404
-    if request.referrer is None:
+    if request.referrer and '/application/' in request.referrer:
         return redirect(url_for('platform.application.index', data='user'))
 
     return redirect(request.referrer)

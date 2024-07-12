@@ -18,7 +18,6 @@ from app.utils.form.application import CreateApplicationForm
 customer = Blueprint('customer', __name__, url_prefix='/customer')
 
 
-
 @customer.route('/')
 @login_required
 def index():
@@ -44,13 +43,6 @@ def index():
     pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False,)
     customers = pagination.items
 
-    wib = timezone('Asia/Jakarta')
-    for customer in customers:
-        attributes = ['created_at', 'updated_at']
-        for attr in attributes:
-            wib_time = getattr(customer, attr).astimezone(wib)
-            setattr(customer, attr, wib_time.strftime('%B %d, %Y'))
-
     return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all',  application_form=application_form)
 
 
@@ -58,35 +50,20 @@ def index():
 @customer.route('/<int:id>', methods=['GET', 'POST'])
 @login_required
 def preview(id):
-    page = request.args.get('page', 1, type=int)
-    per_page = 12
-    
     customer = Customer.query.get(id)
     if customer is None:
         abort(404, description='Customer not found')
-    applications_sorted = sorted(customer.applications, key=lambda x: x.created_at, reverse=True)
-    total = len(applications_sorted)
-    total_pages = ceil(total / per_page)
-    
-    start = (page - 1) * per_page
-    end = start + per_page
-    applications_paginated = applications_sorted[start:end]
-    
-    pagination = {
-        'page': page,
-        'per_page': per_page,
-        'total': total,
-        'total_pages': total_pages,
-        'has_prev': page > 1,
-        'has_next': page < total_pages,
-        'prev_num': page - 1 if page > 1 else None,
-        'next_num': page + 1 if page < total_pages else None
-    }
 
     customer_form = UpdateCustomerForm(obj=customer)
     application_form = CreateApplicationForm()
 
-    statements = Statement.query.join(Statement.application).filter_by(customer_id=id).order_by(Statement.created_at.desc()).all()
+    info = {
+        'total_amount': sum([customer.applications[i].amount for i in range(len(customer.applications))]),
+        'on_process': len([customer.applications[i] for i in range(len(customer.applications)) if customer.applications[i].status.name == 'on_process']),
+        'approved': len([customer.applications[i] for i in range(len(customer.applications)) if customer.applications[i].status.name == 'approved']),
+        'rejected': len([customer.applications[i] for i in range(len(customer.applications)) if customer.applications[i].status.name == 'rejected']),
+        'total_application': len(customer.applications),
+    }
     
     if customer_form.validate_on_submit():
         customer_form.populate_obj(customer)
@@ -99,12 +76,12 @@ def preview(id):
         db.session.commit()
         flash('Customer updated successfully!', 'success')
         return redirect(request.referrer or url_for('platform.customer.preview', id=customer.id))
+    
+    else:
+        print(f'Form errors: {customer_form.errors}')
 
-    wib = timezone('Asia/Jakarta')
-    attributes = ['created_at', 'updated_at']
-    for attr in attributes:
-        wib_time = getattr(customer, attr).astimezone(wib)
-        setattr(customer, attr, wib_time.strftime('%Y/%m/%d %H:%M:%S'))
+    customer_form.id_type.data = customer.id_type.name
+    customer_form.customer_type.data = customer.customer_type.name
 
     customer_form.street.data = customer.address.street if customer.address else None
     customer_form.city.data = customer.address.city if customer.address else None
@@ -112,8 +89,7 @@ def preview(id):
     customer_form.zip_code.data = customer.address.zip_code if customer.address else None
     customer_form.country.data = customer.address.country if customer.address else None
 
-    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, pagination=pagination, applications=applications_paginated, sentiments=statements)
-
+    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, info=info)
 
 
 
@@ -154,6 +130,9 @@ def create():
             flash('Something went wrong!', 'danger')
             print(f'Failed to add customer: {str(e)}')
 
+    else:
+        print(f'Form errors: {form.errors}')
+
     return render_template('pages/platform/customer-create.html', user=current_user, form=form)
 
 
@@ -169,6 +148,10 @@ def delete():
         abort(404, description='Customer not found')
 
     customer.delete(customer)
+
+    if request.referrer and '/customer/' in request.referrer:
+        return redirect(url_for('platform.customer.index', data='user'))
+
     return redirect(request.referrer or url_for('platform.customer.index', data='user'))
 
 

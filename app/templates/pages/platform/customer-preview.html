@@ -1,8 +1,32 @@
 {% extends 'layouts/platform.html' %} {% block title %}Customer Preview{% endblock %} {% block main %}
 
-<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-8 md:p-4 p-2">
+<div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-6 md:p-4 p-2">
    <!-- Header -->
-   <!-- <div>Back</div> -->
+   <div class="flex justify-between items-end text-primary/85">
+      {% include 'components/back-button.html' %}
+      <a
+         href="{{ url_for('platform.customer.create') }}"
+         class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
+      >
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-plus size-4"
+         >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+         </svg>
+         <span>Add Customer</span>
+      </a>
+   </div>
+
    <section class="w-full bg-background p-8 rounded-md shadow-md text-primary/85">
       <!-- Customer detail with address -->
       <h2 class="text-lg font-semibold">Customer Detail</h2>
@@ -125,7 +149,7 @@
    </section>
 
    <!-- Application and statement section -->
-   {% include 'components/preview/application-section.html' %}
+   {% include 'components/customer/application-section.html' %}
 </div>
 
 {% endblock %}

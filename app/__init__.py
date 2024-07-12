@@ -6,13 +6,16 @@ from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
+
 from app.config import config
+from app.utils.filters import register_filters
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 csrf = CSRFProtect()
+
 
 def create_app():
     app = Flask(__name__)
@@ -48,5 +51,7 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.get_user_by_id(user_id)
+    
+    register_filters(app)
 
     return app
