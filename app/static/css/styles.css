@@ -128,7 +128,7 @@ opacity: 1;
 transform: translateX(0);
 }
 
-.flash-message[data-category="error"] {
+.flash-message[data-category="danger"] {
 background-color: #ffcccc;
 color: #cc0000;
 }
@@ -138,8 +138,8 @@ background-color: #ccffcc;
 color: #009900;
 }
 
-.flash-message[data-category="info"] {
-background-color: #cce5ff;
-color: #0066cc;
+.flash-message[data-category="warning"] {
+background-color: #ffffcc;
+color: #9b5300;
 }
 

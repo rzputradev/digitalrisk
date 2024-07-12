@@ -30,9 +30,9 @@ class Application(db.Model):
     
     user = db.relationship('User', back_populates='applications')
     # updated_by = db.relationship('User', foreign_keys=[updated_by_id], back_populates='updated_applications')
-    customer = db.relationship('Customer', back_populates='applications')
+    customer = db.relationship('Customer', back_populates='applications',)
     application_type = db.relationship('ApplicationType', back_populates='applications')
-    statements = db.relationship('Statement', back_populates='application')
+    statements = db.relationship('Statement', back_populates='application', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'{self.amount}, {self.duration} - {self.status}'
@@ -88,7 +88,7 @@ class ApplicationType(db.Model):
     __tablename__ = 'application_type'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)

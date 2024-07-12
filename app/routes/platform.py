@@ -36,6 +36,9 @@ def settings():
         current_user.update(name=new_name)
         flash('Name updated successfully!', 'success')
         return redirect(url_for('platform.settings'))
+    else:
+        if name_form.errors:
+            flash(name_form.errors, 'danger')
 
     if password_form.validate_on_submit() and 'password-submit' in request.form:
         user = User.get_user_by_id(current_user.id)
@@ -43,6 +46,11 @@ def settings():
             user.update(password=password_form.npassword.data)
             flash('Password changed successfully!', 'success')
             return redirect(url_for('platform.settings'))
+        else:
+            flash('Invalid password!', 'danger')
+    else:
+        if password_form.errors:
+            flash(password_form.errors, 'danger')
 
     name_form.name.data = current_user.name
     return render_template('pages/platform/settings.html', user=current_user, name_form=name_form, password_form=password_form)

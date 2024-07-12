@@ -1,10 +1,9 @@
 <section class="flex flex-col lg:flex-row gap-x-4 mt-2 text-primary/85">
    <!-- Applications list -->
-   <div class="w-full lg:w-3/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max">
+   <div class="w-full lg:w-[70%] bg-background p-8 rounded-md shadow-md text-primary/85">
       <div class="flex items-center justify-between">
          <div class="flex items-center gap-x-2">
             <h2 class="text-lg font-semibold">Applications</h2>
-            <div class="text-mutedForeground">{{ pagination.total }}</div>
          </div>
          <button
             onclick="openModal('create-application-modal-{{customer.id}}')"
@@ -28,8 +27,8 @@
             <span>Create</span>
          </button>
       </div>
-      <div class="flex flex-col gap-y-4 mt-4">
-         {% if not applications %}
+      <div class="flex flex-col gap-y-4 mt-4 max-h-[450px] overflow-y-auto">
+         {% if not customer.applications %}
          <div class="text-center">
             <p class="text-sm text-mutedForeground">No applications found</p>
          </div>
@@ -38,17 +37,19 @@
             <thead class="text-left">
                <tr>
                   <th class="px-4 py-2 ">Amount</th>
-                  <th class="px-4 py-2">Type</th>
+                  <th class="px-4 py-2">Duration</th>
                   <th class="px-4 py-2">Status</th>
+                  <th class="px-4 py-2">Applied On</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
             </thead>
             <tbody class="text-left">
-               {% for application in applications %}
+               {% for application in customer.applications %}
                <tr class="border-b hover:bg-secondary">
-                  <td class="px-4 py-3 truncate"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR in {{application.duration}} Months</a></td>
-                  <td class="px-4 py-3 ">{{application.application_type.name}}</td>
-                  <td class="px-4 py-3 ">{{ application.status.value }}</td>
+                  <td class="px-4 py-3 truncate"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR</a></td>
+                  <td class="px-4 py-3 ">{{application.duration}} Months</td>
+                  <td class="px-4 py-3 ">{{application.status.value}}</td>
+                  <td class="px-4 py-3">{{ application.created_at | utc_to_wib }}</td>
                   <td class="px-4 py-3 truncate">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <button
@@ -84,76 +85,40 @@
             </tbody>
          </table>
          {% endif %}
-
-         <!-- Pagination -->
-         <div class="flex items-center justify-between mt-4">
-            <div>
-               <span class="text-sm text-mutedForeground">Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
-            </div>
-            <div>
-               <nav class="block">
-                  <ul class="flex pl-0 rounded list-none flex-wrap text-sm gap-x-2">
-                     {% if pagination.has_prev %}
-                     <li>
-                        <a
-                           href="?page={{ pagination.prev_num }}&data=all"
-                           class="block py-2 px-3 leading-tight bg-white border rounded-sm border-gray-300 text-primary/90 hover:bg-gray-200"
-                        >
-                           Previous
-                        </a>
-                     </li>
-                     {% endif %} 
-                     {% if pagination.has_next %}
-                     <li>
-                        <a
-                           href="?page={{ pagination.next_num }}&data=all"
-                           class="block py-2 px-3 leading-tight bg-white border rounded-sm border-gray-300 text-primary/90 hover:bg-gray-200"
-                        >
-                           Next
-                        </a>
-                     </li>
-                     {% endif %}
-                  </ul>
-               </nav>
-            </div>
-         </div>
       </div>
    </div>
-
-   <!-- Application Statement list -->
-   <div class="w-full lg:w-2/5 bg-background p-8 rounded-md shadow-md text-primary/85 h-max mt-4 lg:mt-0">
+   <!-- Application Info -->
+   <div class="w-full lg:w-[30%] bg-background p-8 rounded-md shadow-md text-primary/85 mt-4 lg:mt-0 h-max">
       <div class="flex items-center justify-between">
          <div class="flex items-center gap-x-2">
-            <h2 class="text-lg font-semibold">All Statements</h2>
-            <div class="text-mutedForeground">{{ statements|length }}</div>
+            <h2 class="text-lg font-semibold">Info</h2>
          </div>
       </div>
       <div class="flex flex-col gap-y-4 mt-4">
-         {% if not statements %}
-         <div class="text-center">
-            <p class="text-sm text-mutedForeground truncate">No statements found</p>
+         <div class="border rounded-md p-4">
+            <p class="text-base font-semibold">Total Application</p>
+            <p>{{ info.total_application }}</p>
          </div>
-         {% else %}
-         <table class="table-auto w-full">
-            <thead class="text-left">
-               <tr>
-                  <th class="px-4 py-2">Type</th>
-                  <th class="px-4 py-2 text-center">Application</th>
-                  <th class="px-4 py-2 text-center">Sentiment</th>
-               </tr>
-            </thead>
-            <tbody class="text-left max-h-[500px] overflow-y-auto">
-               {% for statement in statements %}
-               <tr class="border-b">
-                  <!-- <td class="px-4 py-3 truncate">{{ statement.bank.value }} - {{statement.id}}</td> -->
-                  <td class="px-4 py-3 text-center">{{ statement.sentiment.value }}</td>
-               </tr>
-               {% endfor %}
-            </tbody>
-         </table>
-         {% endif %}
+         <div class="border rounded-md p-4">
+            <p class="text-base font-semibold">On Process</p>
+            <p>{{ info.on_process }}</p>
+         </div>
+         <div class="border rounded-md p-4">
+            <p class="text-base font-semibold">Approved</p>
+            <p>{{ info.approved }}</p>
+         </div>
+         <div class="border rounded-md p-4">
+            <p class="text-base font-semibold">Rejected</p>
+            <p>{{ info.rejected }}</p>
+         </div>
+         <div class="border rounded-md p-4">
+            <p class="text-base font-semibold">Total Amount</p>
+            <p>{{ info.total_amount }} IDR</p>
+         </div>
+      </div>
       </div>
    </div>
+
 
    {% include 'components/customer/application-modal.html' %}
 </section>

@@ -47,6 +47,7 @@
             <thead class="text-left">
                <tr>
                   <th class="px-4 py-2">Amount</th>
+                  <th class="px-4 py-2 text-center ">Duration</th>
                   <th class="px-4 py-2 text-center ">Type</th>
                   <th class="px-4 py-2 ">Status</th>
                   <th class="px-4 py-2">Customer</th>
@@ -57,7 +58,8 @@
             <tbody class="divide-y divide-mutedForeground/20 text-left">
                {% for application in applications %}
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[200px]"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR in {{application.duration}} Months</a></td>
+                  <td class="px-4 py-3 truncate w-[200px]"><a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline">{{ application.amount }} IDR</a></td>
+                  <td class="px-4 py-3 truncate w-[200px] text-center">{{application.duration}} Months</td>
                   <td class="px-4 py-3 truncate w-[200px] text-center">{{ application.application_type.name }}</td>
                   <td class="px-4 py-3 truncate w-[200px] ">{{ application.status.value }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
@@ -67,7 +69,7 @@
                         {{ application.customer.name }}
                      </a>
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.created_at }}</td>
+                  <td class="px-4 py-3 truncate w-[200px]">{{ application.created_at | utc_to_wib  }}</td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <!-- <button
