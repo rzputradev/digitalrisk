@@ -1,7 +1,7 @@
 {% extends 'layouts/platform.html' %} {% block title %}Application Preview{% endblock %} {% block main %}
 <div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-6 md:p-4 p-2">
-   {% include 'components/application/delete-modal.html' %} {% include 'components/application/application-modal.html'
-   %}
+   {% include 'components/application/delete-modal.html' %} {% include 'components/application/create-modal.html' %} {%
+   include 'components/application/create-statement-modal.html' %}
 
    <!-- Header -->
    <div class="flex justify-between items-end text-primary/85">
@@ -28,14 +28,15 @@
          <span>Add Application</span>
       </button>
    </div>
-   <section class="flex flex-col-reverse lg:flex-row gap-x-4 text-primary/85">
+   <section class="flex flex-col-reverse gap-y-4 lg:gap-y-0 lg:flex-row gap-x-4 text-primary/85">
       <!-- All statements -->
       <div class="w-full lg:w-[70%] bg-background p-8 rounded-md shadow-md text-primary/85">
          <div class="flex items-center justify-between">
             <div class="flex items-center gap-x-2">
                <h2 class="text-lg font-semibold">Statements</h2>
             </div>
-            <button
+            <a
+               href="{{url_for('platform.statement.create', application_id=application.id)}}"
                class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"
             >
                <svg
@@ -54,7 +55,7 @@
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                </svg>
                <span>Create</span>
-            </button>
+            </a>
          </div>
          <div class="flex flex-col gap-y-4 mt-4 max-h-[450px] overflow-y-auto">
             {% if not application.statements %}
@@ -84,7 +85,7 @@
                      <td class="px-4 py-3 truncate">
                         <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                            <button
-                              onclick="openModal('application-delete-modal-{{application.id}}')"
+                              onclick="openModal('statement-delete-modal-{{statement.id}}')"
                               class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm hover:text-secondary px-2 py-1 hover:bg-primary/70"
                            >
                               <!-- {{ 'disabled' if application.user_id != user.id else '' }}  -->
@@ -111,7 +112,7 @@
                         </div>
                      </td>
                   </tr>
-                  {% include 'components/application/delete-modal.html' %} {% endfor %}
+                  {% include 'components/statement/delete-modal.html' %} {% endfor %}
                </tbody>
             </table>
             {% endif %}
@@ -130,19 +131,31 @@
          <input type="hidden" name="user_id" , value="{{application.user_id}}" />
          <input type="hidden" name="customer_id" , value="{{application.customer_id}}" />
 
-         <div class="flex items-center justify-between border-mutedForeground/70 border-b-2 pb-4">
+         <div class="flex items-center justify-between border-mutedForeground/60 border-b-2 pb-4">
             <h2 class="text-lg font-semibold">Application Detail</h2>
          </div>
 
          <!-- Application Section -->
          <div class="w-full space-y-6 px-2">
+            <div class="flex flex-col items-start space-y-1">
+               <p class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0">Customer</p>
+               <div class="w-full">
+                  <a
+                     href="{{ url_for('platform.customer.preview', id=application.customer_id) }}"
+                     class="text-primary/85 hover:underline"
+                  >
+                     {{ application.customer.name }}
+                  </a>
+               </div>
+            </div>
+
             {% for field in [form.status, form.application_type_id, form.amount, form.duration] %}
             <div class="flex flex-col items-start space-y-1">
                {{ field.label(class="lg:w-2/5 lg:text-base text-sm font-medium mb-2 lg:mb-0") }}
                <div class="w-full">
                   {{ field(class_='w-full disabled:text-mutedForeground/80 appearance-none bg-transparent border-0
-                  border-b focus:outline-none focus:ring-0', disabled=application.user_id != current_user.id) }} {% for
-                  error in field.errors %}
+                  border-b focus:outline-none focus:ring-0 focus:border-primary/80 transition duration-150',
+                  disabled=application.user_id != current_user.id) }} {% for error in field.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>

@@ -1,0 +1,48 @@
+<!-- Modal delete customer -->
+<div
+   id="statement-delete-modal-{{statement.id}}"
+   class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
+>
+   <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+         <span class="font-semibold text-xl">Delete Statement</span
+         ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-x cursor-pointer"
+            onclick="closeModal('statement-delete-modal-{{statement.id}}')"
+         >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+         </svg>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-2">
+         <p class="text-mutedForeground">Are you sure you want to delete this stetement?</p>
+      </div>
+
+      <!-- Footer -->
+      <form method="POST" action="{{ url_for('platform.statement.delete', statement_id=statement.id) }}">
+         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+         <div class="flex justify-end text-sm">
+            <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
+            <button
+               type="button"
+               onclick="closeModal('statement-delete-modal-{{statement.id}}')"
+               class="bg-secondary py-2 px-4 rounded-md"
+            >
+               Cancel
+            </button>
+         </div>
+      </form>
+   </div>
+</div>

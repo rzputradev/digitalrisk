@@ -12,6 +12,7 @@ from app.models.customer import Customer
 from app.models.address import Address
 from app.models.application import Application, ApplicationType
 from app.utils.form.application import CreateApplicationForm, UpdateApplicationForm
+from app.utils.form.statement import CreateStatementForm
 
 
 application = Blueprint('application', __name__, url_prefix='/application')
@@ -59,6 +60,7 @@ def preview(id):
     
     form = UpdateApplicationForm(obj=application)
     application_form = CreateApplicationForm()
+    statement_form = CreateStatementForm()
 
     form.application_type_id.choices = [(type.id, type.name) for type in ApplicationType.query.all()]
     
@@ -82,7 +84,7 @@ def preview(id):
     form.status.data = application.status.name
     form.application_type_id.data = application.application_type_id
 
-    return render_template('pages/platform/application-preview.html', user=current_user, application=application, form=form, application_form=application_form)
+    return render_template('pages/platform/application-preview.html', user=current_user, application=application, form=form, application_form=application_form, statement_form=statement_form)
 
 
 
