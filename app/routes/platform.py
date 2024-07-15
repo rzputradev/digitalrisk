@@ -11,11 +11,13 @@ from app.models.customer import Customer
 from app.models.address import Address
 from app.routes.customer import customer as customer_blueprint
 from app.routes.application import application as application_blueprint
+from app.routes.statement import statement as statement_blueprint
 
 
 platform = Blueprint('platform', __name__, url_prefix='/dashboard')
 platform.register_blueprint(customer_blueprint)
 platform.register_blueprint(application_blueprint)
+platform.register_blueprint(statement_blueprint)
 
 
 @platform.route('/')

@@ -21,20 +21,43 @@
       </svg>
       <span class="font-semibold">Back</span>
    </a>
-   <div class="mx-auto bg-background w-full lg:p-14 p-8 max-w-4xl rounded-md shadow-md space-y-6">
+   <div class="mx-auto bg-background w-full lg:p-14 p-8 max-w-4xl rounded-md shadow-md space-y-6 h-max">
       <!-- Title -->
       <div class="text-primary/80">
-         <p class="lg:text-xl font-semibold text-lg line-clamp-1">New Customer Registration Form</p>
+         <p class="lg:text-xl font-semibold text-lg line-clamp-1">New Application Statement</p>
       </div>
 
       <!-- Form -->
-      <form method="POST" action="" class="space-y-10">
+      <form method="POST" action="" class="space-y-10" , enctype="multipart/form-data">
          {{ form.hidden_tag() }}
-         <!-- Customer Details -->
-         <div class="space-y-6">
-            <p class="font-semibold text-base text-primary/80">Customer Details</p>
 
-            {% for field in [form.name, form.phone_number, form.id_no, form.id_type, form.customer_type] %}
+         <div class="space-y-6">
+            <p class="font-semibold text-base text-primary/80">Statement Details</p>
+
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+               <label class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground">Customer</label>
+               <div class="lg:w-3/4">
+                  <input
+                     type="text"
+                     class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/80 transition duration-150"
+                     placeholder="{{application.customer.name}}"
+                     disabled
+                  />
+               </div>
+            </div>
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+               <label class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground">Application</label>
+               <div class="lg:w-3/4">
+                  <input
+                     type="text"
+                     class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/80 transition duration-150"
+                     placeholder="{{application.application_type.name}}"
+                     disabled
+                  />
+               </div>
+            </div>
+
+            {% for field in [form.bank_id, form.statement_type, form.ocr_raw] %}
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
                {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
                <div class="lg:w-3/4">
@@ -46,36 +69,6 @@
                </div>
             </div>
             {% endfor %}
-         </div>
-
-         <!-- Address Details -->
-         <div class="space-y-6">
-            <p class="font-semibold text-base text-primary/80">Address Details</p>
-
-            {% for field in [form.street, form.city, form.province, form.zip_code] %}
-            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-               {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
-               <div class="lg:w-3/4">
-                  {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b w-full
-                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
-                  duration-150', placeholder=field.label.text) }} {% for error in field.errors %}
-                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-                  {% endfor %}
-               </div>
-            </div>
-            {% endfor %}
-         </div>
-
-         <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-            {{ form.country.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
-            <div class="lg:w-3/4">
-               <input
-                  type="text"
-                  class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/80 transition duration-150"
-                  placeholder="Indonesia"
-                  disabled
-               />
-            </div>
          </div>
 
          <div class="w-full flex justify-center">
