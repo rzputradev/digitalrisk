@@ -1,11 +1,30 @@
 {% extends 'layouts/platform.html' %} {% block title %}Application Preview{% endblock %} {% block main %}
 <div class="w-full flex flex-col flex-wrap lg:gap-y-4 gap-y-2 bg-secondary/80 lg:p-6 md:p-4 p-2">
-   {% include 'components/application/delete-modal.html' %} {% include 'components/application/create-modal.html' %} {%
-   include 'components/application/create-statement-modal.html' %}
+   {% include 'components/application/delete-modal.html' %} {% include 'components/application/create-modal.html' %}
 
    <!-- Header -->
    <div class="flex justify-between items-end text-primary/85">
-      {% include 'components/back-button.html' %}
+      <div class="flex items-center py-2 text-mutedForeground gap-x-2">
+         <a href="{{url_for('platform.application.index', data='all')}}">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-arrow-left-circle"
+            >
+               <circle cx="12" cy="12" r="10"></circle>
+               <polyline points="12 8 8 12 12 16"></polyline>
+               <line x1="16" y1="12" x2="8" y2="12"></line>
+            </svg>
+         </a>
+         <span class="lg:text-lg font-semibold">Application Preview</span>
+      </div>
       <button
          onclick="openModal('create-application-modal-{{application.id}}')"
          class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex justify-center items-center gap-x-1"

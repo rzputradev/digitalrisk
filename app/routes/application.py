@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, request, abort
+import os
+from flask import Blueprint, render_template, flash, redirect, url_for, request, abort, current_app
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -26,11 +27,7 @@ def index():
     search = request.args.get('search', '', type=str)
     per_page = 12
     
-    query = Application.query.options(
-        joinedload(Application.customer),
-        joinedload(Application.user),
-        joinedload(Application.application_type)
-    )
+    query = Application.query
     
     if data != 'all':
         query = query.filter_by(user_id=current_user.id)
@@ -127,10 +124,23 @@ def delete():
         return redirect(request.referrer or url_for('platform.application.index', data='user'))
 
     if application is None:
-        return "Application not found", 404
-    
-    application.delete(application)
-    
+        return abort(404, description="Application not found")
+
+    try:
+        for statement in application.statements:
+            if statement.filename:
+                file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        
+        db.session.delete(application)
+        db.session.commit()
+        flash('Application deleted successfully!', 'success')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('Something went wrong!', 'danger')
+        print(f'Failed to delete application: {str(e)}')
+
     if request.referrer and '/application/' in request.referrer:
         return redirect(url_for('platform.application.index', data='user'))
 

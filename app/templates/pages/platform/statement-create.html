@@ -2,7 +2,10 @@
 
 <section class="w-full lg:p-6 p-2 flex bg-secondary/80 gap-y-4">
    <!-- Title -->
-   <a href="javascript:history.go(-1)" class="py-2 text-mutedForeground gap-x-2 fixed lg:flex items-center hidden">
+   <a
+      href="{{url_for('platform.application.preview', id=application.id)}}"
+      class="py-2 text-mutedForeground gap-x-2 fixed lg:flex items-center hidden"
+   >
       <svg
          xmlns="http://www.w3.org/2000/svg"
          width="24"
@@ -28,12 +31,10 @@
       </div>
 
       <!-- Form -->
-      <form method="POST" action="" class="space-y-10" , enctype="multipart/form-data">
+      <form method="POST" action="" class="space-y-8" enctype="multipart/form-data">
          {{ form.hidden_tag() }}
 
          <div class="space-y-6">
-            <p class="font-semibold text-base text-primary/80">Statement Details</p>
-
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
                <label class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground">Customer</label>
                <div class="lg:w-3/4">
@@ -45,28 +46,44 @@
                   />
                </div>
             </div>
-            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-               <label class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground">Application</label>
-               <div class="lg:w-3/4">
-                  <input
-                     type="text"
-                     class="lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b-2 w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-mutedForeground/80 transition duration-150"
-                     placeholder="{{application.application_type.name}}"
-                     disabled
-                  />
-               </div>
-            </div>
 
-            {% for field in [form.bank_id, form.statement_type, form.ocr_raw] %}
-            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-               {{ field.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
-               <div class="lg:w-3/4">
-                  {{ field(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b w-full
-                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
-                  duration-150', placeholder=field.label.text) }} {% for error in field.errors %}
-                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-                  {% endfor %}
-               </div>
+            <div class="flex items-center justify-center w-full">
+               <label
+                  for="filename"
+                  id="dropzone"
+                  class="flex flex-col items-center justify-center w-full min-h-[400px] border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 hover:border-gray-400"
+               >
+                  <div id="dropzone-content" class="flex flex-col items-center justify-center p-8 space-y-2">
+                     <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="feather feather-upload-cloud text-mutedForeground"
+                     >
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                        <line x1="12" y1="12" x2="12" y2="21"></line>
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                     </svg>
+                     <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span class="font-semibold">Click to upload</span> or drag and drop
+                     </p>
+                     <p class="text-xs text-gray-500 dark:text-gray-400">
+                        PDF, PNG, JPG, JPEG, EXCEL, or CSV (MAX. 10MB)
+                     </p>
+                  </div>
+                  {{ form.filename(class="hidden") }}
+               </label>
+            </div>
+            {% for error in form.filename.errors %}
+            <div id="error-message" class="flex items-center space-x-2">
+               <p class="text-red-600 text-sm mt-1">{{ error }}</p>
             </div>
             {% endfor %}
          </div>
@@ -76,11 +93,86 @@
                type="submit"
                class="w-full py-2 bg-primary text-secondary font-semibold rounded-md shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
-               Submit
+               Run
             </button>
          </div>
       </form>
    </div>
 </section>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const dropzone = document.getElementById("dropzone");
+      const input = document.getElementById("filename");
+      const dropzoneContent = document.getElementById("dropzone-content");
+
+      dropzone.addEventListener("dragover", function (e) {
+         e.preventDefault();
+         dropzone.classList.add("border-primary");
+      });
+
+      dropzone.addEventListener("dragleave", function (e) {
+         e.preventDefault();
+         dropzone.classList.remove("border-primary");
+      });
+
+      dropzone.addEventListener("drop", function (e) {
+         e.preventDefault();
+         dropzone.classList.remove("border-primary");
+         handleFiles(e.dataTransfer.files);
+      });
+
+      input.addEventListener("change", function (e) {
+         handleFiles(input.files);
+      });
+
+      function handleFiles(files) {
+         dropzoneContent.innerHTML = "";
+
+         for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) {
+               showError("File size must be less than 10 MB!");
+               return;
+            }
+
+            const allowedTypes = [
+               "application/pdf",
+               "image/png",
+               "image/jpg",
+               "image/jpeg",
+               "application/vnd.ms-excel",
+               "text/csv",
+            ];
+            if (!allowedTypes.includes(file.type)) {
+               showError("Only PDF, PNG, JPG, JPEG, EXCEL, and CSV files are allowed!");
+               return;
+            }
+
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = function (event) {
+               if (file.type.startsWith("image/")) {
+                  const img = document.createElement("img");
+                  img.src = event.target.result;
+                  img.classList.add("max-h-[400px]", "object-cover", "rounded-md", "border", "border-gray-300");
+                  dropzoneContent.appendChild(img);
+               } else {
+                  const fileName = document.createElement("p");
+                  fileName.textContent = file.name;
+                  fileName.classList.add("text-sm", "text-gray-500", "dark:text-gray-400", "font-semibold");
+                  dropzoneContent.appendChild(fileName);
+               }
+            };
+         }
+      }
+
+      function showError(message) {
+         const errorMessage = document.createElement("p");
+         errorMessage.textContent = message;
+         errorMessage.classList.add("text-red-600", "text-sm", "mt-1");
+         dropzoneContent.appendChild(errorMessage);
+      }
+   });
+</script>
 
 {% endblock %}
