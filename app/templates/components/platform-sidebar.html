@@ -71,6 +71,28 @@
          </svg>
          <span class="sidebar-text hidden lg:inline truncate">Application</span>
       </a>
+      <a
+         href="{{ url_for('platform.statement.index', data='all') }}"
+         class="flex items-center space-x-4 w-full hover:bg-secondary rounded-md p-3 {{ 'bg-secondary font-semibold' if request.path == url_for('platform.statement.index') else '' }}"
+      >
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-layers size-6 {{ '' if request.path == url_for('platform.statement.index') else 'text-mutedForeground' }}"
+         >
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+         </svg>
+         <span class="sidebar-text hidden lg:inline truncate">Statement</span>
+      </a>
    </div>
 
    <div class="space-y-2">

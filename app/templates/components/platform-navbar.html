@@ -29,7 +29,11 @@
 
          <!-- Center (Search Bar) -->
          <div class="flex-grow">
-            <form action="#" method="POST" class="relative w-full max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
+            <form
+               action="{{url_for('platform.customer.index', data='all')}}"
+               method="GET"
+               class="relative w-full max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto"
+            >
                <label for="search" class="sr-only">Search</label>
                <input
                   type="text"

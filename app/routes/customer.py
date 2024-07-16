@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, request, abort
+import os
+from flask import Blueprint, render_template, flash, redirect, url_for, request, abort, current_app
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -27,9 +28,7 @@ def index():
     per_page = 12
     application_form = CreateApplicationForm()
 
-    query = Customer.query.options(
-        joinedload(Customer.user)
-    )
+    query = Customer.query
 
     if data != 'all':
         query = query.filter_by(user_id=current_user.id)
@@ -144,15 +143,35 @@ def delete():
     customer_id = request.form.get('customer_id')
     customer = Customer.query.get(customer_id)
 
-    if not customer:
-        abort(404, description='Customer not found')
+    if customer.user_id != current_user.id:
+        flash('You do not have permission', 'warning')
+        return redirect(request.referrer or url_for('platform.application.index', data='all'))
 
-    customer.delete(customer)
+    if not customer:
+        return abort(404, description='Customer not found')
+
+    try:
+        for application in customer.applications:
+            for statement in application.statements:
+                if statement.filename:
+                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+
+        db.session.delete(customer)
+        db.session.commit()
+
+        flash('Customer deleted successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting the customer and associated statements', 'danger')
+        print(f'Error: {e}')
 
     if request.referrer and '/customer/' in request.referrer:
         return redirect(url_for('platform.customer.index', data='user'))
 
     return redirect(request.referrer or url_for('platform.customer.index', data='user'))
+
 
 
 

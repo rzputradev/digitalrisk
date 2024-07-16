@@ -1,4 +1,7 @@
 migrations/
+
+app/static/uploads/
+
 # Ignore Tailwind CSS configuration
 tailwind.config.js
 
