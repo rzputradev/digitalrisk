@@ -81,6 +81,9 @@ def preview(id):
     form.status.data = application.status.name
     form.application_type_id.data = application.application_type_id
 
+    statement_form.user_id.data = current_user.id
+    statement_form.application_id.data = application.id
+
     return render_template('pages/platform/application-preview.html', user=current_user, application=application, form=form, application_form=application_form, statement_form=statement_form)
 
 

@@ -40,6 +40,7 @@ class ProvinceEnum(Enum):
     sulawesi_barat = 'Sulawesi Barat'
     sumatra_barat = 'Sumatra Barat'
     yogyakarta = 'Yogyakarta'
+    other = 'Other'
 
 
 

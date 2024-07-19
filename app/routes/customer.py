@@ -14,6 +14,7 @@ from app.models.customer import Customer
 from app.models.address import Address
 from app.models.statement import Statement
 from app.utils.form.application import CreateApplicationForm
+from app.utils.form.statement import CreateStatementForm
 
 
 customer = Blueprint('customer', __name__, url_prefix='/customer')
@@ -55,6 +56,7 @@ def preview(id):
 
     customer_form = UpdateCustomerForm(obj=customer)
     application_form = CreateApplicationForm()
+    statement_form = CreateStatementForm()
 
     info = {
         'total_amount': sum([customer.applications[i].amount for i in range(len(customer.applications))]),
@@ -88,7 +90,7 @@ def preview(id):
     customer_form.zip_code.data = customer.address.zip_code if customer.address else None
     customer_form.country.data = customer.address.country if customer.address else None
 
-    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, info=info)
+    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, statement_form=statement_form, info=info)
 
 
 
