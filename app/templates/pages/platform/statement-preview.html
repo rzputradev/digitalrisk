@@ -1,0 +1,9 @@
+{% extends 'layouts/platform.html' %} {% block title %}Dashboard{% endblock %} {% block main %}
+
+<!-- User information -->
+<section class="w-full flex justify-center items-center">
+   <p class="text-xl">Welcome, {{user}}</p>
+   <pre>{{statement}}</pre>
+</section>
+
+{% endblock main%}

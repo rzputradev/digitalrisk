@@ -32,7 +32,9 @@
          class="space-y-6"
          enctype="multipart/form-data"
       >
-         {{ statement_form.hidden_tag() }}
+         <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+         <input type="hidden" name="user_id" value="{{user.id}}" />
+         <input type="hidden" name="application_id" value="{{application.id}}" />
 
          <div class="text-mutedForeground">
             Create new application for <span class="font-semibold">{{ application.customer.name }}</span>?

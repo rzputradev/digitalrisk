@@ -37,7 +37,7 @@ class Statement(db.Model):
 
 
     def __repr__(self):
-        return f'{self.name}, {self.sentiment}'
+        return f'{self.id}, {self.sentiment}'
 
 
     @staticmethod

@@ -13,14 +13,10 @@ from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm
+from app.utils.helper import generate_unique_filename
 
 statement = Blueprint('statement', __name__, url_prefix='/statement')
 
-
-def generate_unique_filename(original_filename):
-    extension = os.path.splitext(original_filename)[1]
-    unique_filename = str(uuid4()) + extension
-    return unique_filename
 
 
 @statement.route('/', methods=['GET'])
@@ -66,50 +62,66 @@ def create():
 
     form = CreateStatementForm()
 
-    if form.validate_on_submit():
-        try:
-            file = form.filename.data
-            if file:
-                unique_filename = generate_unique_filename(file.filename)
-                upload_folder = current_app.config['UPLOAD_FOLDER']
-                
-                upload_path = os.path.join(upload_folder, unique_filename)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            try:
+                file = form.filename.data
+                if file:
+                    secure_filename
+                    unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
+                    upload_folder = current_app.config['UPLOAD_FOLDER']
+                    
+                    upload_path = os.path.join(upload_folder, unique_filename)
 
-                file.save(upload_path)
+                    file.save(upload_path)
 
-                statement = Statement(
-                    user_id=form.user_id.data,
-                    application_id=form.application_id.data,
-                    filename=unique_filename
-                )
+                    statement = Statement(
+                        user_id=form.user_id.data,
+                        application_id=form.application_id.data,
+                        bank_id=form.bank_id.data,
+                        filename=unique_filename
+                    )
 
-                db.session.add(statement)
-                db.session.commit()
+                    db.session.add(statement)
+                    db.session.commit()
 
-                flash('Statement uploaded successfully', 'success')
-                return redirect(request.referrer)
-            else:
-                flash('No file uploaded.', 'danger')
-                return redirect(request.url)
+                    flash('Statement uploaded successfully', 'success')
+                    return redirect(url_for('platform.statement.preview', id=statement.id))
+                else:
+                    flash('No file uploaded.', 'danger')
+                    return redirect(request.url)
 
-        except Exception as e:
-            db.session.rollback()
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('An error occurred while uploading the statement', 'danger')
+                print(f'Error: {e}')
+        else:
             flash('An error occurred while uploading the statement', 'danger')
-            print(f'Error: {e}')
+            print(form.errors)
 
-    form.user_id.data = current_user.id
-    form.application_id.data = application_id
 
-    return render_template('pages/platform/statement-create.html', user=current_user, form=form, application=application)
+    return redirect(request.referrer or url_for('platform.statement.index', data='user'))
+
+
 
  
+@statement.route('/<int:id>', methods=['GET'])
+@login_required
+def preview(id):
+    statement = Statement.query.get(id)
+    
+    if not statement:
+        abort(404, description="Statement not found")
+
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement)
+
 
 
 
 @statement.route('/delete/<int:statement_id>', methods=['POST'])
 @login_required
 def delete(statement_id):
-    statement = Statement.query.get_or_404(statement_id)
+    statement = Statement.query.get(statement_id)
     
     if not statement:
         abort(404, description="Statement not found")
@@ -119,7 +131,6 @@ def delete(statement_id):
     
     try:
         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
-        print(file_path)
         if statement.filename and os.path.exists(file_path):
             os.remove(file_path)
         
