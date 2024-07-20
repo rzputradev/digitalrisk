@@ -10,9 +10,6 @@ class SentimentResult(Enum):
     neutral = 'Neutral'
 
 
-class StatementTypeEnum(Enum): 
-    online = 'Online'
-    local = 'Local'
 
 
 class Statement(db.Model):
@@ -23,7 +20,7 @@ class Statement(db.Model):
     # updated_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
     bank_id = db.Column(db.Integer, db.ForeignKey('bank.id'), nullable=True)
-    statement_type = db.Column(db.Enum(StatementTypeEnum), nullable=True)
+    is_valid = db.Column(db.Boolean, nullable=False, default=False)
     filename = db.Column(db.String(100), nullable=True)
     result = db.Column(db.String(100), nullable=True)
     sentiment = db.Column(db.Enum(SentimentResult), nullable=True)

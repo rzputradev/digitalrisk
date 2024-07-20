@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, SubmitField, HiddenField, StringField, IntegerField, DecimalField, ValidationError, FileField
-from wtforms.validators import DataRequired, Length, Optional, Regexp, NumberRange
-from app.models.statement import Bank, StatementTypeEnum
+from wtforms import SelectField, SubmitField, HiddenField, FileField
+from wtforms.validators import DataRequired
+from app.models.statement import Bank
 from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
 
 
@@ -13,7 +13,7 @@ class CreateStatementForm(FlaskForm):
     filename = FileField('Filename', validators=[
         FileRequired(),
         FileAllowed(['pdf', 'png', 'jpg', 'jpeg', 'xls', 'xlsx', 'csv'], 'PDF, image, Excel, and CSV files only!'),
-        FileSize(max_size=10 * 1024 * 1024, message='File size must be less than 10 MB!')
+        FileSize(max_size=20 * 1024 * 1024, message='File size must be less than 10 MB!')
     ])
     submit = SubmitField('Run')
 
