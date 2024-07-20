@@ -15,6 +15,8 @@ from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm
 from app.utils.helper import generate_unique_filename
 
+
+
 statement = Blueprint('statement', __name__, url_prefix='/statement')
 
 
@@ -47,6 +49,19 @@ def index():
     statements = pagination.items
 
     return render_template('pages/platform/statement.html', user=current_user, statements=statements, pagination=pagination)
+
+
+
+
+@statement.route('/<int:id>', methods=['GET'])
+@login_required
+def preview(id):
+    statement = Statement.query.get(id)
+    
+    if not statement:
+        abort(404, description="Statement not found")
+
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement)
 
 
 
@@ -96,31 +111,18 @@ def create():
                 flash('An error occurred while uploading the statement', 'danger')
                 print(f'Error: {e}')
         else:
-            flash('An error occurred while uploading the statement', 'danger')
-            print(form.errors)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
 
 
     return redirect(request.referrer or url_for('platform.statement.index', data='user'))
 
 
-
- 
-@statement.route('/<int:id>', methods=['GET'])
+@statement.route('/delete', methods=['POST'])
 @login_required
-def preview(id):
-    statement = Statement.query.get(id)
-    
-    if not statement:
-        abort(404, description="Statement not found")
-
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement)
-
-
-
-
-@statement.route('/delete/<int:statement_id>', methods=['POST'])
-@login_required
-def delete(statement_id):
+def delete():
+    statement_id = request.form.get('statement_id')
     statement = Statement.query.get(statement_id)
     
     if not statement:

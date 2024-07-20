@@ -25,10 +25,10 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
-                  <th class="px-4 py-2">Customer</th>
-                  <th class="px-4 py-2 text-center">Type</th>
                   <th class="px-4 py-2">Bank</th>
-                  <th class="px-4 py-2">Created By</th>
+                  <th class="px-4 py-2">Customer</th>
+                  <th class="px-4 py-2 text-center">Valid</th>
+                  <th class="px-4 py-2">Application</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Action</th>
                </tr>
@@ -37,28 +37,21 @@
                {% for statement in statements %}
 
                <tr class="hover:bg-secondary">
+                  <td class="px-4 py-3 truncate w-[200px]"><a href="{{url_for('platform.statement.preview', id=statement.id)}}" class="hover:underline">{{ statement.bank.name }}</a></td>
                   <td class="px-4 py-3 truncate w-[100px]">
                      <a href="{{ url_for('platform.application.preview', id=statement.application.id) }}" class="hover:underline"
-                        >{{ statement.application.customer.name }}</a
+                     >{{ statement.application.customer.name }}</a
                      >
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px] text-center">{{ statement.statement_type.value }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ statement.bank.name }}</td>
-
-                  <td class="px-4 py-3 truncate w-[200px]">
-                     <a
-                        href="{{ url_for('platform.statement.index', search=statement.user.name) }}"
-                        class="hover:underline"
-                        >{{ statement.user.name }}</a
-                     >
-                  </td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ statement.created_at | utc_to_wib }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] text-center"> {{ statement.is_valid }} </td>
+                  <td class="px-4 py-3 truncate w-[200px]"> {{ statement.application.application_type.name }} </td>
+                  <td class="px-4 py-3 truncate w-[200px]"> {{ statement.created_at | utc_to_wib }} </td>
                   <td class="px-4 py-3 truncate w-[200px]">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                        
                         <button
                            onclick="openModal('statement-delete-modal-{{statement.id}}')"
-                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm px-2 py-1 hover:bg-primary/70 hover:text-secondary"
+                           class="disabled:text-mutedForeground/50 rounded-sm px-2 py-1 {{ 'disabled:hover:bg-primary/70' if statement.user_id != user.id else 'hover:bg-primary/70' }} hover:text-secondary"
                            {{ 'disabled' if statement.user_id != user.id else '' }} 
                            >
                            <svg

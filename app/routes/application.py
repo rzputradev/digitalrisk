@@ -2,11 +2,10 @@ import os
 from flask import Blueprint, render_template, flash, redirect, url_for, request, abort, current_app
 from flask_login import current_user, login_required
 from sqlalchemy import or_
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from pytz import timezone
 
-from app.utils.form.customer import CreateCustomerForm, UpdateCustomerForm
 from app import db
 from app.models.user import User
 from app.models.customer import Customer
@@ -27,6 +26,7 @@ def index():
     search = request.args.get('search', '', type=str)
     per_page = 12
     
+    statement_form = CreateStatementForm()
     query = Application.query
     
     if data != 'all':
@@ -44,7 +44,7 @@ def index():
     pagination = query.order_by(Application.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     applications = pagination.items
 
-    return render_template('pages/platform/application.html', user=current_user, applications=applications, pagination=pagination)
+    return render_template('pages/platform/application.html', user=current_user, applications=applications, pagination=pagination, statement_form=statement_form, search=search, data=data)
 
 
 
@@ -61,28 +61,30 @@ def preview(id):
 
     form.application_type_id.choices = [(type.id, type.name) for type in ApplicationType.query.all()]
     
-    if form.validate_on_submit():
-        if application.user_id != current_user.id:
-            flash('You do not have permission', 'warning')
-            return redirect(request.referrer or url_for('platform.application.index', data='user'))
-        try:
-            application.application_type_id = form.application_type_id.data
-            application.status = form.status.data
-            application.amount = form.amount.data
-            application.duration = form.duration.data
-            db.session.commit()
-            flash('Application updated successfully!', 'success')
-            return redirect(request.referrer or url_for('platform.application.index', data='user'))
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('Something went wrong!', 'danger')
+    if request.method == "POST":
+        if form.validate_on_submit():
+            if application.user_id != current_user.id:
+                flash('You do not have permission', 'warning')
+                return redirect(request.referrer or url_for('platform.application.index', data='user'))
+            try:
+                application.application_type_id = form.application_type_id.data
+                application.status = form.status.data
+                application.amount = form.amount.data
+                application.duration = form.duration.data
+                db.session.commit()
+                flash('Application updated successfully!', 'success')
+                return redirect(request.referrer or url_for('platform.application.index', data='user'))
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('Something went wrong!', 'danger')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
     
 
     form.status.data = application.status.name
     form.application_type_id.data = application.application_type_id
-
-    statement_form.user_id.data = current_user.id
-    statement_form.application_id.data = application.id
 
     return render_template('pages/platform/application-preview.html', user=current_user, application=application, form=form, application_form=application_form, statement_form=statement_form)
 
@@ -94,24 +96,30 @@ def preview(id):
 @login_required
 def create():
     form = CreateApplicationForm()
-    if form.validate_on_submit():
-        try:
-            new_application = Application(
-                user_id=current_user.id,
-                customer_id=form.customer_id.data,
-                application_type_id=form.application_type_id.data,
-                amount=form.amount.data,
-                duration=form.duration.data,
-                status='on_process'
-            )
-            db.session.add(new_application)
-            db.session.commit()
-            flash('Application created successfully!', 'success')
-            return redirect(url_for('platform.application.preview', id=new_application.id))
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('Something went wrong!', 'danger')
-            print(f'Failed to add application: {str(e)}')
+    if request.method == "POST":
+
+        if form.validate_on_submit():
+            try:
+                new_application = Application(
+                    user_id=current_user.id,
+                    customer_id=form.customer_id.data,
+                    application_type_id=form.application_type_id.data,
+                    amount=form.amount.data,
+                    duration=form.duration.data,
+                    status='on_process'
+                )
+                db.session.add(new_application)
+                db.session.commit()
+                flash('Application created successfully!', 'success')
+                return redirect(url_for('platform.application.preview', id=new_application.id))
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('Something went wrong!', 'danger')
+                print(f'Failed to add application: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
 
     return redirect(request.referrer or url_for('platform.application.index', data='user'))
 

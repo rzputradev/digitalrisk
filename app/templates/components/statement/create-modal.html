@@ -1,0 +1,188 @@
+<!-- Modal create statement -->
+<div
+   id="create-statement-modal-{{application.id}}"
+   class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
+>
+   <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+         <span class="font-semibold text-xl">Create Statement</span>
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-x cursor-pointer"
+            onclick="closeModal('create-statement-modal-{{application.id}}')"
+         >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+         </svg>
+      </div>
+
+      <!-- Form -->
+      <form
+         method="POST"
+         action="{{url_for('platform.statement.create', application_id=application.id)}}"
+         class="space-y-6"
+         enctype="multipart/form-data"
+      >
+         <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+         <input type="hidden" name="user_id" value="{{user.id}}" />
+         <input type="hidden" name="application_id" value="{{application.id}}" />
+
+         <div class="text-mutedForeground">
+            Create new application for <span class="font-semibold">{{ application.customer.name }}</span>?
+         </div>
+         <div class="space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
+               {{ statement_form.bank_id.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground")
+               }}
+               <div class="lg:w-3/4">
+                  {{statement_form.bank_id(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
+                  w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
+                  duration-150', placeholder=statement_form.bank_id.label.text)}} {% for error in
+                  statement_form.bank_id.errors %}
+                  <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                  {% endfor %}
+               </div>
+            </div>
+
+            <div class="flex items-center justify-center w-full">
+               <label
+                  for="filename"
+                  id="dropzone"
+                  class="flex flex-col items-center justify-center w-full min-h-[400px] border-2 border-muted border-dashed rounded-md cursor-pointer bg-secondary hover:bg-primary/80 hover:border-gray-400"
+               >
+                  <div id="dropzone-content" class="flex flex-col items-center justify-center p-8 space-y-2">
+                     <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="feather feather-upload-cloud text-mutedForeground"
+                     >
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                        <line x1="12" y1="12" x2="12" y2="21"></line>
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                     </svg>
+                     <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span class="font-semibold">Click to upload</span> or drag and drop
+                     </p>
+                     <p class="text-xs text-gray-500 dark:text-gray-400">
+                        PDF, PNG, JPG, JPEG, EXCEL, or CSV (MAX. 20MB)
+                     </p>
+                  </div>
+                  {{ statement_form.filename(class="hidden") }}
+               </label>
+            </div>
+            {% for error in statement_form.filename.errors %}
+            <div id="error-message" class="flex items-center space-x-2">
+               <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            </div>
+            {% endfor %}
+         </div>
+
+         <div class="w-full flex justify-center">
+            <button
+               type="submit"
+               class="w-full py-2 bg-primary text-secondary font-semibold rounded-md shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+               Upload
+            </button>
+         </div>
+      </form>
+   </div>
+</div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const dropzone = document.getElementById("dropzone");
+      const input = document.getElementById("filename");
+      const dropzoneContent = document.getElementById("dropzone-content");
+
+      dropzone.addEventListener("dragover", function (e) {
+         e.preventDefault();
+         dropzone.classList.add("border-primary");
+      });
+
+      dropzone.addEventListener("dragleave", function (e) {
+         e.preventDefault();
+         dropzone.classList.remove("border-primary");
+      });
+
+      dropzone.addEventListener("drop", function (e) {
+         e.preventDefault();
+         dropzone.classList.remove("border-primary");
+         handleFiles(e.dataTransfer.files);
+      });
+
+      input.addEventListener("change", function (e) {
+         handleFiles(input.files);
+      });
+
+      function handleFiles(files) {
+         dropzoneContent.innerHTML = "";
+
+         for (const file of files) {
+            if (file.size > 20 * 1024 * 1024) {
+               showError("File size must be less than 20 MB!");
+               return;
+            }
+
+            const allowedTypes = [
+               "application/pdf",
+               "image/png",
+               "image/jpg",
+               "image/jpeg",
+               "application/vnd.ms-excel",
+               "text/csv",
+            ];
+            if (!allowedTypes.includes(file.type)) {
+               showError("Only PDF, PNG, JPG, JPEG, EXCEL, and CSV files are allowed!");
+               return;
+            }
+
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = function (event) {
+               if (file.type.startsWith("image/")) {
+                  const img = document.createElement("img");
+                  img.src = event.target.result;
+                  img.classList.add("max-h-[400px]", "object-cover", "rounded-md", "border", "border-gray-300");
+                  dropzoneContent.appendChild(img);
+               } else {
+                  const fileName = document.createElement("p");
+                  fileName.textContent = file.name;
+                  fileName.classList.add(
+                     "text-sm",
+                     "text-mutedForeground",
+                     "truncate",
+                     "font-semibold",
+                     "max-w-[100px]"
+                  );
+                  dropzoneContent.appendChild(fileName);
+               }
+            };
+         }
+      }
+
+      function showError(message) {
+         const errorMessage = document.createElement("p");
+         errorMessage.textContent = message;
+         errorMessage.classList.add("text-red-600", "text-sm", "mt-1");
+         dropzoneContent.appendChild(errorMessage);
+      }
+   });
+</script>

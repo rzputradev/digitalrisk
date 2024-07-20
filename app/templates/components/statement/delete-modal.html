@@ -31,8 +31,9 @@
       </div>
 
       <!-- Footer -->
-      <form method="POST" action="{{ url_for('platform.statement.delete', statement_id=statement.id) }}">
+      <form method="POST" action="{{ url_for('platform.statement.delete') }}">
          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+         <input type="hidden" name="statement_id" value="{{ statement.id }}" />
          <div class="flex justify-end text-sm">
             <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
             <button

@@ -79,7 +79,7 @@
                         </button>
                         <button
                            onclick="openModal('application-delete-modal-{{application.id}}')"
-                           class="disabled:text-mutedForeground/50 disabled:bg-background rounded-sm hover:text-secondary px-2 py-1 hover:bg-primary/70"
+                           class="disabled:text-mutedForeground/50 rounded-sm px-2 py-1 {{ 'disabled:hover:bg-primary/70' if customer.user_id != user.id else 'hover:bg-primary/70' }} hover:text-secondary"
                            {{ 'disabled' if application.user_id != user.id else '' }} 
                         >
                            <svg
@@ -105,7 +105,7 @@
                      </div>
                   </td>
                </tr>
-               {% include 'components/customer/create-statement-modal.html' %}       
+               {% include 'components/statement/create-modal.html' %}       
                {% include 'components/application/delete-modal.html' %} 
                {% endfor %}
             </tbody>

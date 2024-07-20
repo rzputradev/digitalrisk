@@ -65,21 +65,24 @@ def preview(id):
         'rejected': len([customer.applications[i] for i in range(len(customer.applications)) if customer.applications[i].status.name == 'rejected']),
         'total_application': len(customer.applications),
     }
-    
-    if customer_form.validate_on_submit():
-        customer_form.populate_obj(customer)
-        
-        if not customer.address:
-            customer.address = Address()
 
-        customer_form.populate_obj(customer.address)
+    if request.method == 'POST':
+        if customer_form.validate_on_submit():
+            customer_form.populate_obj(customer)
+            
+            if not customer.address:
+                customer.address = Address()
+
+            customer_form.populate_obj(customer.address)
+            
+            db.session.commit()
+            flash('Customer updated successfully!', 'success')
+            return redirect(request.referrer or url_for('platform.customer.preview', id=customer.id))
         
-        db.session.commit()
-        flash('Customer updated successfully!', 'success')
-        return redirect(request.referrer or url_for('platform.customer.preview', id=customer.id))
-    
-    else:
-        print(f'Form errors: {customer_form.errors}')
+        else:
+            for field, errors in customer_form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(customer_form, field).label.text} field - {error}', 'danger')
 
     customer_form.id_type.data = customer.id_type.name
     customer_form.customer_type.data = customer.customer_type.name
@@ -98,41 +101,45 @@ def preview(id):
 @login_required
 def create():
     form = CreateCustomerForm()
-    if form.validate_on_submit():    
-        try:            
-            new_customer = Customer(
-                user_id=current_user.id,
-                name=form.name.data,
-                phone_number=form.phone_number.data,
-                id_type=form.id_type.data,
-                id_no=form.id_no.data,
-                customer_type=form.customer_type.data
-            )
-            db.session.add(new_customer)
-            db.session.commit()
+    if request.method == 'POST':
 
-            new_address = Address(
-                customer_id=new_customer.id,
-                street=form.street.data,
-                city=form.city.data,
-                province=form.province.data,
-                country=form.country.data,
-                zip_code=form.zip_code.data
-            )
-            db.session.add(new_address)
-            db.session.commit()
+        if form.validate_on_submit():    
+            try:            
+                new_customer = Customer(
+                    user_id=current_user.id,
+                    name=form.name.data,
+                    phone_number=form.phone_number.data,
+                    id_type=form.id_type.data,
+                    id_no=form.id_no.data,
+                    customer_type=form.customer_type.data
+                )
+                db.session.add(new_customer)
+                db.session.commit()
 
-            flash(f'{new_customer.name} added successfully!', 'success')
-            preview_url = url_for('platform.customer.preview', id=new_customer.id)
-            return redirect(preview_url)
+                new_address = Address(
+                    customer_id=new_customer.id,
+                    street=form.street.data,
+                    city=form.city.data,
+                    province=form.province.data,
+                    country=form.country.data,
+                    zip_code=form.zip_code.data
+                )
+                db.session.add(new_address)
+                db.session.commit()
 
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('Something went wrong!', 'danger')
-            print(f'Failed to add customer: {str(e)}')
+                flash(f'{new_customer.name} added successfully!', 'success')
+                preview_url = url_for('platform.customer.preview', id=new_customer.id)
+                return redirect(preview_url)
 
-    else:
-        print(f'Form errors: {form.errors}')
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('Something went wrong!', 'danger')
+                print(f'Failed to add customer: {str(e)}')
+
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
 
     return render_template('pages/platform/customer-create.html', user=current_user, form=form)
 
