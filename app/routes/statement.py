@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
-from app.utils.form.statement import CreateStatementForm
+from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
 from app.utils.helper import generate_unique_filename
 
 
@@ -57,11 +57,14 @@ def index():
 @login_required
 def preview(id):
     statement = Statement.query.get(id)
+
+    statement_form = CreateStatementForm()
+    parameter_form = ParameterStatementForm()
     
     if not statement:
         abort(404, description="Statement not found")
 
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement)
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement,statement_form=statement_form, parameter_form=parameter_form)
 
 
 

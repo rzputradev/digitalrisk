@@ -938,6 +938,10 @@ video {
   max-width: 56rem;
 }
 
+.max-w-\[100px\] {
+  max-width: 100px;
+}
+
 .max-w-full {
   max-width: 100%;
 }
@@ -1149,6 +1153,12 @@ video {
   margin-bottom: calc(2rem * var(--tw-space-y-reverse));
 }
 
+.space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1.25rem * var(--tw-space-y-reverse));
+}
+
 .divide-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-divide-x-reverse: 0;
   border-right-width: calc(2px * var(--tw-divide-x-reverse));
@@ -1275,6 +1285,11 @@ video {
 .border-green-300 {
   --tw-border-opacity: 1;
   border-color: rgb(134 239 172 / var(--tw-border-opacity));
+}
+
+.border-muted {
+  --tw-border-opacity: 1;
+  border-color: hsl(var(--muted) / var(--tw-border-opacity));
 }
 
 .border-mutedForeground\/50 {
@@ -1404,8 +1419,22 @@ video {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 
+.bg-cyan-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 211 238 / var(--tw-bg-opacity));
+}
+
+.bg-red-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
+}
+
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
+}
+
+.fill-red-950 {
+  fill: #450a0a;
 }
 
 .object-cover {
@@ -1674,8 +1703,17 @@ video {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+.text-red-400 {
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity));
+}
+
 .underline {
   text-decoration-line: underline;
+}
+
+.decoration-red-400 {
+  text-decoration-color: #f87171;
 }
 
 .antialiased {
@@ -1779,6 +1817,10 @@ video {
   background-color: hsl(var(--primary) / 0.7);
 }
 
+.hover\:bg-primary\/80:hover {
+  background-color: hsl(var(--primary) / 0.8);
+}
+
 .hover\:bg-primary\/90:hover {
   background-color: hsl(var(--primary) / 0.9);
 }
@@ -1866,6 +1908,10 @@ video {
 
 .disabled\:text-mutedForeground\/80:disabled {
   color: hsl(var(--muted-foreground) / 0.8);
+}
+
+.disabled\:hover\:bg-primary\/70:hover:disabled {
+  background-color: hsl(var(--primary) / 0.7);
 }
 
 @media (min-width: 768px) {

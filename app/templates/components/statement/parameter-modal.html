@@ -1,12 +1,12 @@
-<!-- Modal create application -->
+<!-- Modal -->
 <div
-   id="create-application-modal-{{customer.id}}"
+   id="parameter-statement-modal-{{ statement.id }}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <span class="font-semibold text-xl">Create Application</span>
+         <span class="font-semibold text-xl">Configure Parameter</span>
          <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('create-application-modal-{{customer.id}}')"
+            onclick="closeModal('parameter-statement-modal-{{ statement.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -26,20 +26,19 @@
       </div>
 
       <!-- Form -->
-      <form method="POST" action="{{ url_for('platform.application.create') }}" class="space-y-8">
+      <form method="POST" action="{{ url_for('platform.statement.index') }}" class="space-y-8">
          <div>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="customer_id" value="{{ customer.id }}" />
+            <input type="hidden" name="statement_id" value="{{ statement.id }}" />
          </div>
 
-         <!-- Application Header -->
-         <div class="text-mutedForeground">
-            Create new application for <span class="font-semibold">{{ customer.name }}</span>?
-         </div>
+         <!-- Description -->
+         <div class="text-mutedForeground">Please configure OCR parameters before running it!</div>
+
          <!-- Form Fields -->
-         <div class="space-y-5">
-            {% for field in [application_form.application_type_id, application_form.amount, application_form.duration]
-            %}
+         <div class="space-y-6">
+            {% for field in [parameter_form.detect_rotation, parameter_form.implicit_rows,
+            parameter_form.borderless_tables] %}
             <div class="flex items-center w-full gap-x-4">
                <label for="{{ field.id }}" class="w-2/5 text-mutedForeground">{{ field.label.text }}</label>
                <div class="w-3/5">
@@ -55,6 +54,22 @@
                </div>
             </div>
             {% endfor %}
+            <div class="flex items-start w-full gap-x-4">
+               <label for="{{ parameter_form.min_confidence.id }}" class="w-2/5 text-mutedForeground"
+                  >{{ parameter_form.min_confidence.label.text }}</label
+               >
+               <div class="w-3/5">
+                  {{ parameter_form.min_confidence(class="w-full px-0 ") }}
+                  <span id="min_confidence_value">{{ parameter_form.min_confidence.data }}</span>
+                  {% if parameter_form.min_confidence.errors %}
+                  <div>
+                     {% for error in parameter_form.min_confidence.errors %}
+                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                     {% endfor %}
+                  </div>
+                  {% endif %}
+               </div>
+            </div>
          </div>
 
          <!-- Footer -->
@@ -63,11 +78,11 @@
                type="submit"
                class="text-secondary bg-primary/85 hover:bg-primary/90 rounded-md py-2 px-4 mr-2 transition duration-150"
             >
-               Confirm
+               Execute
             </button>
             <button
                type="button"
-               onclick="closeModal('create-application-modal-{{customer.id}}')"
+               onclick="closeModal('parameter-statement-modal-{{ statement.id }}')"
                class="bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded-md transition duration-150"
             >
                Cancel
@@ -76,3 +91,14 @@
       </form>
    </div>
 </div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      var minConfidenceInput = document.getElementById("min_confidence");
+      var minConfidenceValue = document.getElementById("min_confidence_value");
+
+      minConfidenceInput.addEventListener("input", function () {
+         minConfidenceValue.textContent = minConfidenceInput.value;
+      });
+   });
+</script>
