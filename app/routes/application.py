@@ -140,7 +140,7 @@ def delete():
     try:
         for statement in application.statements:
             if statement.filename:
-                file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
+                file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
                 if os.path.exists(file_path):
                     os.remove(file_path)
         

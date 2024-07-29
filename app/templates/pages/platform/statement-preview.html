@@ -89,9 +89,7 @@
          <div class="flex flex-col gap-y-4 mt-4 max-h-[450px] overflow-y-auto">
             {% if statement.result is none %}
             <span class="text-center text-sm text-mutedForeground">No result provided, Please click run!</span>
-            {% else %}
-            <span>Re-Run</span>
-            {% endif %}
+            {% else %} {% include 'components/statement/edit-statement.html' %} {% endif %}
          </div>
       </div>
    </section>

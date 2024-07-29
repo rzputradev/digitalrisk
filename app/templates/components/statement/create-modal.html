@@ -44,9 +44,9 @@
                {{ statement_form.bank_id.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground")
                }}
                <div class="lg:w-3/4">
-                  {{statement_form.bank_id(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
+                  {{ statement_form.bank_id(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
                   w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
-                  duration-150', placeholder=statement_form.bank_id.label.text)}} {% for error in
+                  duration-150', placeholder=statement_form.bank_id.label.text) }} {% for error in
                   statement_form.bank_id.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
@@ -55,11 +55,14 @@
 
             <div class="flex items-center justify-center w-full">
                <label
-                  for="filename"
-                  id="dropzone"
+                  for="filename-{{application.id}}"
+                  id="dropzone-{{application.id}}"
                   class="flex flex-col items-center justify-center w-full min-h-[400px] border-2 border-muted border-dashed rounded-md cursor-pointer bg-secondary hover:bg-primary/80 hover:border-gray-400"
                >
-                  <div id="dropzone-content" class="flex flex-col items-center justify-center p-8 space-y-2">
+                  <div
+                     id="dropzone-content-{{application.id}}"
+                     class="flex flex-col items-center justify-center p-8 space-y-2"
+                  >
                      <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -84,7 +87,7 @@
                         PDF, PNG, JPG, JPEG, EXCEL, or CSV (MAX. 20MB)
                      </p>
                   </div>
-                  {{ statement_form.filename(class="hidden") }}
+                  <input type="file" name="filename" id="filename-{{application.id}}" class="hidden" />
                </label>
             </div>
             {% for error in statement_form.filename.errors %}
@@ -108,9 +111,9 @@
 
 <script>
    document.addEventListener("DOMContentLoaded", function () {
-      const dropzone = document.getElementById("dropzone");
-      const input = document.getElementById("filename");
-      const dropzoneContent = document.getElementById("dropzone-content");
+      const dropzone = document.getElementById("dropzone-{{application.id}}");
+      const input = document.getElementById("filename-{{application.id}}");
+      const dropzoneContent = document.getElementById("dropzone-content-{{application.id}}");
 
       dropzone.addEventListener("dragover", function (e) {
          e.preventDefault();
