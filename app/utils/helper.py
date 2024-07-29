@@ -7,7 +7,7 @@ def generate_unique_filename(original_filename):
    try:
       extension = os.path.splitext(original_filename)[1]
       unique_filename = str(uuid4()) + extension
-      upload_folder = current_app.config['UPLOAD_FOLDER']
+      upload_folder = current_app.config['FILE_FOLDER']
       upload_path = os.path.join(upload_folder, unique_filename)
       
       return unique_filename, upload_path

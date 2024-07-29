@@ -87,10 +87,9 @@ def create():
                 if file:
                     secure_filename
                     unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
-                    upload_folder = current_app.config['UPLOAD_FOLDER']
-                    
-                    upload_path = os.path.join(upload_folder, unique_filename)
-
+                    file_folder = current_app.config['FILE_FOLDER']
+       
+                    upload_path = os.path.join(file_folder, unique_filename)
                     file.save(upload_path)
 
                     statement = Statement(
@@ -135,7 +134,7 @@ def delete():
         abort(403, description="You do not have permission to delete this statement")
     
     try:
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
+        file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
         if statement.filename and os.path.exists(file_path):
             os.remove(file_path)
         

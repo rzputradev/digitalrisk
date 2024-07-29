@@ -21,9 +21,9 @@ def create_app():
     env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
     
-    upload_folder = app.config['UPLOAD_FOLDER']
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
+    file_folder = app.config['FILE_FOLDER']
+    if not os.path.exists(file_folder):
+        os.makedirs(file_folder)
 
     db.init_app(app)
     migrate.init_app(app, db)
