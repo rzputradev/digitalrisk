@@ -34,7 +34,7 @@ class Statement(db.Model):
 
 
     def __repr__(self):
-        return f'{self.id}, {self.sentiment}'
+        return f'{self.id}'
 
 
     @staticmethod
@@ -45,6 +45,10 @@ class Statement(db.Model):
     @staticmethod
     def get_all_application_statements():
         return Statement.query.all()
+    
+    # @staticmethod 
+    # def get_transaction(id):
+        
 
 
 

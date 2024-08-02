@@ -1,1 +1,112 @@
-<div>Edit statement</div>
+<form method="POST" action="{{ url_for('platform.statement.edit_transaction') }}">
+   <div>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="statement_id" value="{{ statement.id }}" />
+   </div>
+   <table class="table-auto w-full border-collapse text-base text-primary/80 text-left">
+      <thead>
+         <tr class="px-4 py-2 text-left">
+            <th class="px-4 py-2">Date & Time</th>
+            <th class="px-4 py-2">Value Date</th>
+            <th class="px-4 py-2">Description</th>
+            <th class="px-4 py-2">Reference</th>
+            <th class="px-4 py-2">Debit</th>
+            <th class="px-4 py-2">Credit</th>
+            <th class="px-4 py-2">Balance</th>
+         </tr>
+      </thead>
+      <tbody id="transactionTableBody" class="divide-y divide-mutedForeground/20 text-left">
+         {% for transaction in result.transactions %}
+         <tr>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="datetime-local"
+                  name="transactions[{{ transaction.id }}][datetime]"
+                  value="{{ transaction.datetime.value|replace(' ', 'T') }}"
+                  class="w-full"
+                  required
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="datetime-local"
+                  name="transactions[{{ transaction.id }}][valuedate]"
+                  value="{{ transaction.valuedate.value|replace(' ', 'T') }}"
+                  class="w-full"
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="text"
+                  name="transactions[{{ transaction.id }}][description]"
+                  value="{{ transaction.description.value }}"
+                  class="w-full"
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="text"
+                  name="transactions[{{ transaction.id }}][reference]"
+                  value="{{ transaction.reference.value }}"
+                  class="w-full"
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="text"
+                  name="transactions[{{ transaction.id }}][debit]"
+                  value="{{ transaction.debit.value|format_currency }}"
+                  class="w-full"
+                  required
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="text"
+                  name="transactions[{{ transaction.id }}][credit]"
+                  value="{{ transaction.credit.value|format_currency }}"
+                  class="w-full"
+                  required
+               />
+            </td>
+            <td class="px-4 py-3 truncate w-[200px]">
+               <input
+                  type="text"
+                  name="transactions[{{ transaction.id }}][balance]"
+                  value="{{ transaction.balance.value|format_currency }}"
+                  class="w-full"
+                  required
+               />
+            </td>
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
+
+   <div class="flex justify-end p-4">
+      <button
+         type="submit"
+         class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex items-center gap-x-1"
+      >
+         Save Changes
+      </button>
+   </div>
+</form>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const currencyInputs = document.querySelectorAll('input[name^="transactions"][type="text"]');
+
+      function formatCurrency(input) {
+         let value = input.value.replace(/[^0-9]/g, "");
+         if (value === "") return;
+         input.value = new Intl.NumberFormat("id-ID").format(value);
+      }
+
+      currencyInputs.forEach((input) => {
+         input.addEventListener("input", function () {
+            formatCurrency(input);
+         });
+      });
+   });
+</script>

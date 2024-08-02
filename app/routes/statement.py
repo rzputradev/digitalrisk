@@ -5,7 +5,8 @@ from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
-from uuid import uuid4
+import json
+import re
 
 from app import db
 from app.models.user import User
@@ -13,7 +14,7 @@ from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
-from app.utils.helper import generate_unique_filename
+from app.utils.helper import generate_unique_filename, parse_currency, save_json_file, load_json_file
 
 
 
@@ -57,14 +58,25 @@ def index():
 @login_required
 def preview(id):
     statement = Statement.query.get(id)
-
-    statement_form = CreateStatementForm()
-    parameter_form = ParameterStatementForm()
     
     if not statement:
         abort(404, description="Statement not found")
 
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement,statement_form=statement_form, parameter_form=parameter_form)
+    statement_form = CreateStatementForm()
+    parameter_form = ParameterStatementForm()
+    result = None
+
+    if statement.result:
+        result_json_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
+        if os.path.isfile(result_json_path):
+            try:
+                with open(result_json_path, 'r') as file:
+                    result = json.load(file)
+            except json.JSONDecodeError:
+                flash('An error occurred while loading the result', 'danger')
+                print('Error: An error occurred while loading the result')  
+
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, result=result, statement_form=statement_form, parameter_form=parameter_form)
 
 
 
@@ -87,9 +99,6 @@ def create():
                 if file:
                     secure_filename
                     unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
-                    file_folder = current_app.config['FILE_FOLDER']
-       
-                    upload_path = os.path.join(file_folder, unique_filename)
                     file.save(upload_path)
 
                     statement = Statement(
@@ -119,6 +128,54 @@ def create():
 
 
     return redirect(request.referrer or url_for('platform.statement.index', data='user'))
+
+
+
+
+@statement.route('/edit_transaction', methods=['POST'])
+@login_required
+def edit_transaction():
+    statement_id = request.form.get('statement_id')
+    statement = Statement.query.get(statement_id)
+    
+    if not statement:
+        flash('Statement not found', 'danger')
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+
+    result_json_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
+    
+    if not os.path.exists(result_json_path):
+        flash('JSON file not found', 'danger')
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+    
+    result = load_json_file(result_json_path)
+    if result is None:
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+
+    transactions = result.get('transactions', [])
+    form_transactions = {
+        key: value for key, value in request.form.items() if key.startswith('transactions[')
+    }
+
+    for transaction in transactions:
+        transaction_id = str(transaction['id'])
+        transaction_prefix = f'transactions[{transaction_id}]'
+
+        for field in ['datetime', 'valuedate', 'description', 'reference', 'debit', 'credit', 'balance']:
+            form_value = form_transactions.get(f'{transaction_prefix}[{field}]')
+            if form_value is not None:  # Check if form_value is not None (or empty)
+                if field in ['debit', 'credit', 'balance']:
+                    transaction[field]['value'] = parse_currency(form_value)
+                else:
+                    transaction[field]['value'] = form_value
+
+    
+    save_json_file(result_json_path, result)
+    
+    flash('Transactions updated successfully', 'success')
+    return redirect(url_for('platform.statement.preview', id=statement_id))
+
+
 
 
 @statement.route('/delete', methods=['POST'])
