@@ -15,6 +15,7 @@ from app.models.application import Application
 from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
 from app.utils.helper import generate_unique_filename, parse_currency, save_json_file, load_json_file
+from datetime import datetime
 
 
 
@@ -150,6 +151,7 @@ def edit_transaction():
     
     result = load_json_file(result_json_path)
     if result is None:
+        flash('Error loading JSON file', 'danger')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
     transactions = result.get('transactions', [])
@@ -157,23 +159,89 @@ def edit_transaction():
         key: value for key, value in request.form.items() if key.startswith('transactions[')
     }
 
+    has_errors = False
+
     for transaction in transactions:
         transaction_id = str(transaction['id'])
         transaction_prefix = f'transactions[{transaction_id}]'
 
         for field in ['datetime', 'valuedate', 'description', 'reference', 'debit', 'credit', 'balance']:
             form_value = form_transactions.get(f'{transaction_prefix}[{field}]')
-            if form_value is not None:  # Check if form_value is not None (or empty)
+
+            if field == 'datetime' and not form_value:
+                flash(f'Datetime cannot be empty for transaction ID {transaction_id}', 'danger')
+                has_errors = True
+                continue
+
+            if field == 'datetime' and form_value:
+                try:
+                    datetime.strptime(form_value, '%Y-%m-%dT%H:%M')
+                except ValueError:
+                    flash(f'Invalid format for datetime for transaction ID {transaction_id}', 'danger')
+                    has_errors = True
+                    continue
+
+            if field == 'valuedate':
+                if form_value:
+                    try:
+                        datetime.strptime(form_value, '%Y-%m-%dT%H:%M') 
+                    except ValueError:
+                        flash(f'Invalid format for valuedate for transaction ID {transaction_id}', 'danger')
+                        has_errors = True
+                        continue
+
+                    datetime_value = form_transactions.get(f'{transaction_prefix}[datetime]')
+                    if datetime_value:
+                        try:
+                            datetime_datetime = datetime.strptime(datetime_value, '%Y-%m-%dT%H:%M')
+                            datetime_valuedate = datetime.strptime(form_value, '%Y-%m-%dT%H:%M')
+                            if datetime_valuedate < datetime_datetime:
+                                flash(f'Value date cannot be earlier than transaction date for transaction ID {transaction_id}', 'danger')
+                                has_errors = True
+                                continue
+                        except ValueError:
+                            flash(f'Invalid date comparison for transaction ID {transaction_id}', 'danger')
+                            has_errors = True
+                            continue
+
+            if field in ['description', 'reference'] and form_value:
+                if len(form_value) > 150:
+                    flash(f'{field.replace("_", " ").capitalize()} cannot exceed 150 characters for transaction ID {transaction_id}', 'danger')
+                    has_errors = True
+                    continue
+
+            if field in ['debit', 'credit']:
+                if form_value:
+                    clean_value = form_value.replace(',', '')
+                    if len(clean_value) > 16:
+                        flash(f'{field.replace("_", " ").capitalize()} cannot exceed 16 digits for transaction ID {transaction_id}', 'danger')
+                        has_errors = True
+                        continue
+
+            if field == 'balance' and form_value:
+                clean_value = form_value.replace(',', '')
+                if len(clean_value) > 16:
+                    flash(f'Balance cannot exceed 16 digits for transaction ID {transaction_id}', 'danger')
+                    has_errors = True
+                    continue
+
+            if form_value is not None:
                 if field in ['debit', 'credit', 'balance']:
                     transaction[field]['value'] = parse_currency(form_value)
                 else:
                     transaction[field]['value'] = form_value
+            else:
+                if field in ['debit', 'credit', 'balance']:
+                    transaction[field]['value'] = None 
 
+    if has_errors:
+        return redirect(url_for('platform.statement.preview', id=statement_id))
     
     save_json_file(result_json_path, result)
     
     flash('Transactions updated successfully', 'success')
     return redirect(url_for('platform.statement.preview', id=statement_id))
+
 
 
 

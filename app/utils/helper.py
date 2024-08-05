@@ -40,5 +40,9 @@ def save_json_file(filepath, data):
 
 
 def parse_currency(value):
-    """Parse a currency formatted string into an integer."""
-    return int(re.sub(r'[^\d]', '', value))
+    cleaned_value = re.sub(r'[^\d]', '', value)
+    
+    if cleaned_value == '':
+        return value
+    
+    return int(cleaned_value)
