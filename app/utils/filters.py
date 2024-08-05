@@ -13,10 +13,11 @@ def format_wib_datetime(datetime):
     wib_datetime = datetime.astimezone(wib_timezone)
     return wib_datetime.strftime('%d %B, %Y')
 
+
 def format_currency(value):
     try:
         numeric_value = float(value)
-        return f"{numeric_value:,.0f}".replace(",", ".") + " IDR"
+        return f"{numeric_value:,.0f}"  # Format with comma as thousands separator
     except (ValueError, TypeError):
         return value
 

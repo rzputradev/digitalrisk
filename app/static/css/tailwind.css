@@ -1419,6 +1419,11 @@ video {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 
+.bg-yellow-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 240 138 / var(--tw-bg-opacity));
+}
+
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
 }
@@ -1555,6 +1560,10 @@ video {
 
 .text-center {
   text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .text-4xl {
@@ -1842,6 +1851,10 @@ video {
 
 .focus\:border-primary\/80:focus {
   border-color: hsl(var(--primary) / 0.8);
+}
+
+.focus\:border-primary\/50:focus {
+  border-color: hsl(var(--primary) / 0.5);
 }
 
 .focus\:bg-primary\/80:focus {

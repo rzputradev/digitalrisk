@@ -6,75 +6,87 @@
    <table class="table-auto w-full border-collapse text-base text-primary/80 text-left">
       <thead>
          <tr class="px-4 py-2 text-left">
-            <th class="px-4 py-2">Date & Time</th>
+            <th class="px-4 py-2">Transaction Date</th>
             <th class="px-4 py-2">Value Date</th>
             <th class="px-4 py-2">Description</th>
             <th class="px-4 py-2">Reference</th>
-            <th class="px-4 py-2">Debit</th>
-            <th class="px-4 py-2">Credit</th>
-            <th class="px-4 py-2">Balance</th>
+            <th class="px-4 py-2 text-right">Debit</th>
+            <th class="px-4 py-2 text-right">Credit</th>
+            <th class="px-4 py-2 text-right">Balance</th>
          </tr>
       </thead>
       <tbody id="transactionTableBody" class="divide-y divide-mutedForeground/20 text-left">
          {% for transaction in result.transactions %}
          <tr>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.datetime.confidence < 0.5 else '' }} "
+            >
                <input
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][datetime]"
                   value="{{ transaction.datetime.value|replace(' ', 'T') }}"
-                  class="w-full"
+                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                   required
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.valuedate.confidence < 0.5 else '' }}"
+            >
                <input
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][valuedate]"
                   value="{{ transaction.valuedate.value|replace(' ', 'T') }}"
-                  class="w-full"
+                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.description.confidence < 0.5 else '' }}"
+            >
                <input
                   type="text"
                   name="transactions[{{ transaction.id }}][description]"
                   value="{{ transaction.description.value }}"
-                  class="w-full"
+                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.reference.confidence < 0.5 else '' }}"
+            >
                <input
                   type="text"
                   name="transactions[{{ transaction.id }}][reference]"
                   value="{{ transaction.reference.value }}"
-                  class="w-full"
+                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.debit.confidence < 0.5 else '' }}"
+            >
                <input
                   type="text"
                   name="transactions[{{ transaction.id }}][debit]"
                   value="{{ transaction.debit.value|format_currency }}"
-                  class="w-full"
-                  required
+                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.credit.confidence < 0.5 else '' }}"
+            >
                <input
                   type="text"
                   name="transactions[{{ transaction.id }}][credit]"
                   value="{{ transaction.credit.value|format_currency }}"
-                  class="w-full"
-                  required
+                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
             </td>
-            <td class="px-4 py-3 truncate w-[200px]">
+            <td
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.balance.confidence < 0.5 else '' }}"
+            >
                <input
                   type="text"
                   name="transactions[{{ transaction.id }}][balance]"
                   value="{{ transaction.balance.value|format_currency }}"
-                  class="w-full"
+                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                   required
                />
             </td>
@@ -100,13 +112,24 @@
       function formatCurrency(input) {
          let value = input.value.replace(/[^0-9]/g, "");
          if (value === "") return;
-         input.value = new Intl.NumberFormat("id-ID").format(value);
+
+         let formattedValue = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(value);
+         input.value = formattedValue.replace(/\./g, ",");
+      }
+
+      function restrictInput(e) {
+         const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+         if (!/^[0-9]$/.test(e.key) && !allowedKeys.includes(e.key)) {
+            e.preventDefault();
+         }
       }
 
       currencyInputs.forEach((input) => {
          input.addEventListener("input", function () {
             formatCurrency(input);
          });
+
+         input.addEventListener("keydown", restrictInput);
       });
    });
 </script>
