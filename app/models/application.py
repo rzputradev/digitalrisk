@@ -22,7 +22,7 @@ class Application(db.Model):
     # updated_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     application_type_id = db.Column(db.Integer, db.ForeignKey('application_type.id'), nullable=False)
-    amount = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.BigInteger, nullable=False)
     duration = db.Column(db.Integer, nullable=False)
     status = db.Column(db.Enum(ApplicationStatusEnum), nullable=False, default=ApplicationStatusEnum.on_process)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)

@@ -16,6 +16,7 @@ from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
 from app.utils.helper import generate_unique_filename, parse_currency, save_json_file, load_json_file
 from datetime import datetime
+from collections import defaultdict
 
 
 
@@ -154,89 +155,111 @@ def edit_transaction():
         flash('Error loading JSON file', 'danger')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
-    transactions = result.get('transactions', [])
-    form_transactions = {
-        key: value for key, value in request.form.items() if key.startswith('transactions[')
-    }
+    form_transactions = {key: value for key, value in request.form.items() if key.startswith('transactions[')}
 
-    has_errors = False
+    def validate_and_parse_transaction(form_data):
+        transactions_dict = defaultdict(dict)
+        errors = []
 
-    for transaction in transactions:
-        transaction_id = str(transaction['id'])
-        transaction_prefix = f'transactions[{transaction_id}]'
-
-        for field in ['datetime', 'valuedate', 'description', 'reference', 'debit', 'credit', 'balance']:
-            form_value = form_transactions.get(f'{transaction_prefix}[{field}]')
-
-            if field == 'datetime' and not form_value:
-                flash(f'Datetime cannot be empty for transaction ID {transaction_id}', 'danger')
-                has_errors = True
+        for key, value in form_data.items():
+            parts = key.split('[')
+            if len(parts) < 3:
                 continue
+            index = parts[1].split(']')[0]
+            field = parts[2].split(']')[0]
 
-            if field == 'datetime' and form_value:
+            confidence_key = f'transactions[{index}][{field}_confidence]'
+            confidence_value = form_data.get(confidence_key, '0.0')
+
+            if field == 'datetime':
                 try:
-                    datetime.strptime(form_value, '%Y-%m-%dT%H:%M')
+                    if not value:
+                        errors.append(f"Transaction {index}: Date and time is required.")
+                    else:
+                        datetime.strptime(value, '%Y-%m-%dT%H:%M')  
+                    transactions_dict[index][field] = {
+                        'value': value,
+                        'confidence': float(confidence_value)
+                    }
                 except ValueError:
-                    flash(f'Invalid format for datetime for transaction ID {transaction_id}', 'danger')
-                    has_errors = True
-                    continue
+                    errors.append(f"Transaction {index}: Invalid date and time format.")
 
-            if field == 'valuedate':
-                if form_value:
+            elif field == 'valuedate':
+                if value: 
                     try:
-                        datetime.strptime(form_value, '%Y-%m-%dT%H:%M') 
+                        datetime.strptime(value, '%Y-%m-%dT%H:%M')  
                     except ValueError:
-                        flash(f'Invalid format for valuedate for transaction ID {transaction_id}', 'danger')
-                        has_errors = True
-                        continue
-
-                    datetime_value = form_transactions.get(f'{transaction_prefix}[datetime]')
-                    if datetime_value:
-                        try:
-                            datetime_datetime = datetime.strptime(datetime_value, '%Y-%m-%dT%H:%M')
-                            datetime_valuedate = datetime.strptime(form_value, '%Y-%m-%dT%H:%M')
-                            if datetime_valuedate < datetime_datetime:
-                                flash(f'Value date cannot be earlier than transaction date for transaction ID {transaction_id}', 'danger')
-                                has_errors = True
-                                continue
-                        except ValueError:
-                            flash(f'Invalid date comparison for transaction ID {transaction_id}', 'danger')
-                            has_errors = True
-                            continue
-
-            if field in ['description', 'reference'] and form_value:
-                if len(form_value) > 150:
-                    flash(f'{field.replace("_", " ").capitalize()} cannot exceed 150 characters for transaction ID {transaction_id}', 'danger')
-                    has_errors = True
-                    continue
-
-            if field in ['debit', 'credit']:
-                if form_value:
-                    clean_value = form_value.replace(',', '')
-                    if len(clean_value) > 16:
-                        flash(f'{field.replace("_", " ").capitalize()} cannot exceed 16 digits for transaction ID {transaction_id}', 'danger')
-                        has_errors = True
-                        continue
-
-            if field == 'balance' and form_value:
-                clean_value = form_value.replace(',', '')
-                if len(clean_value) > 16:
-                    flash(f'Balance cannot exceed 16 digits for transaction ID {transaction_id}', 'danger')
-                    has_errors = True
-                    continue
-
-            if form_value is not None:
-                if field in ['debit', 'credit', 'balance']:
-                    transaction[field]['value'] = parse_currency(form_value)
+                        errors.append(f"Transaction {index}: Invalid value date format.")
+                transactions_dict[index][field] = {
+                    'value': value,
+                    'confidence': float(confidence_value)
+                }
+            
+            elif field in {'description', 'reference'}:
+                if len(value) > 150:
+                    errors.append(f"Transaction {index}: {field.replace('_', ' ').capitalize()} must be less than 150 characters.")
+                transactions_dict[index][field] = {
+                    'value': value[:150], 
+                    'confidence': float(confidence_value)
+                }
+            
+            elif field in {'debit', 'credit'}:
+                if value:
+                    if len(value.replace(',', '')) > 20:
+                        errors.append(f"Transaction {index}: {field} must be a maximum of 20 digits.")
+                    try:
+                        int_value = int(value.replace(',', ''))
+                        transactions_dict[index][field] = {
+                            'value': int_value,
+                            'confidence': float(confidence_value)
+                        }
+                    except ValueError:
+                        errors.append(f"Transaction {index}: Invalid {field} value.")
                 else:
-                    transaction[field]['value'] = form_value
-            else:
-                if field in ['debit', 'credit', 'balance']:
-                    transaction[field]['value'] = None 
+                    transactions_dict[index][field] = {
+                        'value': value,
+                        'confidence': float(confidence_value)
+                    }
+            
+            elif field == 'balance':
+                if len(value.replace(',', '')) > 20:
+                    errors.append(f"Transaction {index}: Balance must be a maximum of 20 digits.")
+                try:
+                    int_value = int(value.replace(',', ''))
+                    transactions_dict[index][field] = {
+                        'value': int_value,
+                        'confidence': float(confidence_value)
+                    }
+                except ValueError:
+                    errors.append(f"Transaction {index}: Invalid balance value.")
 
-    if has_errors:
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            return None
+
+        transaction_list = []
+        for index, data in transactions_dict.items():
+            transaction = {
+                'id': int(index),
+                'datetime': data.get('datetime', {}),
+                'valuedate': data.get('valuedate', {}),
+                'description': data.get('description', {}),
+                'reference': data.get('reference', {}),
+                'debit': data.get('debit', {}),
+                'credit': data.get('credit', {}),
+                'balance': data.get('balance', {})
+            }
+            transaction_list.append(transaction)
+
+        return {'transactions': transaction_list}
+
+    new_transactions = validate_and_parse_transaction(form_transactions)
+    if new_transactions is None:
         return redirect(url_for('platform.statement.preview', id=statement_id))
-    
+
+    result['transactions'] = new_transactions['transactions']
+
     save_json_file(result_json_path, result)
     
     flash('Transactions updated successfully', 'success')

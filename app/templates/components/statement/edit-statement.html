@@ -3,7 +3,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="hidden" name="statement_id" value="{{ statement.id }}" />
    </div>
-   <table class="table-auto w-full border-collapse text-base text-primary/80 text-left">
+   <table id="transactionTable" class="table-auto w-full border-collapse text-base text-primary/80 text-left">
       <thead>
          <tr class="px-4 py-2 text-left">
             <th class="px-4 py-2">Transaction Date</th>
@@ -17,77 +17,122 @@
       </thead>
       <tbody id="transactionTableBody" class="divide-y divide-mutedForeground/20 text-left">
          {% for transaction in result.transactions %}
-         <tr>
+         <tr
+            id="row_{{ transaction.id }}"
+            class="transaction-row {{ 'new-row' if transaction.datetime.value == '' else '' }}"
+         >
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.datetime.confidence < 0.5 else '' }} "
+               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.datetime.confidence < 0.5 else '' }}"
             >
                <input
+                  id="datetime_{{ transaction.id }}"
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][datetime]"
                   value="{{ transaction.datetime.value|replace(' ', 'T') }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                   required
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][datetime_confidence]"
+                  value="{{ transaction.datetime.confidence }}"
+               />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.valuedate.confidence < 0.5 else '' }}"
             >
                <input
+                  id="valuedate_{{ transaction.id }}"
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][valuedate]"
                   value="{{ transaction.valuedate.value|replace(' ', 'T') }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][valuedate_confidence]"
+                  value="{{ transaction.valuedate.confidence }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.description.confidence < 0.5 else '' }}"
             >
                <input
+                  id="description_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][description]"
                   value="{{ transaction.description.value }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][description_confidence]"
+                  value="{{ transaction.description.confidence }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.reference.confidence < 0.5 else '' }}"
             >
                <input
+                  id="reference_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][reference]"
                   value="{{ transaction.reference.value }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][reference_confidence]"
+                  value="{{ transaction.reference.confidence }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.debit.confidence < 0.5 else '' }}"
             >
                <input
+                  id="debit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][debit]"
                   value="{{ transaction.debit.value|format_currency }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][debit_confidence]"
+                  value="{{ transaction.debit.confidence }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.credit.confidence < 0.5 else '' }}"
             >
                <input
+                  id="credit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][credit]"
                   value="{{ transaction.credit.value|format_currency }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][credit_confidence]"
+                  value="{{ transaction.credit.confidence }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.balance.confidence < 0.5 else '' }}"
             >
                <input
+                  id="balance_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][balance]"
                   value="{{ transaction.balance.value|format_currency }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                   required
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][balance_confidence]"
+                  value="{{ transaction.balance.confidence }}"
                />
             </td>
          </tr>
@@ -105,9 +150,57 @@
    </div>
 </form>
 
+<div id="contextMenu" class="hidden absolute border bg-background shadow-lg rounded-md z-10">
+   <ul class="list-none m-0 p-0 text-sm">
+      <li class="px-4 py-2 hover:bg-secondary">
+         <a href="#" id="addRow" class="flex gap-x-2">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-plus size-4"
+            >
+               <line x1="12" y1="5" x2="12" y2="19"></line>
+               <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+
+            <span>Add Row</span></a
+         >
+      </li>
+      <li class="px-4 py-2 hover:bg-secondary">
+         <a href="#" id="deleteRow" class="flex gap-x-2">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-trash size-4"
+            >
+               <polyline points="3 6 5 6 21 6"></polyline>
+               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Delete Row</span></a
+         >
+      </li>
+   </ul>
+</div>
+
 <script>
    document.addEventListener("DOMContentLoaded", function () {
-      const currencyInputs = document.querySelectorAll('input[name^="transactions"][type="text"]');
+      const currencyInputs = document.querySelectorAll(
+         'input[name$="[debit]"], input[name$="[credit]"], input[name$="[balance]"]'
+      );
 
       function formatCurrency(input) {
          let value = input.value.replace(/[^0-9]/g, "");
@@ -117,7 +210,7 @@
          input.value = formattedValue.replace(/\./g, ",");
       }
 
-      function restrictInput(e) {
+      function restrictCurrencyInput(e) {
          const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
          if (!/^[0-9]$/.test(e.key) && !allowedKeys.includes(e.key)) {
             e.preventDefault();
@@ -129,7 +222,111 @@
             formatCurrency(input);
          });
 
-         input.addEventListener("keydown", restrictInput);
+         input.addEventListener("keydown", restrictCurrencyInput);
       });
+
+      const contextMenu = document.getElementById("contextMenu");
+      let currentRow;
+
+      document.addEventListener("contextmenu", function (e) {
+         if (e.target.closest(".transaction-row")) {
+            e.preventDefault();
+            currentRow = e.target.closest(".transaction-row");
+            contextMenu.style.top = `${e.pageY}px`;
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.classList.remove("hidden");
+         } else {
+            contextMenu.classList.add("hidden");
+         }
+      });
+
+      document.addEventListener("click", function (e) {
+         if (!contextMenu.contains(e.target)) {
+            contextMenu.classList.add("hidden");
+         }
+      });
+
+      document.getElementById("addRow").addEventListener("click", function () {
+         if (!currentRow) return;
+
+         const rowCount = document.querySelectorAll(".transaction-row").length;
+         const newId = rowCount;
+
+         const newRow = document.createElement("tr");
+         newRow.id = `row_${newId}`;
+         newRow.className = "transaction-row new-row";
+
+         function createCell(type, name, required = false) {
+            const td = document.createElement("td");
+            td.className = "px-4 py-3 truncate w-[200px]";
+
+            const input = document.createElement("input");
+            input.type = type;
+            input.name = `transactions[${newId}][${name}]`;
+            input.className = "w-full bg-inherit appearance-none focus:outline-none focus:ring-0 text-right";
+            if (required) input.required = true;
+
+            const confidenceInput = document.createElement("input");
+            confidenceInput.type = "hidden";
+            confidenceInput.name = `transactions[${newId}][${name}_confidence]`;
+            confidenceInput.value = "1";
+
+            td.appendChild(input);
+            td.appendChild(confidenceInput);
+            return td;
+         }
+
+         newRow.appendChild(createCell("datetime-local", "datetime", true));
+         newRow.appendChild(createCell("datetime-local", "valuedate"));
+         newRow.appendChild(createCell("text", "description"));
+         newRow.appendChild(createCell("text", "reference"));
+         newRow.appendChild(createCell("text", "debit"));
+         newRow.appendChild(createCell("text", "credit"));
+         newRow.appendChild(createCell("text", "balance", true));
+
+         currentRow.insertAdjacentElement("afterend", newRow);
+
+         updateRowIds();
+
+         contextMenu.classList.add("hidden");
+      });
+
+      document.getElementById("deleteRow").addEventListener("click", function () {
+         if (!currentRow) return;
+         currentRow.remove();
+         contextMenu.classList.add("hidden");
+         updateRowIds();
+      });
+
+      function updateRowIds() {
+         document.querySelectorAll(".transaction-row").forEach((row, index) => {
+            const rowId = index;
+            row.id = `row_${rowId}`;
+            if (row.classList.contains("new-row")) {
+               row.classList.remove("new-row");
+            }
+            const inputs = row.querySelectorAll("input[name^='transactions']");
+            inputs.forEach((input) => {
+               input.name = input.name.replace(/\[\d+\]/, `[${rowId}]`);
+               const id = input.id;
+               if (id) {
+                  input.id = id.replace(/\d+$/, rowId);
+               }
+            });
+
+            row.querySelectorAll('input[name$="[debit]"], input[name$="[credit]"], input[name$="[balance]"]').forEach(
+               (input) => {
+                  input.removeEventListener("input", formatCurrency);
+                  input.removeEventListener("keydown", restrictCurrencyInput);
+
+                  input.addEventListener("input", function () {
+                     formatCurrency(input);
+                  });
+
+                  input.addEventListener("keydown", restrictCurrencyInput);
+               }
+            );
+         });
+      }
    });
 </script>

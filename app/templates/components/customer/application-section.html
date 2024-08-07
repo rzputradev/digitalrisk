@@ -48,7 +48,7 @@
                <tr class="border-b hover:bg-secondary">
                   <td class="px-4 py-3 truncate">
                      <a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline"
-                        >{{ application.amount }} IDR</a
+                        >{{ application.amount|format_currency }} IDR</a
                      >
                   </td>
                   <td class="px-4 py-3">{{application.duration}} Months</td>
@@ -139,7 +139,7 @@
          </div>
          <div class="border rounded-md p-4">
             <p class="text-base font-semibold">Total Amount</p>
-            <p>{{ info.total_amount }} IDR</p>
+            <p>{{ info.total_amount|format_currency }} IDR</p>
          </div>
       </div>
    </div>
