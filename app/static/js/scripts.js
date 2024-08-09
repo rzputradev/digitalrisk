@@ -25,6 +25,13 @@ function closeFlashMessage(button) {
    flashMessage.style.display = "none";
 }
 
+function commaSeparation(input) {
+   let value = input.value.replace(/[^0-9]/g, "");
+   if (value === "") return;
+   let formattedValue = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(value);
+   input.value = formattedValue.replace(/\./g, ",");
+}
+
 
 document.addEventListener('DOMContentLoaded', function () {
    const flashContainer = document.getElementById('flash-messages');
