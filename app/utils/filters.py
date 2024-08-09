@@ -14,10 +14,19 @@ def format_wib_datetime(datetime):
     return wib_datetime.strftime('%d %B, %Y')
 
 
-def format_currency(value):
+def comma_separation(value, decimal_places=None, currency_symbol=None):
     try:
         numeric_value = float(value)
-        return f"{numeric_value:,.0f}"  # Format with comma as thousands separator
+        
+        if decimal_places is not None:
+            formatted_value = f"{numeric_value:,.{decimal_places}f}"
+        else:
+            formatted_value = f"{numeric_value:,.0f}"
+        
+        if currency_symbol:
+            return f"{currency_symbol} {formatted_value}"
+        
+        return formatted_value
     except (ValueError, TypeError):
         return value
 
@@ -25,4 +34,4 @@ def format_currency(value):
 def register_filters(app):
     app.jinja_env.filters['utc_to_wib'] = utc_to_wib_filter
     app.jinja_env.filters['format_wib_datetime'] = format_wib_datetime
-    app.jinja_env.filters['format_currency'] = format_currency
+    app.jinja_env.filters['comma_separation'] = comma_separation

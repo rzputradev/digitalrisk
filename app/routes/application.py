@@ -13,6 +13,7 @@ from app.models.address import Address
 from app.models.application import Application, ApplicationType
 from app.utils.form.application import CreateApplicationForm, UpdateApplicationForm
 from app.utils.form.statement import CreateStatementForm
+from app.utils.helper import parse_integer
 
 
 application = Blueprint('application', __name__, url_prefix='/application')
@@ -69,19 +70,26 @@ def preview(id):
             try:
                 application.application_type_id = form.application_type_id.data
                 application.status = form.status.data
-                application.amount = form.amount.data
-                application.duration = form.duration.data
-                db.session.commit()
-                flash('Application updated successfully!', 'success')
-                return redirect(request.referrer or url_for('platform.application.index', data='user'))
+
+                amount = parse_integer(form.amount.data)
+                duration = parse_integer(form.duration.data)
+
+                if amount is None or duration is None:
+                    flash('Invalid amount or duration format.', 'danger')
+                else:
+                    application.amount = amount
+                    application.duration = duration
+                    db.session.commit()
+                    flash('Application updated successfully!', 'success')
+                    return redirect(request.referrer or url_for('platform.application.index', data='user'))
             except SQLAlchemyError as e:
                 db.session.rollback()
+                print(f'Failed to update application: {str(e)}')
                 flash('Something went wrong!', 'danger')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
-    
 
     form.status.data = application.status.name
     form.application_type_id.data = application.application_type_id
@@ -97,21 +105,26 @@ def preview(id):
 def create():
     form = CreateApplicationForm()
     if request.method == "POST":
-
         if form.validate_on_submit():
             try:
-                new_application = Application(
-                    user_id=current_user.id,
-                    customer_id=form.customer_id.data,
-                    application_type_id=form.application_type_id.data,
-                    amount=form.amount.data,
-                    duration=form.duration.data,
-                    status='on_process'
-                )
-                db.session.add(new_application)
-                db.session.commit()
-                flash('Application created successfully!', 'success')
-                return redirect(url_for('platform.application.preview', id=new_application.id))
+                amount = parse_integer(form.amount.data)
+                duration = parse_integer(form.duration.data)
+
+                if amount is None or duration is None:
+                    flash('Invalid amount or duration format.', 'danger')
+                else:
+                    new_application = Application(
+                        user_id=current_user.id,
+                        customer_id=form.customer_id.data,
+                        application_type_id=form.application_type_id.data,
+                        amount=amount, 
+                        duration=duration, 
+                        status='on_process'
+                    )
+                    db.session.add(new_application)
+                    db.session.commit()
+                    flash('Application created successfully!', 'success')
+                    return redirect(url_for('platform.application.preview', id=new_application.id))
             except SQLAlchemyError as e:
                 db.session.rollback()
                 flash('Something went wrong!', 'danger')
@@ -122,6 +135,7 @@ def create():
                     flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
 
     return redirect(request.referrer or url_for('platform.application.index', data='user'))
+
 
 
 

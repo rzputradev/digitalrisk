@@ -61,7 +61,7 @@
                <tr class="hover:bg-secondary">
                   <td class="px-4 py-3 truncate w-[200px]">
                      <a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline"
-                        >{{ application.amount|format_currency }} IDR</a
+                        >{{ application.amount|comma_separation }} IDR</a
                      >
                   </td>
                   <td class="px-4 py-3 truncate w-[200px] text-center">{{application.duration}} Months</td>

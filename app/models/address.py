@@ -7,6 +7,7 @@ from app import db
 
 
 class ProvinceEnum(Enum):
+    other = 'Other'
     aceh = 'Aceh'
     bali = 'Bali'
     banten = 'Banten'
@@ -40,7 +41,6 @@ class ProvinceEnum(Enum):
     sulawesi_barat = 'Sulawesi Barat'
     sumatra_barat = 'Sumatra Barat'
     yogyakarta = 'Yogyakarta'
-    other = 'Other'
 
 
 

@@ -14,7 +14,7 @@ from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
-from app.utils.helper import generate_unique_filename, parse_currency, save_json_file, load_json_file
+from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file
 from datetime import datetime
 from collections import defaultdict
 
@@ -156,6 +156,12 @@ def edit_transaction():
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
     form_transactions = {key: value for key, value in request.form.items() if key.startswith('transactions[')}
+    
+    # indices = set(re.search(r'\[(\d+)\]', key).group(1) for key in form_transactions.keys())
+    # num_rows = len(indices)
+    # if num_rows < 1:
+    #     flash('No transactions to update', 'danger')
+    #     return redirect(url_for('platform.statement.preview', id=statement_id))
 
     def validate_and_parse_transaction(form_data):
         transactions_dict = defaultdict(dict)
@@ -169,7 +175,10 @@ def edit_transaction():
             field = parts[2].split(']')[0]
 
             confidence_key = f'transactions[{index}][{field}_confidence]'
-            confidence_value = form_data.get(confidence_key, '0.0')
+            confidence_value = float(form_data.get(confidence_key, 0))
+
+            faulty_key = f'transactions[{index}][{field}_faulty]'
+            faulty_value = form_data.get(faulty_key, 'False') == 'True'
 
             if field == 'datetime':
                 try:
@@ -179,7 +188,8 @@ def edit_transaction():
                         datetime.strptime(value, '%Y-%m-%dT%H:%M')  
                     transactions_dict[index][field] = {
                         'value': value,
-                        'confidence': float(confidence_value)
+                        'confidence': round(confidence_value, 4),
+                        'faulty': faulty_value
                     }
                 except ValueError:
                     errors.append(f"Transaction {index}: Invalid date and time format.")
@@ -192,7 +202,8 @@ def edit_transaction():
                         errors.append(f"Transaction {index}: Invalid value date format.")
                 transactions_dict[index][field] = {
                     'value': value,
-                    'confidence': float(confidence_value)
+                    'confidence': round(confidence_value, 4),
+                    'faulty': faulty_value
                 }
             
             elif field in {'description', 'reference'}:
@@ -200,7 +211,8 @@ def edit_transaction():
                     errors.append(f"Transaction {index}: {field.replace('_', ' ').capitalize()} must be less than 150 characters.")
                 transactions_dict[index][field] = {
                     'value': value[:150], 
-                    'confidence': float(confidence_value)
+                    'confidence': round(confidence_value, 4),
+                    'faulty': faulty_value
                 }
             
             elif field in {'debit', 'credit'}:
@@ -208,27 +220,30 @@ def edit_transaction():
                     if len(value.replace(',', '')) > 20:
                         errors.append(f"Transaction {index}: {field} must be a maximum of 20 digits.")
                     try:
-                        int_value = int(value.replace(',', ''))
+                        int_value = parse_integer(value)
                         transactions_dict[index][field] = {
                             'value': int_value,
-                            'confidence': float(confidence_value)
+                            'confidence': round(confidence_value, 4),
+                            'faulty': faulty_value
                         }
                     except ValueError:
                         errors.append(f"Transaction {index}: Invalid {field} value.")
                 else:
                     transactions_dict[index][field] = {
                         'value': value,
-                        'confidence': float(confidence_value)
+                        'confidence': round(confidence_value, 4),
+                        'faulty': faulty_value
                     }
             
             elif field == 'balance':
                 if len(value.replace(',', '')) > 20:
                     errors.append(f"Transaction {index}: Balance must be a maximum of 20 digits.")
                 try:
-                    int_value = int(value.replace(',', ''))
+                    int_value = parse_integer(value)
                     transactions_dict[index][field] = {
                         'value': int_value,
-                        'confidence': float(confidence_value)
+                        'confidence': round(confidence_value, 4),
+                        'faulty': faulty_value
                     }
                 except ValueError:
                     errors.append(f"Transaction {index}: Invalid balance value.")

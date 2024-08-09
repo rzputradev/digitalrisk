@@ -1,8 +1,9 @@
-<form method="POST" action="{{ url_for('platform.statement.edit_transaction') }}">
+<form method="POST" action="{{ url_for('platform.statement.edit_transaction') }}" aria-labelledby="formTitle">
    <div>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="hidden" name="statement_id" value="{{ statement.id }}" />
    </div>
+   <!-- <h2 id="formTitle" class="text-lg font-bold">Edit Transactions</h2> -->
    <table id="transactionTable" class="table-auto w-full border-collapse text-base text-primary/80 text-left">
       <thead>
          <tr class="px-4 py-2 text-left">
@@ -22,25 +23,36 @@
             class="transaction-row {{ 'new-row' if transaction.datetime.value == '' else '' }}"
          >
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.datetime.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.datetime.confidence }}"
+               data-faulty="{{ transaction.datetime.faulty }}"
             >
+               <label for="datetime_{{ transaction.id }}" class="sr-only">Transaction Date</label>
                <input
                   id="datetime_{{ transaction.id }}"
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][datetime]"
                   value="{{ transaction.datetime.value|replace(' ', 'T') }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
-                  required
+                  aria-required="true"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][datetime_confidence]"
                   value="{{ transaction.datetime.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][datetime_faulty]"
+                  value="{{ transaction.datetime.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.valuedate.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.valuedate.confidence }}"
+               data-faulty="{{ transaction.valuedate.faulty }}"
             >
+               <label for="valuedate_{{ transaction.id }}" class="sr-only">Value Date</label>
                <input
                   id="valuedate_{{ transaction.id }}"
                   type="datetime-local"
@@ -53,10 +65,18 @@
                   name="transactions[{{ transaction.id }}][valuedate_confidence]"
                   value="{{ transaction.valuedate.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][valuedate_faulty]"
+                  value="{{ transaction.valuedate.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.description.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.description.confidence }}"
+               data-faulty="{{ transaction.description.faulty }}"
             >
+               <label for="description_{{ transaction.id }}" class="sr-only">Description</label>
                <input
                   id="description_{{ transaction.id }}"
                   type="text"
@@ -69,10 +89,18 @@
                   name="transactions[{{ transaction.id }}][description_confidence]"
                   value="{{ transaction.description.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][description_faulty]"
+                  value="{{ transaction.description.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.reference.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.reference.confidence }}"
+               data-faulty="{{ transaction.reference.faulty }}"
             >
+               <label for="reference_{{ transaction.id }}" class="sr-only">Reference</label>
                <input
                   id="reference_{{ transaction.id }}"
                   type="text"
@@ -85,15 +113,23 @@
                   name="transactions[{{ transaction.id }}][reference_confidence]"
                   value="{{ transaction.reference.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][reference_faulty]"
+                  value="{{ transaction.reference.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.debit.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.debit.confidence }}"
+               data-faulty="{{ transaction.debit.faulty }}"
             >
+               <label for="debit_{{ transaction.id }}" class="sr-only">Debit</label>
                <input
                   id="debit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][debit]"
-                  value="{{ transaction.debit.value|format_currency }}"
+                  value="{{ transaction.debit.value|comma_separation }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
                <input
@@ -101,15 +137,23 @@
                   name="transactions[{{ transaction.id }}][debit_confidence]"
                   value="{{ transaction.debit.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][debit_faulty]"
+                  value="{{ transaction.debit.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.credit.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.credit.confidence }}"
+               data-faulty="{{ transaction.credit.faulty }}"
             >
+               <label for="credit_{{ transaction.id }}" class="sr-only">Credit</label>
                <input
                   id="credit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][credit]"
-                  value="{{ transaction.credit.value|format_currency }}"
+                  value="{{ transaction.credit.value|comma_separation }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
                <input
@@ -117,22 +161,35 @@
                   name="transactions[{{ transaction.id }}][credit_confidence]"
                   value="{{ transaction.credit.confidence }}"
                />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][credit_faulty]"
+                  value="{{ transaction.credit.faulty }}"
+               />
             </td>
             <td
-               class="px-4 py-3 truncate w-[200px] {{ 'bg-yellow-200' if transaction.balance.confidence < 0.5 else '' }}"
+               class="px-4 py-3 truncate w-[200px]"
+               data-confidence="{{ transaction.balance.confidence }}"
+               data-faulty="{{ transaction.balance.faulty }}"
             >
+               <label for="balance_{{ transaction.id }}" class="sr-only">Balance</label>
                <input
                   id="balance_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][balance]"
-                  value="{{ transaction.balance.value|format_currency }}"
+                  value="{{ transaction.balance.value|comma_separation }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
-                  required
+                  aria-required="true"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][balance_confidence]"
                   value="{{ transaction.balance.confidence }}"
+               />
+               <input
+                  type="hidden"
+                  name="transactions[{{ transaction.id }}][balance_faulty]"
+                  value="{{ transaction.balance.faulty }}"
                />
             </td>
          </tr>
@@ -150,10 +207,16 @@
    </div>
 </form>
 
-<div id="contextMenu" class="hidden absolute border bg-background shadow-lg rounded-md z-10">
+<div
+   id="contextMenu"
+   class="hidden absolute border bg-background shadow-lg rounded-md z-10"
+   role="menu"
+   aria-labelledby="contextMenuTitle"
+>
+   <h3 id="contextMenuTitle" class="sr-only">Context Menu</h3>
    <ul class="list-none m-0 p-0 text-sm">
-      <li class="px-4 py-2 hover:bg-secondary">
-         <a href="#" id="addRow" class="flex gap-x-2">
+      <li class="px-4 py-2 hover:bg-secondary" role="menuitem">
+         <button id="addRow" class="flex gap-x-2">
             <svg
                xmlns="http://www.w3.org/2000/svg"
                width="24"
@@ -169,12 +232,31 @@
                <line x1="12" y1="5" x2="12" y2="19"></line>
                <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-
-            <span>Add Row</span></a
-         >
+            <span>Add Row</span>
+         </button>
       </li>
-      <li class="px-4 py-2 hover:bg-secondary">
-         <a href="#" id="deleteRow" class="flex gap-x-2">
+      <li class="px-4 py-2" role="menuitem">
+         {% if result.transactions|length <= 1 %}
+         <button id="deleteRow" class="flex gap-x-2 opacity-50" disabled>
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-trash size-4 text-gray-400"
+            >
+               <polyline points="3 6 5 6 21 6"></polyline>
+               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span class="text-gray-400">Delete Row</span>
+         </button>
+         {% else %}
+         <button id="deleteRow" class="flex gap-x-2 hover:bg-secondary">
             <svg
                xmlns="http://www.w3.org/2000/svg"
                width="24"
@@ -190,8 +272,9 @@
                <polyline points="3 6 5 6 21 6"></polyline>
                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
-            <span>Delete Row</span></a
-         >
+            <span>Delete Row</span>
+         </button>
+         {% endif %}
       </li>
    </ul>
 </div>
@@ -202,13 +285,25 @@
          'input[name$="[debit]"], input[name$="[credit]"], input[name$="[balance]"]'
       );
 
-      function formatCurrency(input) {
-         let value = input.value.replace(/[^0-9]/g, "");
-         if (value === "") return;
-
-         let formattedValue = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(value);
-         input.value = formattedValue.replace(/\./g, ",");
+      function getBackgroundColor(confidence, faulty) {
+         if (String(faulty).toLowerCase() === "true") {
+            return "#ffdddd";
+         }
+         if (confidence == null || confidence >= 0.7) {
+            return "";
+         }
+         const yellow = [255, 255, 90];
+         const white = [255, 255, 255];
+         const ratio = confidence / 0.7;
+         const color = yellow.map((start, i) => Math.round(start + ratio * (white[i] - start)));
+         return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       }
+
+      document.querySelectorAll("td[data-confidence]").forEach((cell) => {
+         const confidence = parseFloat(cell.getAttribute("data-confidence"));
+         const faulty = cell.getAttribute("data-faulty");
+         cell.style.backgroundColor = getBackgroundColor(confidence, faulty);
+      });
 
       function restrictCurrencyInput(e) {
          const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
@@ -219,7 +314,7 @@
 
       currencyInputs.forEach((input) => {
          input.addEventListener("input", function () {
-            formatCurrency(input);
+            commaSeparation(input);
          });
 
          input.addEventListener("keydown", restrictCurrencyInput);
@@ -263,13 +358,18 @@
             const input = document.createElement("input");
             input.type = type;
             input.name = `transactions[${newId}][${name}]`;
-            input.className = "w-full bg-inherit appearance-none focus:outline-none focus:ring-0 text-right";
+            input.className = "w-full bg-inherit appearance-none focus:outline-none focus:ring-0 ";
             if (required) input.required = true;
 
             const confidenceInput = document.createElement("input");
             confidenceInput.type = "hidden";
             confidenceInput.name = `transactions[${newId}][${name}_confidence]`;
             confidenceInput.value = "1";
+
+            const faultyInput = document.createElement("input");
+            faultyInput.type = "hidden";
+            faultyInput.name = `transactions[${newId}][${name}_faulty]`;
+            faultyInput.value = false;
 
             td.appendChild(input);
             td.appendChild(confidenceInput);
@@ -316,11 +416,11 @@
 
             row.querySelectorAll('input[name$="[debit]"], input[name$="[credit]"], input[name$="[balance]"]').forEach(
                (input) => {
-                  input.removeEventListener("input", formatCurrency);
+                  input.removeEventListener("input", commaSeparation);
                   input.removeEventListener("keydown", restrictCurrencyInput);
 
                   input.addEventListener("input", function () {
-                     formatCurrency(input);
+                     commaSeparation(input);
                   });
 
                   input.addEventListener("keydown", restrictCurrencyInput);

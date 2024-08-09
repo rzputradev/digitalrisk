@@ -39,10 +39,20 @@ def save_json_file(filepath, data):
         print(f'Error: {e}')
 
 
-def parse_currency(value):
-    cleaned_value = re.sub(r'[^\d]', '', value)
-    
-    if cleaned_value == '':
-        return value
-    
-    return int(cleaned_value)
+def parse_integer(value):
+    try:
+        cleaned_value = re.sub(r'[^\d.,]', '', value)
+        if cleaned_value.count('.') > 1:
+            cleaned_value = cleaned_value.replace('.', '')
+        else:
+            cleaned_value = cleaned_value.replace('.', '')
+        
+        cleaned_value = cleaned_value.replace(',', '')
+        if cleaned_value.isdigit():
+            return int(cleaned_value)
+        else:
+            raise ValueError(f"Invalid format: '{value}'")
+    except ValueError as e:
+        flash("Conversion error")
+        print(f"Error: {e}")
+        return 0
