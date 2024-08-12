@@ -6,7 +6,7 @@
    <!-- Header -->
    <div class="flex justify-between items-end text-primary/85">
       <div class="flex items-center gap-x-2 py-2 text-mutedForeground">
-         <a href="{{ url_for('platform.application.index', data='all') }}" class="inline-flex items-center">
+         <a href="{{ url_for('platform.statement.index', data='all') }}" class="inline-flex items-center">
             <svg
                xmlns="http://www.w3.org/2000/svg"
                width="24"
@@ -53,42 +53,51 @@
       <!-- All statements -->
       <div class="w-full bg-background p-8 rounded-md shadow-md text-primary/85">
          <div class="flex justify-between items-center">
-            <h2 class="text-lg font-semibold">Result</h2>
-            <button
-               onclick="openModal('parameter-statement-modal-{{ statement.id }}')"
-               class="px-3 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex items-center gap-x-1"
-            >
-               <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="feather feather-aperture size-4"
-               >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="14.31" y1="8" x2="20.05" y2="17.94"></line>
-                  <line x1="9.69" y1="8" x2="21.17" y2="8"></line>
-                  <line x1="7.38" y1="12" x2="13.12" y2="2.06"></line>
-                  <line x1="9.69" y1="16" x2="3.95" y2="6.06"></line>
-                  <line x1="14.31" y1="16" x2="2.83" y2="16"></line>
-                  <line x1="16.62" y1="12" x2="10.88" y2="21.94"></line>
-               </svg>
-               {% if statement.result is none %}
-               <span>Run</span>
-               {% else %}
-               <span>Re-Run</span>
-               {% endif %}
-            </button>
+            <!-- Left -->
+            <div>
+               <h2 class="text-lg font-semibold truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                  {{statement.name}}
+               </h2>
+            </div>
+            <!-- Right -->
+            {% include 'components/statement/option-menu.html' %}
          </div>
-         <div class="flex flex-col gap-y-4 mt-4 max-h-[450px] overflow-auto">
+         <div class="flex flex-col gap-y-4 max-h-[450px] overflow-auto mt-8">
             {% if statement.result is none %}
-            <span class="text-center text-sm text-mutedForeground">No result provided, Please click run!</span>
-            {% else %} {% include 'components/statement/edit-statement.html' %} {% endif %}
+            <div class="flex flex-col items-center justify-center gap-y-4">
+               <div class="text-sm text-center text-mutedForeground space-y-2">
+                  <p>No result provided, Please click Run OCR!</p>
+                  <p class="font-semibold">or</p>
+               </div>
+               <form action="{{url_for('platform.statement.manual_result')}}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                  <input type="hidden" name="statement_id" value="{{statement.id}}" />
+                  <button
+                     class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md flex items-center gap-x-1"
+                     type="submit"
+                  >
+                     <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="feather feather-file-plus size-4"
+                     >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                     </svg>
+                     <span>Manual</span>
+                  </button>
+               </form>
+            </div>
+            {% else %} {% include 'components/statement/edit-transaction.html' %} {% endif %}
          </div>
       </div>
    </section>

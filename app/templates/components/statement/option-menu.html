@@ -1,0 +1,115 @@
+<div class="inline-block text-left" id="containerDropdown">
+   <div>
+      <button
+         type="button"
+         class="inline-flex justify-center w-full rounded-md border border-muted shadow-sm px-4 py-2 bg-background text-sm font-medium text-mutedForeground hover:bg-secondary focus:outline-none focus:ring-offset-2 focus:ring-secondary z-20"
+         id="menu-button"
+         aria-expanded="true"
+         aria-haspopup="true"
+      >
+         Options
+         <svg
+            class="-mr-1 ml-2 h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+         >
+            <path
+               fill-rule="evenodd"
+               d="M5.23 7.21a.75.75 0 011.06.02l2.47 2.5 2.47-2.5a.75.75 0 011.06 1.06l-3 3.03a.75.75 0 01-1.06 0l-3-3.03a.75.75 0 010-1.06z"
+               clip-rule="evenodd"
+            />
+         </svg>
+      </button>
+   </div>
+
+   <div
+      id="optionsDropdown"
+      class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10"
+      role="menu"
+      aria-orientation="vertical"
+      aria-labelledby="menu-button"
+      tabindex="-1"
+   >
+      <div class="p-2 text-mutedForeground flex flex-col" role="none">
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-0"
+            onclick="openModal('update-statement-modal-{{ statement.id }}')"
+         >
+            Update Statement
+         </button>
+         <a
+            href="#"
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-2"
+         >
+            View File
+         </a>
+         <a
+            href="#"
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-2"
+         >
+            Run OCR
+         </a>
+         <a
+            href="#"
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-1"
+         >
+            Download Result
+         </a>
+         <a
+            href="#"
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-3"
+         >
+            Analyze Result
+         </a>
+         <a
+            href="#"
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-3"
+         >
+            Remove Statement
+         </a>
+      </div>
+   </div>
+</div>
+
+{% include 'components/statement/edit-modal.html' %}
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const menuButton = document.getElementById("menu-button");
+      const optionsDropdown = document.getElementById("optionsDropdown");
+      const containerDropdown = document.getElementById("containerDropdown");
+
+      menuButton.addEventListener("click", function () {
+         optionsDropdown.classList.toggle("hidden");
+         containerDropdown.classList.toggle("relative");
+      });
+
+      // Close the dropdown if the user clicks outside of it
+      document.addEventListener("click", function (event) {
+         if (!menuButton.contains(event.target) && !optionsDropdown.contains(event.target)) {
+            optionsDropdown.classList.add("hidden");
+            containerDropdown.classList.remove("relative");
+         }
+      });
+   });
+</script>

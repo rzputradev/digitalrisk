@@ -47,36 +47,32 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
+                  <th class="px-4 py-2">Application</th>
                   <th class="px-4 py-2">Amount</th>
-                  <th class="px-4 py-2 text-center">Duration</th>
-                  <th class="px-4 py-2 ">Type</th>
                   <th class="px-4 py-2">Status</th>
                   <th class="px-4 py-2">Customer</th>
-                  <th class="px-4 py-2">Applied On</th>
+                  <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
             </thead>
             <tbody class="divide-y divide-mutedForeground/20 text-left">
                {% for application in applications %}
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[200px]">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline"
-                        >{{ application.amount|comma_separation }} IDR</a
+                        >{{ application.application_type.name }}</a
                      >
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px] text-center">{{application.duration}} Months</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.application_type.name }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.status.value }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">
-                     <a
-                        href="{{ url_for('platform.application.index', search=application.customer.name) }}"
-                        class="hover:underline"
-                     >
-                        {{ application.customer.name }}
-                     </a>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{application.amount|comma_separation}}/{{application.duration|comma_separation}}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{application.status.value}}</td>
+
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     <a href="{{ url_for('platform.customer.preview', id=application.customer.id) }}" class="hover:underline"
+                     >{{ application.customer.name }}</a
+                  >
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ application.created_at | utc_to_wib }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{ application.created_at | utc_to_wib }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <button
                            onclick="openModal('create-statement-modal-{{application.id}}')"

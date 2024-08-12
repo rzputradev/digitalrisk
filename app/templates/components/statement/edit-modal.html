@@ -1,12 +1,12 @@
-<!-- Modal create statement -->
+<!-- Modal update statement -->
 <div
-   id="create-statement-modal-{{application.id}}"
+   id="update-statement-modal-{{ statement.id }}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <span class="font-semibold text-xl">Create Statement</span>
+         <span class="font-semibold text-xl">Update Statement</span>
          <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('create-statement-modal-{{application.id}}')"
+            onclick="closeModal('update-statement-modal-{{ statement.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -28,25 +28,24 @@
       <!-- Form -->
       <form
          method="POST"
-         action="{{url_for('platform.statement.create', application_id=application.id)}}"
+         action="{{url_for('platform.statement.preview', id=statement.id)}}"
          class="space-y-6"
          enctype="multipart/form-data"
       >
          <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
-         <input type="hidden" name="user_id" value="{{user.id}}" />
-         <input type="hidden" name="application_id" value="{{application.id}}" />
+         <input type="hidden" name="statement_id" value="{{statement.id}}" />
 
          <div class="text-mutedForeground">
-            Create new statement for <span class="font-semibold">{{ application.application_type.name }}</span> {{
-            application.customer.name }} ?
+            <span class="font-semibold">Warning</span>, if you updating this statement with upload new file the result
+            will be remove!
          </div>
          <div class="space-y-4">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-               {{ statement_form.name.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
+               {{ update_form.name.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
                <div class="lg:w-3/4">
-                  {{statement_form.name(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
-                  w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
-                  duration-150')}} {% for error in statement_form.name.errors %}
+                  {{update_form.name(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b w-full
+                  text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
+                  duration-150')}} {% for error in update_form.name.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
@@ -54,12 +53,12 @@
 
             <div class="flex items-center justify-center w-full">
                <label
-                  for="filename-{{application.id}}"
-                  id="dropzone-{{application.id}}"
+                  for="filename-{{statement.id}}"
+                  id="dropzone-{{statement.id}}"
                   class="flex flex-col items-center justify-center w-full min-h-[400px] border-2 border-muted border-dashed rounded-md cursor-pointer bg-secondary hover:bg-primary/80 hover:border-gray-400"
                >
                   <div
-                     id="dropzone-content-{{application.id}}"
+                     id="dropzone-content-{{statement.id}}"
                      class="flex flex-col items-center justify-center p-8 space-y-2"
                   >
                      <svg
@@ -86,10 +85,10 @@
                         PDF, PNG, JPG, JPEG, EXCEL, or CSV (MAX. 20MB)
                      </p>
                   </div>
-                  <input type="file" name="filename" id="filename-{{application.id}}" class="hidden" />
+                  <input type="file" name="filename" id="filename-{{statement.id}}" class="hidden" />
                </label>
             </div>
-            {% for error in statement_form.filename.errors %}
+            {% for error in update_form.filename.errors %}
             <div id="error-message" class="flex items-center space-x-2">
                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
             </div>
@@ -110,9 +109,9 @@
 
 <script>
    document.addEventListener("DOMContentLoaded", function () {
-      const dropzone = document.getElementById("dropzone-{{application.id}}");
-      const input = document.getElementById("filename-{{application.id}}");
-      const dropzoneContent = document.getElementById("dropzone-content-{{application.id}}");
+      const dropzone = document.getElementById("dropzone-{{statement.id}}");
+      const input = document.getElementById("filename-{{statement.id}}");
+      const dropzoneContent = document.getElementById("dropzone-content-{{statement.id}}");
 
       dropzone.addEventListener("dragover", function (e) {
          e.preventDefault();
@@ -144,11 +143,11 @@
             }
 
             const allowedTypes = [
-               "application/pdf",
+               "statement/pdf",
                "image/png",
                "image/jpg",
                "image/jpeg",
-               "application/vnd.ms-excel",
+               "statement/vnd.ms-excel",
                "text/csv",
             ];
             if (!allowedTypes.includes(file.type)) {

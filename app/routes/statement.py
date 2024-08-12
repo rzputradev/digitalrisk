@@ -13,10 +13,11 @@ from app.models.user import User
 from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
-from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
+from app.utils.form.statement import CreateStatementForm, ParameterStatementForm, UpdateStatementForm
 from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file
 from datetime import datetime
 from collections import defaultdict
+from uuid import uuid4
 
 
 
@@ -56,7 +57,7 @@ def index():
 
 
 
-@statement.route('/<int:id>', methods=['GET'])
+@statement.route('/<int:id>', methods=['GET', 'POST'])
 @login_required
 def preview(id):
     statement = Statement.query.get(id)
@@ -66,6 +67,7 @@ def preview(id):
 
     statement_form = CreateStatementForm()
     parameter_form = ParameterStatementForm()
+    update_form = UpdateStatementForm()
     result = None
 
     if statement.result:
@@ -76,9 +78,51 @@ def preview(id):
                     result = json.load(file)
             except json.JSONDecodeError:
                 flash('An error occurred while loading the result', 'danger')
-                print('Error: An error occurred while loading the result')  
+                print('Error: An error occurred while loading the result') 
+    
+    if request.method == "POST":
+        if update_form.validate_on_submit():
+            try:
+                file = update_form.filename.data
+                if file:
+                    file_folder = current_app.config['FILE_FOLDER']
+                    file_paths = [
+                        os.path.join(file_folder, statement.filename) if statement.filename else None,
+                        os.path.join(file_folder, statement.ocr) if statement.ocr else None,
+                        os.path.join(file_folder, statement.result) if statement.result else None
+                    ]
+                    
+                    for path in file_paths:
+                        if path and os.path.exists(path):
+                            os.remove(path)
 
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, result=result, statement_form=statement_form, parameter_form=parameter_form)
+                    unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
+                    file.save(upload_path)
+                    statement.result = None
+                    statement.name = update_form.name.data
+                    statement.filename = unique_filename
+                else:
+                    statement.name = update_form.name.data
+
+                db.session.commit()
+
+                flash('Statement updated successfully', 'success')
+                return redirect(url_for('platform.statement.preview', id=statement.id))
+
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('An error occurred while updating the statement', 'danger')
+                print(f'Error: {e}')
+        else:
+            for field, errors in update_form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(update_form, field).label.text} field - {error}', 'danger')
+
+    
+    update_form.statement_id.data = statement.id
+    update_form.name.data = statement.name
+
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, result=result, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
 
 
 
@@ -99,14 +143,14 @@ def create():
             try:
                 file = form.filename.data
                 if file:
-                    secure_filename
                     unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
                     file.save(upload_path)
 
                     statement = Statement(
                         user_id=form.user_id.data,
                         application_id=form.application_id.data,
-                        bank_id=form.bank_id.data,
+                        name=form.name.data,
+                        # bank_id=form.bank_id.data,
                         filename=unique_filename
                     )
 
@@ -283,6 +327,80 @@ def edit_transaction():
 
 
 
+@statement.route('/manual_result', methods=['POST'])
+@login_required
+def manual_result():
+    statement_id = request.form.get('statement_id')
+    statement = Statement.query.get(statement_id)
+    
+    if not statement:
+        flash('Statement not found', 'danger')
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+
+    result = {
+    "transactions": [
+        {
+            "id": 0,
+            "datetime": {
+                "value":"",
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "valuedate": {
+                "value": "",
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "description": {
+                "value": "",
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "reference": {
+                "value": "",
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "debit": {
+                "value": 0,
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "credit": {
+                "value": 0,
+                "confidence": 1.0,
+                "faulty": False
+            },
+            "balance": {
+                "value": 0,
+                "confidence": 1.0,
+                "faulty": False
+            }
+        }],
+        "summary": {
+        }
+    }
+
+    try:
+        result_filename = f"{str(uuid4())}.json"
+        result_json_path = os.path.join(current_app.config['FILE_FOLDER'], result_filename)
+        save_json_file(result_json_path, result)
+
+        statement.result = result_filename
+        db.session.commit()
+
+        flash('Manual result generated successfully', 'success')
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('An error occurred while generating the result', 'danger')
+        print(f'Error: {e}')
+        return redirect(request.referrer or url_for('platform.statement.index', data='user'))
+
+
+
+
+
 
 @statement.route('/delete', methods=['POST'])
 @login_required
@@ -297,9 +415,16 @@ def delete():
         abort(403, description="You do not have permission to delete this statement")
     
     try:
-        file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
-        if statement.filename and os.path.exists(file_path):
-            os.remove(file_path)
+        file_folder = current_app.config['FILE_FOLDER']
+        file_paths = [
+            os.path.join(file_folder, statement.filename) if statement.filename else None,
+            os.path.join(file_folder, statement.ocr) if statement.ocr else None,
+            os.path.join(file_folder, statement.result) if statement.result else None
+        ]
+        
+        for path in file_paths:
+            if path and os.path.exists(path):
+                os.remove(path)
         
         db.session.delete(statement)
         db.session.commit()

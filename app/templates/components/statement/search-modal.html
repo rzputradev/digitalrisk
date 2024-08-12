@@ -1,6 +1,6 @@
 <!-- Modal search customer -->
 <div
-   id="application-search-modal"
+   id="statement-search-modal"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
    role="dialog"
    aria-modal="true"
@@ -9,11 +9,11 @@
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <h2 id="modal-title" class="font-semibold text-xl">Create Application</h2>
+         <h2 id="modal-title" class="font-semibold text-xl">Create Statement</h2>
          <button
             type="button"
             class="text-mutedForeground"
-            onclick="closeModal('application-search-modal')"
+            onclick="closeModal('statement-search-modal')"
             aria-label="Close"
          >
             <svg
@@ -35,12 +35,11 @@
       </div>
 
       <!-- Search Form -->
-      <form action="{{url_for('platform.customer.index')}}" method="GET" class="space-y-4">
+      <form action="{{url_for('platform.application.index')}}" method="GET" class="space-y-4">
          <div class="space-y-2">
-            <p class="truncate">Please search customer first!</p>
+            <p class="truncate">Please search application first!</p>
             <span class="text-mutedForeground text-sm"
-               >You can search customer by
-               <span class="underline font-semibold">name, id number or phone number</span></span
+               >You can search by <span class="underline font-semibold">applicaton name or customer name</span></span
             >
          </div>
          <input
@@ -57,7 +56,7 @@
             </button>
             <button
                type="button"
-               onclick="closeModal('application-search-modal')"
+               onclick="closeModal('statement-search-modal')"
                class="bg-secondary py-2 px-4 rounded-md"
             >
                Cancel

@@ -37,8 +37,7 @@ def index():
         query = query.join(Application.customer).join(Application.user).filter(
             or_(
                 Customer.name.ilike(f"%{search}%"),
-                Customer.id_no.ilike(f"%{search}%"),
-                User.name.ilike(f"%{search}%")
+                ApplicationType.name.ilike(f"%{search}%"),
             )
         )
         
@@ -152,11 +151,17 @@ def delete():
         return abort(404, description="Application not found")
 
     try:
+        file_folder = current_app.config['FILE_FOLDER']
         for statement in application.statements:
-            if statement.filename:
-                file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+            file_paths = [
+                os.path.join(file_folder, statement.filename) if statement.filename else None,
+                os.path.join(file_folder, statement.ocr) if statement.ocr else None,
+                os.path.join(file_folder, statement.result) if statement.result else None
+            ]
+
+            for path in file_paths:
+                if path and os.path.exists(path):
+                    os.remove(path)
         
         db.session.delete(application)
         db.session.commit()

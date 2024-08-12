@@ -13,6 +13,28 @@
             <span class="font-semibold text-primary/85">Attributes</span>
             <span class="text-mutedForeground">{{ pagination.total }}</span>
          </div>
+         <!-- Right -->
+         <button
+         class="text-sm p-2 rounded-md bg-primary/85 hover:bg-primary/90"
+         onclick="openModal('statement-search-modal')"
+      >
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-plus size-6 text-secondary"
+         >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+         </svg>
+      </button>
+      {% include 'components/statement/search-modal.html' %}
       </div>
       <!-- Table -->
       <div class="px-4 max-w-full overflow-auto">
@@ -25,10 +47,10 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
-                  <th class="px-4 py-2">Bank</th>
-                  <th class="px-4 py-2">Customer</th>
-                  <th class="px-4 py-2 text-center">Valid</th>
+                  <th class="px-4 py-2">Statement</th>
+                  <th class="px-4 py-2">Is Valid</th>
                   <th class="px-4 py-2">Application</th>
+                  <th class="px-4 py-2">Customer</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Action</th>
                </tr>
@@ -37,16 +59,18 @@
                {% for statement in statements %}
 
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[200px]"><a href="{{url_for('platform.statement.preview', id=statement.id)}}" class="hover:underline">{{ statement.bank.name }}</a></td>
-                  <td class="px-4 py-3 truncate w-[100px]">
-                     <a href="{{ url_for('platform.application.preview', id=statement.application.id) }}" class="hover:underline"
-                     >{{ statement.application.customer.name }}</a
-                     >
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap"><a href="{{url_for('platform.statement.preview', id=statement.id)}}" class="hover:underline">{{ statement.name }}</a></td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{statement.is_valid}} </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     <a href="{{url_for('platform.application.preview', id=statement.application.id)}}" class="hover:underline"
+                        >{{statement.application.application_type.name}}</a>
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px] text-center"> {{ statement.is_valid }} </td>
-                  <td class="px-4 py-3 truncate w-[200px]"> {{ statement.application.application_type.name }} </td>
-                  <td class="px-4 py-3 truncate w-[200px]"> {{ statement.created_at | utc_to_wib }} </td>
-                  <td class="px-4 py-3 truncate w-[200px]">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     <a href="{{ url_for('platform.customer.preview', id=statement.application.customer.id) }}" class="hover:underline"
+                        >{{statement.application.customer.name}}</a>
+                  </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap"> {{ statement.created_at | utc_to_wib }} </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                        
                         <button

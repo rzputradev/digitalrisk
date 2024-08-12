@@ -36,8 +36,10 @@ def index():
    
     if search:
         query = query.join(Customer.user).filter(or_(
+            Customer.id_no.ilike(f"%{search}%"),
+            Customer.phone_number.ilike(f"%{search}%"),
+            Customer.name.ilike(f"%{search}%"),
             User.name.ilike(f"%{search}%"),
-            Customer.name.ilike(f"%{search}%")
         ))
 
     pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False,)
@@ -160,12 +162,18 @@ def delete():
         return abort(404, description='Customer not found')
 
     try:
+        file_folder = current_app.config['FILE_FOLDER']
         for application in customer.applications:
             for statement in application.statements:
-                if statement.filename:
-                    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], statement.filename)
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
+                file_paths = [
+                    os.path.join(file_folder, statement.filename) if statement.filename else None,
+                    os.path.join(file_folder, statement.ocr) if statement.ocr else None,
+                    os.path.join(file_folder, statement.result) if statement.result else None
+                ]
+
+                for path in file_paths:
+                    if path and os.path.exists(path):
+                        os.remove(path)
 
         db.session.delete(customer)
         db.session.commit()
