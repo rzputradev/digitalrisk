@@ -1,6 +1,6 @@
 <section class="flex flex-col lg:flex-row gap-x-4 mt-2 text-primary/85">
    <!-- Applications list -->
-   <div class="w-full lg:w-[70%] bg-background p-8 rounded-md shadow-md text-primary/85">
+   <div class="w-full lg:w-[70%] bg-background p-8 rounded-md shadow-md text-primary/85 ">
       <div class="flex items-center justify-between">
          <div class="flex items-center gap-x-2">
             <h2 class="text-lg font-semibold">Applications</h2>
@@ -36,25 +36,25 @@
          <table class="table-auto w-full">
             <thead class="text-left">
                <tr>
+                  <th class="px-4 py-2">Application</th>
                   <th class="px-4 py-2">Amount</th>
-                  <th class="px-4 py-2">Duration</th>
                   <th class="px-4 py-2">Status</th>
-                  <th class="px-4 py-2">Applied On</th>
+                  <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
             </thead>
             <tbody class="text-left">
                {% for application in customer.applications %}
                <tr class="border-b hover:bg-secondary">
-                  <td class="px-4 py-3 truncate">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <a href="{{url_for('platform.application.preview', id=application.id)}}" class="hover:underline"
-                        >{{ application.amount|comma_separation }} IDR</a
+                        >{{application.application_type.name}}</a
                      >
                   </td>
-                  <td class="px-4 py-3">{{application.duration}} Months</td>
-                  <td class="px-4 py-3">{{application.status.value}}</td>
-                  <td class="px-4 py-3">{{ application.created_at | utc_to_wib }}</td>
-                  <td class="px-4 py-3 truncate">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{application.amount|comma_separation}}/{{application.duration|comma_separation}}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{application.status.value}}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{application.created_at | utc_to_wib }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <button
                            onclick="openModal('create-statement-modal-{{application.id}}')"
@@ -139,7 +139,7 @@
          </div>
          <div class="border rounded-md p-4">
             <p class="text-base font-semibold">Total Amount</p>
-            <p>{{ info.total_amount|comma_separation }} IDR</p>
+            <p>{{ info.total_amount|comma_separation }}</p>
          </div>
       </div>
    </div>

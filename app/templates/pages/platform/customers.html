@@ -47,10 +47,10 @@
             <!-- Rest of your table content -->
             <thead class="text-left">
                <tr>
-                  <th class="px-4 py-2">Name</th>
-                  <th class="px-4 py-2 text-center">Type</th>
-                  <th class="px-4 py-2">Phone</th>
-                  <th class="px-4 py-2">Created By</th>
+                  <th class="px-4 py-2">Customer</th>
+                  <th class="px-4 py-2 ">Type</th>
+                  <th class="px-4 py-2">ID Number</th>
+                  <th class="px-4 py-2">Phone Number</th>
                   <th class="px-4 py-2">Created At</th>
                   <th class="px-4 py-2 text-center">Actions</th>
                </tr>
@@ -59,23 +59,23 @@
                {% for customer in customers %}
 
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[100px]">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <a href="{{ url_for('platform.customer.preview', id=customer.id) }}" class="hover:underline"
                         >{{ customer.name }}</a
                      >
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px] text-center">{{ customer.customer_type.value }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ customer.phone_number }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap ">{{ customer.customer_type.value }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{ customer.id_no }}</td>
 
-                  <td class="px-4 py-3 truncate w-[200px]">
-                     <a
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{ customer.phone_number }}
+                     <!-- <a
                         href="{{ url_for('platform.customer.index', search=customer.user.name) }}"
                         class="hover:underline"
-                        >{{ customer.user.name }}</a
-                     >
+                        >{{ customer.phone_number }}</a
+                     > -->
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px]">{{ customer.created_at | utc_to_wib }}</td>
-                  <td class="px-4 py-3 truncate w-[200px]">
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{ customer.created_at | utc_to_wib }}</td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
                         <button
                            onclick="openModal('create-application-modal-{{customer.id}}')"

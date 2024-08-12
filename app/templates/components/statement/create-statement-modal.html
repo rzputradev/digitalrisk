@@ -37,17 +37,17 @@
          <input type="hidden" name="application_id" value="{{statement.application.id}}" />
 
          <div class="text-mutedForeground">
-            Create new application for <span class="font-semibold">{{ statement.application.customer.name }}</span>?
+            Create new statement for
+            <span class="font-semibold">{{ statement.application.application_type.name }}</span> {{
+            statement.application.customer.name }} ?
          </div>
          <div class="space-y-4">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
-               {{ statement_form.bank_id.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground")
-               }}
+               {{ statement_form.name.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
                <div class="lg:w-3/4">
-                  {{statement_form.bank_id(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
+                  {{statement_form.name(class_='lg:px-1 px-0 py-2 appearance-none bg-transparent border-0 border-b
                   w-full text-gray-700 leading-tight focus:outline-none focus:ring-0 focus:border-primary/80 transition
-                  duration-150', placeholder=statement_form.bank_id.label.text)}} {% for error in
-                  statement_form.bank_id.errors %}
+                  duration-150')}} {% for error in statement_form.name.errors %}
                   <p class="text-red-600 text-sm mt-1">{{ error }}</p>
                   {% endfor %}
                </div>
