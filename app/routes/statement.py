@@ -57,6 +57,56 @@ def index():
 
 
 
+@statement.route('/create', methods=['GET', 'POST'])
+@login_required
+def create():
+    application_id = request.args.get('application_id')
+    application = Application.query.get(application_id)
+
+    if not application:
+        abort(404, description="Application not found")
+
+    form = CreateStatementForm()
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            try:
+                file = form.filename.data
+                if file:
+                    unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
+                    file.save(upload_path)
+
+                    statement = Statement(
+                        user_id=form.user_id.data,
+                        application_id=form.application_id.data,
+                        name=form.name.data,
+                        filename=unique_filename
+                    )
+
+                    db.session.add(statement)
+                    db.session.commit()
+
+                    flash('Statement uploaded successfully', 'success')
+                    return redirect(url_for('platform.statement.preview', id=statement.id))
+                else:
+                    flash('No file uploaded.', 'danger')
+                    return redirect(request.url)
+
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('An error occurred while uploading the statement', 'danger')
+                print(f'Error: {e}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
+
+
+    return redirect(request.referrer or url_for('platform.statement.index', data='user'))
+
+
+
+
 @statement.route('/<int:id>', methods=['GET', 'POST'])
 @login_required
 def preview(id):
@@ -127,57 +177,6 @@ def preview(id):
 
 
 
-@statement.route('/create', methods=['GET', 'POST'])
-@login_required
-def create():
-    application_id = request.args.get('application_id')
-    application = Application.query.get(application_id)
-
-    if not application:
-        abort(404, description="Application not found")
-
-    form = CreateStatementForm()
-
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            try:
-                file = form.filename.data
-                if file:
-                    unique_filename, upload_path = generate_unique_filename(secure_filename(file.filename))
-                    file.save(upload_path)
-
-                    statement = Statement(
-                        user_id=form.user_id.data,
-                        application_id=form.application_id.data,
-                        name=form.name.data,
-                        # bank_id=form.bank_id.data,
-                        filename=unique_filename
-                    )
-
-                    db.session.add(statement)
-                    db.session.commit()
-
-                    flash('Statement uploaded successfully', 'success')
-                    return redirect(url_for('platform.statement.preview', id=statement.id))
-                else:
-                    flash('No file uploaded.', 'danger')
-                    return redirect(request.url)
-
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                flash('An error occurred while uploading the statement', 'danger')
-                print(f'Error: {e}')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
-
-
-    return redirect(request.referrer or url_for('platform.statement.index', data='user'))
-
-
-
-
 @statement.route('/edit_transaction', methods=['POST'])
 @login_required
 def edit_transaction():
@@ -197,16 +196,16 @@ def edit_transaction():
     result = load_json_file(result_json_path)
     if result is None:
         flash('Error loading JSON file', 'danger')
-        return redirect(url_for('platform.statement.preview', id=statement_id))
+        return redirect(url_for('platform.statement.preview', id=statement_id))  
 
     form_transactions = {key: value for key, value in request.form.items() if key.startswith('transactions[')}
-    
-    # indices = set(re.search(r'\[(\d+)\]', key).group(1) for key in form_transactions.keys())
-    # num_rows = len(indices)
-    # if num_rows < 1:
-    #     flash('No transactions to update', 'danger')
-    #     return redirect(url_for('platform.statement.preview', id=statement_id))
 
+    indices = set(re.search(r'\[(\d+)\]', key).group(1) for key in form_transactions.keys())
+    num_rows = len(indices)
+    if num_rows < 1:
+        flash('No transactions to update', 'danger')
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
+    
     def validate_and_parse_transaction(form_data):
         transactions_dict = defaultdict(dict)
         errors = []
@@ -280,6 +279,8 @@ def edit_transaction():
                     }
             
             elif field == 'balance':
+                if not value:
+                    errors.append(f"Transaction {index}: Balance is required.")
                 if len(value.replace(',', '')) > 20:
                     errors.append(f"Transaction {index}: Balance must be a maximum of 20 digits.")
                 try:
@@ -315,14 +316,15 @@ def edit_transaction():
 
     new_transactions = validate_and_parse_transaction(form_transactions)
     if new_transactions is None:
-        return redirect(url_for('platform.statement.preview', id=statement_id))
+        flash('An error occurred while updating the transactions', 'danger')
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
     result['transactions'] = new_transactions['transactions']
 
     save_json_file(result_json_path, result)
     
     flash('Transactions updated successfully', 'success')
-    return redirect(url_for('platform.statement.preview', id=statement_id))
+    return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
 
 
@@ -337,12 +339,14 @@ def manual_result():
         flash('Statement not found', 'danger')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
+    now = datetime.now()
+    formatted_datetime = now.strftime("%Y-%m-%dT%H:%M")
     result = {
     "transactions": [
         {
             "id": 0,
             "datetime": {
-                "value":"",
+                "value": formatted_datetime,
                 "confidence": 1.0,
                 "faulty": False
             },
@@ -362,12 +366,12 @@ def manual_result():
                 "faulty": False
             },
             "debit": {
-                "value": 0,
+                "value": "",
                 "confidence": 1.0,
                 "faulty": False
             },
             "credit": {
-                "value": 0,
+                "value": "",
                 "confidence": 1.0,
                 "faulty": False
             },
@@ -390,7 +394,7 @@ def manual_result():
         db.session.commit()
 
         flash('Manual result generated successfully', 'success')
-        return redirect(url_for('platform.statement.preview', id=statement_id))
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
     except SQLAlchemyError as e:
         db.session.rollback()
         flash('An error occurred while generating the result', 'danger')
@@ -398,6 +402,40 @@ def manual_result():
         return redirect(request.referrer or url_for('platform.statement.index', data='user'))
 
 
+
+
+@statement.route('/reset', methods=['POST'])
+@login_required
+def reset():
+    statement_id = request.form.get('statement_id')
+    statement = Statement.query.get(statement_id)
+    
+    if not statement:
+        flash('Statement not found', 'danger')
+        return redirect(url_for('platform.statement.preview', id=statement_id))
+
+    try:
+        file_folder = current_app.config['FILE_FOLDER']
+        file_paths = [
+            os.path.join(file_folder, statement.ocr) if statement.ocr else None,
+            os.path.join(file_folder, statement.result) if statement.result else None
+        ]
+        
+        for path in file_paths:
+            if path and os.path.exists(path):
+                os.remove(path)
+
+        statement.ocr = None
+        statement.result = None
+        db.session.commit()
+
+        flash('Statement reset successfully', 'success')
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting the result', 'danger')
+        print(f'Error: {e}')
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
 
 
@@ -430,6 +468,7 @@ def delete():
         db.session.commit()
 
         flash('Statement deleted successfully', 'success')
+        return redirect(url_for('platform.statement.index', data='user'))
     except Exception as e:
         db.session.rollback()
         flash('An error occurred while deleting the statement', 'danger')

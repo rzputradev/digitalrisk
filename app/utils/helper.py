@@ -53,6 +53,6 @@ def parse_integer(value):
         else:
             raise ValueError(f"Invalid format: '{value}'")
     except ValueError as e:
-        flash("Conversion error")
+        flash("Conversion error", "danger")
         print(f"Error: {e}")
         return 0

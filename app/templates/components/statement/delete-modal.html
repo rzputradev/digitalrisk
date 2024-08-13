@@ -1,4 +1,4 @@
-<!-- Modal delete customer -->
+<!-- Modal delete statement -->
 <div
    id="statement-delete-modal-{{statement.id}}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
@@ -26,8 +26,12 @@
       </div>
 
       <!-- Content -->
-      <div class="space-y-2">
-         <p class="text-mutedForeground">Are you sure you want to delete this stetement?</p>
+      <div class="space-y-4 p-4 bg-red-50 border border-red-200 rounded-md">
+         <p class="text-lg font-semibold text-red-800">Are you sure you want to delete this statement?</p>
+         <p class="text-sm text-red-700">
+            This action will permanently delete the statement and all remove the associated data. This action cannot be
+            undone.
+         </p>
       </div>
 
       <!-- Footer -->

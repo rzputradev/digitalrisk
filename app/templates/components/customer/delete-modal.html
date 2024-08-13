@@ -26,14 +26,14 @@
       </div>
 
       <!-- Content -->
-      <div class="space-y-2">
-         <p class="truncate">Are you sure you want to delete {{customer.name}}?</p>
-         <p class="text-sm">Deleting this customer will have the following consequences:</p>
-         <ul class="list-disc list-inside text-sm">
-            <li>Customer data cannot be recovered.</li>
-            <li>All customer transactions will be removed.</li>
-            <li>Customer history will also be deleted.</li>
-         </ul>
+      <div class="space-y-4 p-4 bg-red-50 border border-red-200 rounded-md">
+         <p class="text-lg font-semibold text-red-800">
+            Are you sure you want to delete the customer named <strong class="font-bold">{{ customer.name }}</strong>?
+         </p>
+         <p class="text-sm text-red-700">
+            This action will permanently delete the customer and all associated data, including applications and
+            statements. This cannot be undone.
+         </p>
       </div>
 
       <!-- Footer -->
