@@ -2,12 +2,12 @@
    <div>
       <button
          type="button"
-         class="inline-flex justify-center w-full rounded-md border border-muted shadow-sm px-4 py-2 bg-background text-sm font-medium text-mutedForeground hover:bg-secondary focus:outline-none focus:ring-offset-2 focus:ring-secondary z-20"
+         class="inline-flex justify-center w-full rounded-md border border-muted shadow-sm px-4 py-2 bg-background text-sm font-medium text-mutedForeground hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
          id="menu-button"
-         aria-expanded="true"
+         aria-expanded="false"
          aria-haspopup="true"
       >
-         Options
+         Option
          <svg
             class="-mr-1 ml-2 h-5 w-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +26,7 @@
 
    <div
       id="optionsDropdown"
-      class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10"
+      class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10"
       role="menu"
       aria-orientation="vertical"
       aria-labelledby="menu-button"
@@ -40,76 +40,101 @@
             id="menu-item-0"
             onclick="openModal('update-statement-modal-{{ statement.id }}')"
          >
-            Update Statement
+            Update
          </button>
-         <a
-            href="#"
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
-            role="menuitem"
-            tabindex="-1"
-            id="menu-item-2"
-         >
-            View File
-         </a>
-         <a
-            href="#"
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
-            role="menuitem"
-            tabindex="-1"
-            id="menu-item-2"
-         >
-            Run OCR
-         </a>
-         <a
-            href="#"
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left"
             role="menuitem"
             tabindex="-1"
             id="menu-item-1"
          >
-            Download Result
-         </a>
-         <a
-            href="#"
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            View File
+         </button>
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left disabled:opacity-50"
             role="menuitem"
             tabindex="-1"
             id="menu-item-3"
+            {{ 'disabled' if statement.result == None else '' }}
          >
-            Analyze Result
-         </a>
-         <a
-            href="#"
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md"
+            Download
+         </button>      
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left disabled:opacity-50"
             role="menuitem"
             tabindex="-1"
-            id="menu-item-3"
+            id="menu-item-4"
+            {{ 'disabled' if statement.result == None else '' }}
          >
-            Remove Statement
-         </a>
+            Analyze
+         </button>
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left disabled:opacity-50"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-5"
+            onclick="openModal('result-delete-modal-{{ statement.id }}')"
+            {{ 'disabled' if statement.result == None and statement.ocr == None else '' }} 
+         >
+            Reset
+         </button>
+         <button
+            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left disabled:opacity-50"
+            role="menuitem"
+            tabindex="-1"
+            id="menu-item-5"
+            onclick="openModal('statement-delete-modal-{{ statement.id }}')"
+            {{ 'disabled' if statement.user_id != user.id else '' }} 
+         >
+            Remove
+         </button>
+      
       </div>
    </div>
 </div>
 
-{% include 'components/statement/edit-modal.html' %}
+{% include 'components/statement/edit-modal.html' %} {% include 'components/statement/delete-modal.html' %}
+{% include 'components/statement/reset-modal.html' %}
+
 
 <script>
    document.addEventListener("DOMContentLoaded", function () {
       const menuButton = document.getElementById("menu-button");
       const optionsDropdown = document.getElementById("optionsDropdown");
       const containerDropdown = document.getElementById("containerDropdown");
+      const menuItems = optionsDropdown.querySelectorAll("[role='menuitem']");
 
-      menuButton.addEventListener("click", function () {
+      function toggleDropdown() {
+         const isExpanded = menuButton.getAttribute("aria-expanded") === "true";
+         menuButton.setAttribute("aria-expanded", !isExpanded);
          optionsDropdown.classList.toggle("hidden");
          containerDropdown.classList.toggle("relative");
-      });
+      }
 
-      // Close the dropdown if the user clicks outside of it
+      function closeDropdown() {
+         menuButton.setAttribute("aria-expanded", "false");
+         optionsDropdown.classList.add("hidden");
+         containerDropdown.classList.remove("relative");
+      }
+
+      menuButton.addEventListener("click", toggleDropdown);
+
       document.addEventListener("click", function (event) {
          if (!menuButton.contains(event.target) && !optionsDropdown.contains(event.target)) {
-            optionsDropdown.classList.add("hidden");
-            containerDropdown.classList.remove("relative");
+            closeDropdown();
          }
+      });
+
+      document.addEventListener("keydown", function (event) {
+         if (event.key === "Escape" && !optionsDropdown.classList.contains("hidden")) {
+            closeDropdown();
+         }
+      });
+
+      menuItems.forEach(function (menuItem) {
+         menuItem.addEventListener("click", function () {
+            closeDropdown();
+         });
       });
    });
 </script>
