@@ -60,13 +60,41 @@
                </h2>
             </div>
             <!-- Right -->
-            {% include 'components/statement/option-menu.html' %}
+            <div class="flex items-center gap-x-2">
+               <button
+                  onclick="openModal('create-statement-modal-{{ statement.application.id }}')"
+                  class="px-4 py-2 text-sm font-semibold text-secondary bg-primary/85 hover:bg-primary/90 rounded-md flex items-center gap-x-2"
+               >
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-aperture size-4"
+                  >
+                     <circle cx="12" cy="12" r="10"></circle>
+                     <line x1="14.31" y1="8" x2="20.05" y2="17.94"></line>
+                     <line x1="9.69" y1="8" x2="21.17" y2="8"></line>
+                     <line x1="7.38" y1="12" x2="13.12" y2="2.06"></line>
+                     <line x1="9.69" y1="16" x2="3.95" y2="6.06"></line>
+                     <line x1="14.31" y1="16" x2="2.83" y2="16"></line>
+                     <line x1="16.62" y1="12" x2="10.88" y2="21.94"></line>
+                  </svg>
+                  <span>Scan</span>
+               </button>
+               {% include 'components/statement/option-menu.html' %}
+            </div>
          </div>
          <div class="flex flex-col gap-y-4 max-h-[450px] overflow-auto mt-8">
             {% if statement.result is none %}
             <div class="flex flex-col items-center justify-center gap-y-4">
                <div class="text-sm text-center text-mutedForeground space-y-2">
-                  <p>No result provided, Please click Run OCR!</p>
+                  <p>No result provided, Please scan this statement!</p>
                   <p class="font-semibold">or</p>
                </div>
                <form action="{{url_for('platform.statement.manual_result')}}" method="POST">

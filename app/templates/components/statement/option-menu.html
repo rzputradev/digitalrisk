@@ -2,12 +2,12 @@
    <div>
       <button
          type="button"
-         class="inline-flex justify-center w-full rounded-md border border-muted shadow-sm px-4 py-2 bg-background text-sm font-medium text-mutedForeground hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+         class="inline-flex justify-center w-full rounded-md border border-mutedForeground/20 shadow-sm px-4 py-2 bg-background text-sm font-medium text-mutedForeground hover:bg-secondary focus:bg-secondary"
          id="menu-button"
          aria-expanded="false"
          aria-haspopup="true"
       >
-         Option
+         Menu
          <svg
             class="-mr-1 ml-2 h-5 w-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -33,6 +33,17 @@
       tabindex="-1"
    >
       <div class="p-2 text-mutedForeground flex flex-col" role="none">
+         <a
+               href="{{ url_for('platform.statement.view', statement_id=statement.id) }}"
+               target="_blank"
+               class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left block"
+               role="menuitem"
+               tabindex="-1"
+               id="menu-item-1"
+         >
+               View
+         </a>
+     
          <button
             class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left"
             role="menuitem"
@@ -41,14 +52,6 @@
             onclick="openModal('update-statement-modal-{{ statement.id }}')"
          >
             Update
-         </button>
-         <button
-            class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left"
-            role="menuitem"
-            tabindex="-1"
-            id="menu-item-1"
-         >
-            View File
          </button>
          <button
             class="hover:bg-secondary px-4 py-2 text-sm rounded-md text-left disabled:opacity-50"
@@ -73,7 +76,7 @@
             role="menuitem"
             tabindex="-1"
             id="menu-item-5"
-            onclick="openModal('result-delete-modal-{{ statement.id }}')"
+            onclick="openModal('statement-reset-modal-{{ statement.id }}')"
             {{ 'disabled' if statement.result == None and statement.ocr == None else '' }} 
          >
             Reset

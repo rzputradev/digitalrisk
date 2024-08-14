@@ -3,7 +3,9 @@
    id="update-statement-modal-{{ statement.id }}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
-   <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
+   <div
+      class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6 overflow-y-auto max-h-full sm:max-h-[95vh]"
+   >
       <!-- Header -->
       <div class="flex items-center justify-between">
          <span class="font-semibold text-xl">Update Statement</span>
@@ -35,10 +37,13 @@
          <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
          <input type="hidden" name="statement_id" value="{{statement.id}}" />
 
-         <div class="text-mutedForeground">
-            <span class="font-semibold">Warning</span>, if you updating this statement with upload new file the result
-            will be remove!
+         <div class="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <span class="font-semibold text-yellow-800 rounded-md inline-block">Warning:</span>
+            <span class="text-sm text-yellow-700">
+               Updating this statement with a new file upload will remove the existing result!
+            </span>
          </div>
+
          <div class="space-y-4">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0">
                {{ update_form.name.label(class="lg:w-1/4 lg:text-base text-sm font-medium text-mutedForeground") }}
@@ -100,7 +105,7 @@
                type="submit"
                class="w-full py-2 bg-primary text-secondary font-semibold rounded-md shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
-               Upload
+               Update
             </button>
          </div>
       </form>

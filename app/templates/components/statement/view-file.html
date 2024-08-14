@@ -1,0 +1,54 @@
+{% extends 'base.html' %} {% block content %} {% block title %}{{ statement.name }}{% endblock %}
+
+<div class="container mx-auto px-4 py-8">
+   <h1 class="text-2xl font-semibold mb-6 text-primary/80">View Statement</h1>
+   <div class="border border-muted shadow-md rounded-lg p-8 space-y-6">
+      <div class="flex gap-x-8 text-mutedForeground">
+         <div class="font-semibold">
+            <p>Statement</p>
+            <p>Filename</p>
+         </div>
+         <div>
+            <p>{{ statement.name }}</p>
+            <p class="hover:text-blue-600 hover:underline">
+               <a href="{{ url_for('static', filename='files/' + statement.filename) }}" download title="Download File">
+                  {{ statement.filename }}
+               </a>
+            </p>
+         </div>
+      </div>
+
+      <hr class="my-6" />
+
+      <div>
+         {% if statement.filename.endswith('.pdf') %}
+         <object
+            data="{{ url_for('static', filename='files/' + statement.filename) }}"
+            type="application/pdf"
+            class="w-full h-[600px] rounded-md border"
+         >
+            <p class="text-center text-gray-500">
+               It appears you don't have a PDF plugin for this browser. You can
+               <a
+                  href="{{ url_for('static', filename='files/' + statement.filename) }}"
+                  download
+                  class="hover:text-blue-600 hover:underline"
+                  title="Download PDF file"
+               >
+                  click here to download the PDF file.
+               </a>
+            </p>
+         </object>
+         {% elif statement.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+         <img
+            src="{{ url_for('static', filename='files/' + statement.filename) }}"
+            alt="Statement Image"
+            class="max-w-full h-auto mx-auto rounded-md shadow-md"
+         />
+         {% else %}
+         <p class="text-red-500">Unsupported file format.</p>
+         {% endif %}
+      </div>
+   </div>
+</div>
+{% endblock content %}
