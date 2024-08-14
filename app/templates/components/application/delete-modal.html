@@ -38,12 +38,17 @@
       <form method="POST" action="{{ url_for('platform.application.delete') }}">
          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
          <input type="hidden" name="application_id" value="{{ application.id }}" />
-         <div class="flex justify-end text-sm">
-            <button type="submit" class="text-secondary rounded-md bg-destructive py-2 px-4 mr-2">Confirm</button>
+         <div class="flex justify-end text-sm text-secondary">
+            <button
+               type="submit"
+               class="rounded-md bg-destructive py-2 px-4 mr-2 hover:bg-destructive/90 transition-colors duration-200"
+            >
+               Confirm
+            </button>
             <button
                type="button"
                onclick="closeModal('application-delete-modal-{{application.id}}')"
-               class="bg-secondary py-2 px-4 rounded-md"
+               class="bg-mutedForeground py-2 px-4 rounded-md hover:bg-mutedForeground/90 hover:shadow-md transition-all duration-200"
             >
                Cancel
             </button>

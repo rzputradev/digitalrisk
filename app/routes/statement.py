@@ -177,6 +177,24 @@ def preview(id):
 
 
 
+@statement.route('/view', methods=['GET'])
+@login_required
+def view():
+    statement_id = request.args.get('statement_id')
+    statement = Statement.query.get(statement_id)
+
+    if not statement:
+        abort(404, description="Statement not found")
+
+    file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
+    if not os.path.exists(file_path):
+        abort(404, description="File not found")
+
+    return render_template('components/statement/view-file.html', user=current_user, statement=statement)
+
+
+
+
 @statement.route('/edit_transaction', methods=['POST'])
 @login_required
 def edit_transaction():

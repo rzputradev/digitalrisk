@@ -1,6 +1,6 @@
 <!-- Modal reset statement -->
 <div
-   id="result-delete-modal-{{ statement.id }}"
+   id="statement-reset-modal-{{ statement.id }}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('result-delete-modal-{{ statement.id }}')"
+            onclick="closeModal('statement-reset-modal-{{ statement.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -37,17 +37,17 @@
       <form method="POST" action="{{ url_for('platform.statement.reset') }}">
          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
          <input type="hidden" name="statement_id" value="{{ statement.id }}" />
-         <div class="flex justify-end text-sm">
+         <div class="flex justify-end text-sm text-secondary">
             <button
                type="submit"
-               class="text-secondary bg-primary/85 hover:bg-primary/90 rounded-md py-2 px-4 mr-2 transition duration-150"
+               class="rounded-md bg-yellow-600 py-2 px-4 mr-2 hover:bg-yellow-500 transition-colors duration-200"
             >
                Confirm
             </button>
             <button
                type="button"
-               onclick="closeModal('result-delete-modal-{{ statement.id }}')"
-               class="bg-secondary py-2 px-4 rounded-md"
+               onclick="closeModal('statement-reset-modal-{{statement.id}}')"
+               class="bg-mutedForeground py-2 px-4 rounded-md hover:bg-mutedForeground/90 hover:shadow-md transition-all duration-200"
             >
                Cancel
             </button>
