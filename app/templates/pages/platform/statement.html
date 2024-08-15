@@ -15,26 +15,26 @@
          </div>
          <!-- Right -->
          <button
-         class="text-sm p-2 rounded-md bg-primary/85 hover:bg-primary/90"
-         onclick="openModal('statement-search-modal')"
-      >
-         <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="feather feather-plus size-6 text-secondary"
+            class="text-sm p-2 rounded-md bg-primary/85 hover:bg-primary/90"
+            onclick="openModal('statement-search-modal')"
          >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-         </svg>
-      </button>
-      {% include 'components/statement/search-modal.html' %}
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="24"
+               height="24"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               class="feather feather-plus size-6 text-secondary"
+            >
+               <line x1="12" y1="5" x2="12" y2="19"></line>
+               <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+         </button>
+         {% include 'components/statement/search-modal.html' %}
       </div>
       <!-- Table -->
       <div class="px-4 max-w-full overflow-auto">
@@ -59,25 +59,60 @@
                {% for statement in statements %}
 
                <tr class="hover:bg-secondary">
-                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap"><a href="{{url_for('platform.statement.preview', id=statement.id)}}" class="hover:underline">{{ statement.name }}</a></td>
-                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">{{statement.is_valid}} </td>
                   <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
-                     <a href="{{url_for('platform.application.preview', id=statement.application.id)}}" class="hover:underline"
-                        >{{statement.application.application_type.name}}</a>
+                     <a href="{{url_for('platform.statement.preview', id=statement.id)}}" class="hover:underline"
+                        >{{ statement.name }}</a
+                     >
                   </td>
                   <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
-                     <a href="{{ url_for('platform.customer.preview', id=statement.application.customer.id) }}" class="hover:underline"
-                        >{{statement.application.customer.name}}</a>
+                     {{statement.is_valid}}
                   </td>
-                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap"> {{ statement.created_at | utc_to_wib }} </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     <a
+                        href="{{url_for('platform.application.preview', id=statement.application.id)}}"
+                        class="hover:underline"
+                        >{{statement.application.application_type.name}}</a
+                     >
+                  </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     <a
+                        href="{{ url_for('platform.customer.preview', id=statement.application.customer.id) }}"
+                        class="hover:underline"
+                        >{{statement.application.customer.name}}</a
+                     >
+                  </td>
+                  <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
+                     {{ statement.created_at | utc_to_wib }}
+                  </td>
                   <td class="px-4 py-3 truncate w-[200px] max-w-[200px] overflow-hidden whitespace-nowrap">
                      <div class="w-full flex items-center justify-center gap-x-1 text-primary/70">
-                       
+                        <a
+                           href="{{ url_for('platform.statement.view', statement_id=statement.id) }}"
+                           target="_blank"
+                           class="disabled:text-mutedForeground/50 rounded-sm px-2 py-1 {{ 'disabled:hover:bg-primary/70' if statement.user_id != user.id else 'hover:bg-primary/70' }} hover:text-secondary"
+                        >
+                           <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="feather feather-external-link size-5"
+                           >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <line x1="10" y1="14" x2="21" y2="3"></line>
+                           </svg>
+                        </a>
                         <button
                            onclick="openModal('statement-delete-modal-{{statement.id}}')"
                            class="disabled:text-mutedForeground/50 rounded-sm px-2 py-1 {{ 'disabled:hover:bg-primary/70' if statement.user_id != user.id else 'hover:bg-primary/70' }} hover:text-secondary"
-                           {{ 'disabled' if statement.user_id != user.id else '' }} 
-                           >
+                        >
+                           <!-- {{ 'disabled' if statement.user_id != user.id else '' }}  -->
                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"
@@ -102,8 +137,7 @@
                   </td>
                </tr>
 
-               {% include 'components/statement/delete-modal.html' %} 
-               {% endfor %}
+               {% include 'components/statement/delete-modal.html' %} {% endfor %}
             </tbody>
          </table>
          {% endif %}

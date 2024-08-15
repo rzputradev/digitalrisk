@@ -1,7 +1,6 @@
 {% extends 'layouts/platform.html' %} {% block title %} Statement Preview {% endblock %} {% block main %}
 <div class="w-full flex flex-col gap-y-2 lg:gap-y-4 bg-secondary/80 p-2 md:p-4 lg:p-6">
-   {% include 'components/statement/parameter-modal.html' %} {% include
-   'components/statement/create-statement-modal.html' %}
+   {% include 'components/statement/scan-modal.html' %} {% include 'components/statement/create-statement-modal.html' %}
 
    <!-- Header -->
    <div class="flex justify-between items-end text-primary/85">
@@ -62,7 +61,7 @@
             <!-- Right -->
             <div class="flex items-center gap-x-2">
                <button
-                  onclick="openModal('create-statement-modal-{{ statement.application.id }}')"
+                  onclick="openModal('scan-statement-modal-{{ statement.id }}')"
                   class="px-4 py-2 text-sm font-semibold text-secondary bg-primary/85 hover:bg-primary/90 rounded-md flex items-center gap-x-2"
                >
                   <svg
@@ -90,7 +89,7 @@
                {% include 'components/statement/option-menu.html' %}
             </div>
          </div>
-         <div class="flex flex-col gap-y-4 max-h-[450px] overflow-auto mt-8">
+         <div class="flex flex-col gap-y-4 max-h-[450px] overflow-auto mt-4">
             {% if statement.result is none %}
             <div class="flex flex-col items-center justify-center gap-y-4">
                <div class="text-sm text-center text-mutedForeground space-y-2">
@@ -125,7 +124,7 @@
                   </button>
                </form>
             </div>
-            {% else %} {% include 'components/statement/edit-transaction.html' %} {% endif %}
+            {% else %} {% include 'components/statement/statement-tab.html' %} {% endif %}
          </div>
       </div>
    </section>

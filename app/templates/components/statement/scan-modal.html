@@ -1,12 +1,12 @@
 <!-- Modal -->
 <div
-   id="parameter-statement-modal-{{ statement.id }}"
+   id="scan-statement-modal-{{ statement.id }}"
    class="fixed inset-0 z-50 items-center justify-center bg-primary bg-opacity-50 hidden"
 >
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <span class="font-semibold text-xl">Configure Parameter</span>
+         <span class="font-semibold text-xl">Scan Statement</span>
          <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -18,7 +18,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
-            onclick="closeModal('parameter-statement-modal-{{ statement.id }}')"
+            onclick="closeModal('scan-statement-modal-{{ statement.id }}')"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -82,7 +82,7 @@
             </button>
             <button
                type="button"
-               onclick="closeModal('parameter-statement-modal-{{ statement.id }}')"
+               onclick="closeModal('scan-statement-modal-{{ statement.id }}')"
                class="bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded-md transition duration-150"
             >
                Cancel
