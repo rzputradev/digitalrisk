@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block content %} {% block title %}{{ statement.name }}{% endblock %}
-
+{% extends 'base.html' %}{% block title %}{{ statement.name }}{% endblock title %} {% block content %}
 <div class="container mx-auto px-4 py-8">
    <h1 class="text-2xl font-semibold mb-6 text-primary/80">View Statement</h1>
    <div class="border border-muted shadow-md rounded-lg p-8 space-y-6">

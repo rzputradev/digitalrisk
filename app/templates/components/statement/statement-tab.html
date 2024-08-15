@@ -1,0 +1,69 @@
+<div class="">
+   <div class="border-b">
+      <ul id="tabs" class="flex cursor-pointer">
+         <li
+            class="px-4 py-2 transition-colors {{ 'font-semibold border-b-2 border-current' if tab == 'transactions' else 'hover:border-b-2 text-mutedForeground' }}"
+            data-tab="transactions"
+         >
+            Transactions
+         </li>
+         <li
+            class="px-4 py-2 transition-colors {{ 'font-semibold border-b-2 border-current' if tab == 'summary' else 'hover:border-b-2 text-mutedForeground' }} {{ 'opacity-50 cursor-not-allowed' if statement.result is none }}"
+            data-tab="summary"
+            {{ 'tabindex="-1" aria-disabled="true"' if statement.result is none }}
+         >
+            Summary
+         </li>
+      
+      
+      </ul>
+   </div>
+   <div id="tab-contents" class="py-4">
+      <div id="transactions" class="tab-content {{ '' if tab == 'transactions' else 'hidden' }}">
+         {% include 'components/statement/edit-transaction.html' %}
+      </div>
+      <div id="summary" class="tab-content {{ '' if tab == 'summary' else 'hidden' }}">
+         <p>Content for Summary</p>
+      </div>
+   </div>
+</div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+      const tabs = document.querySelectorAll("#tabs li:not(.cursor-not-allowed)");
+      const contents = document.querySelectorAll(".tab-content");
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentTab = urlParams.get("tab") || "transactions";
+
+      function switchTab(selectedTab) {
+         tabs.forEach((item) => {
+            item.classList.remove("font-semibold", "border-b-2", "border-current");
+            item.classList.add("text-mutedForeground");
+         });
+         contents.forEach((content) => {
+            content.classList.add("hidden");
+            if (content.getAttribute("id") === selectedTab) {
+               content.classList.remove("hidden");
+            }
+         });
+
+         const activeTab = document.querySelector(`#tabs li[data-tab='${selectedTab}']`);
+         activeTab.classList.add("font-semibold", "border-b-2", "border-current");
+         activeTab.classList.remove("text-mutedForeground");
+
+         const url = new URL(window.location.href);
+         url.searchParams.set("tab", selectedTab);
+         window.history.pushState({}, "", url);
+      }
+
+      switchTab(currentTab);
+
+      tabs.forEach((tab) => {
+         tab.addEventListener("click", function () {
+            const selectedTab = this.getAttribute("data-tab");
+            switchTab(selectedTab);
+         });
+      });
+   });
+</script>

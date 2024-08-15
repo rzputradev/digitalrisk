@@ -35,6 +35,7 @@
                   value="{{ transaction.datetime.value|replace(' ', 'T') }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                   aria-required="true"
+                  required
                />
                <input
                   type="hidden"
@@ -180,6 +181,7 @@
                   value="{{ transaction.balance.value|comma_separation }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                   aria-required="true"
+                  required
                />
                <input
                   type="hidden"
