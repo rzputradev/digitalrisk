@@ -1,10 +1,13 @@
 import os
 from flask import Blueprint, render_template, flash, redirect, url_for, request, current_app, abort
 from flask_login import current_user, login_required
-from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
+from collections import defaultdict
+from datetime import datetime
+from uuid import uuid4
 import json
 import re
 
@@ -13,11 +16,13 @@ from app.models.user import User
 from app.models.customer import Customer
 from app.models.application import Application
 from app.models.statement import Statement
+from app.models.statement import Bank
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm, UpdateStatementForm
 from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file
-from datetime import datetime
-from collections import defaultdict
-from uuid import uuid4
+from app.utils.scan.ocr import perform_ocr
+from app.utils.scan.exractor import Extractor
+
+
 
 
 
@@ -116,7 +121,7 @@ def preview(id):
         abort(404, description="Statement not found")
 
     statement_form = CreateStatementForm()
-    parameter_form = ParameterStatementForm()
+    parameter_form = ParameterStatementForm(bank_id=statement.bank_id)
     update_form = UpdateStatementForm()
     result = None
 
@@ -171,6 +176,7 @@ def preview(id):
     
     update_form.statement_id.data = statement.id
     update_form.name.data = statement.name
+    # parameter_form.bank_id.data = statement.bank.name if statement.bank_id else None
 
     return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, result=result, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
 
@@ -191,6 +197,78 @@ def view():
         abort(404, description="File not found")
 
     return render_template('components/statement/view-file.html', user=current_user, statement=statement)
+
+
+
+
+@statement.route('/scan', methods=['POST'])
+@login_required
+def scan():
+    form = ParameterStatementForm()
+
+    if form.validate_on_submit():
+        statement_id = form.statement_id.data
+        bank_id = form.bank_id.data
+        full_scan = form.full_scan.data
+
+        statement = Statement.query.get(statement_id)
+
+        if not statement:
+            flash('Statement not found', 'danger')
+            return redirect(url_for('platform.statement.preview', id=statement_id))
+        
+        try:
+            file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
+            if not os.path.exists(file_path):
+                flash('File not found', 'danger')
+                return redirect(url_for('platform.statement.preview', id=statement_id))
+            
+            print(full_scan)
+            
+            if full_scan:
+                ocr_result = perform_ocr(file_path)
+                extractor = Extractor(ocr_result)
+                result = extractor.extract()
+
+                ocr_filename = statement.ocr if statement.ocr else f"{str(uuid4())}.json"
+                result_filename = statement.result if statement.result else f"{str(uuid4())}.json"
+
+                ocr_path = os.path.join(current_app.config['FILE_FOLDER'], ocr_filename)
+                result_path = os.path.join(current_app.config['FILE_FOLDER'], result_filename)
+
+                save_json_file(ocr_path, ocr_result)
+                save_json_file(result_path, result)
+
+                statement.ocr = ocr_filename
+                statement.result = result_filename
+            else:
+                ocr_result = load_json_file(os.path.join(current_app.config['FILE_FOLDER'], statement.ocr))
+                extractor = Extractor(ocr_result)
+                result = extractor.extract()
+
+                result_filename = statement.result if statement.result else f"{str(uuid4())}.json"
+                result_path = os.path.join(current_app.config['FILE_FOLDER'], result_filename)
+
+                save_json_file(result_path, result)
+                statement.result = result_filename
+                
+
+            statement.bank_id = bank_id
+            db.session.commit()
+
+            flash('Statement scanned successfully', 'success')
+            return redirect(url_for('platform.statement.preview', id=statement_id))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('An error occurred while scanning the statement', 'danger')
+            print(f'Error: {e}')
+            return redirect(url_for('platform.statement.preview', id=statement_id))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
+    
+
 
 
 
@@ -398,9 +476,7 @@ def manual_result():
                 "confidence": 1.0,
                 "faulty": False
             }
-        }],
-        "summary": {
-        }
+        }]
     }
 
     try:
@@ -445,6 +521,7 @@ def reset():
 
         statement.ocr = None
         statement.result = None
+        statement.bank_id = None
         db.session.commit()
 
         flash('Statement reset successfully', 'success')

@@ -24,15 +24,15 @@
          >
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.datetime.confidence }}"
-               data-faulty="{{ transaction.datetime.faulty }}"
+               data-confidence="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
+               data-faulty="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
             >
                <label for="datetime_{{ transaction.id }}" class="sr-only">Transaction Date</label>
                <input
                   id="datetime_{{ transaction.id }}"
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][datetime]"
-                  value="{{ transaction.datetime.value|replace(' ', 'T') }}"
+                  value="{{ transaction.datetime.value | replace(' ', 'T') | default('') if transaction.datetime is defined else '' }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                   aria-required="true"
                   required
@@ -40,145 +40,145 @@
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][datetime_confidence]"
-                  value="{{ transaction.datetime.confidence }}"
+                  value="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][datetime_faulty]"
-                  value="{{ transaction.datetime.faulty }}"
+                  value="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.valuedate.confidence }}"
-               data-faulty="{{ transaction.valuedate.faulty }}"
+               data-confidence="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
+               data-faulty="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
             >
                <label for="valuedate_{{ transaction.id }}" class="sr-only">Value Date</label>
                <input
                   id="valuedate_{{ transaction.id }}"
                   type="datetime-local"
                   name="transactions[{{ transaction.id }}][valuedate]"
-                  value="{{ transaction.valuedate.value|replace(' ', 'T') }}"
+                  value="{{ transaction.valuedate.value | replace(' ', 'T') | default('') if transaction.valuedate is defined else '' }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][valuedate_confidence]"
-                  value="{{ transaction.valuedate.confidence }}"
+                  value="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][valuedate_faulty]"
-                  value="{{ transaction.valuedate.faulty }}"
+                  value="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.description.confidence }}"
-               data-faulty="{{ transaction.description.faulty }}"
+               data-confidence="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
+               data-faulty="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
             >
                <label for="description_{{ transaction.id }}" class="sr-only">Description</label>
                <input
                   id="description_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][description]"
-                  value="{{ transaction.description.value }}"
+                  value="{{ transaction.description.value | default('') if transaction.description is defined else '' }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][description_confidence]"
-                  value="{{ transaction.description.confidence }}"
+                  value="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][description_faulty]"
-                  value="{{ transaction.description.faulty }}"
+                  value="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.reference.confidence }}"
-               data-faulty="{{ transaction.reference.faulty }}"
+               data-confidence="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
+               data-faulty="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
             >
                <label for="reference_{{ transaction.id }}" class="sr-only">Reference</label>
                <input
                   id="reference_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][reference]"
-                  value="{{ transaction.reference.value }}"
+                  value="{{ transaction.reference.value | default('') if transaction.reference is defined else '' }}"
                   class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][reference_confidence]"
-                  value="{{ transaction.reference.confidence }}"
+                  value="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][reference_faulty]"
-                  value="{{ transaction.reference.faulty }}"
+                  value="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.debit.confidence }}"
-               data-faulty="{{ transaction.debit.faulty }}"
+               data-confidence="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
+               data-faulty="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
             >
                <label for="debit_{{ transaction.id }}" class="sr-only">Debit</label>
                <input
                   id="debit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][debit]"
-                  value="{{ transaction.debit.value|comma_separation }}"
+                  value="{{ transaction.debit.value | comma_separation | default('') if transaction.debit is defined else '' }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][debit_confidence]"
-                  value="{{ transaction.debit.confidence }}"
+                  value="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][debit_faulty]"
-                  value="{{ transaction.debit.faulty }}"
+                  value="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.credit.confidence }}"
-               data-faulty="{{ transaction.credit.faulty }}"
+               data-confidence="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
+               data-faulty="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
             >
                <label for="credit_{{ transaction.id }}" class="sr-only">Credit</label>
                <input
                   id="credit_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][credit]"
-                  value="{{ transaction.credit.value|comma_separation }}"
+                  value="{{ transaction.credit.value | comma_separation | default('') if transaction.credit is defined else '' }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][credit_confidence]"
-                  value="{{ transaction.credit.confidence }}"
+                  value="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][credit_faulty]"
-                  value="{{ transaction.credit.faulty }}"
+                  value="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
                />
             </td>
             <td
                class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.balance.confidence }}"
-               data-faulty="{{ transaction.balance.faulty }}"
+               data-confidence="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
+               data-faulty="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
             >
                <label for="balance_{{ transaction.id }}" class="sr-only">Balance</label>
                <input
                   id="balance_{{ transaction.id }}"
                   type="text"
                   name="transactions[{{ transaction.id }}][balance]"
-                  value="{{ transaction.balance.value|comma_separation }}"
+                  value="{{ transaction.balance.value | comma_separation | default('') if transaction.balance is defined else '' }}"
                   class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
                   aria-required="true"
                   required
@@ -186,12 +186,12 @@
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][balance_confidence]"
-                  value="{{ transaction.balance.confidence }}"
+                  value="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
                />
                <input
                   type="hidden"
                   name="transactions[{{ transaction.id }}][balance_faulty]"
-                  value="{{ transaction.balance.faulty }}"
+                  value="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
                />
             </td>
          </tr>
