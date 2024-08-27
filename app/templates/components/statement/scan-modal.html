@@ -6,7 +6,7 @@
    <div class="bg-background rounded-md shadow-lg w-full max-w-lg text-primary/90 p-8 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-         <span class="font-semibold text-xl">Scan Statement</span>
+         <span class="font-semibold text-xl">{% if statement.ocr %} Re-Scan {% else %} Scan {% endif %} Statement</span>
          <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -19,6 +19,7 @@
             stroke-linejoin="round"
             class="feather feather-x cursor-pointer"
             onclick="closeModal('scan-statement-modal-{{ statement.id }}')"
+            name="btn-close-modal"
          >
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -26,79 +27,135 @@
       </div>
 
       <!-- Form -->
-      <form method="POST" action="{{ url_for('platform.statement.index') }}" class="space-y-8">
+      <form method="POST" action="{{ url_for('platform.statement.scan') }}" class="space-y-6" id="scan-form">
          <div>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" name="statement_id" value="{{ statement.id }}" />
          </div>
 
-         <!-- Description -->
-         <div class="text-mutedForeground">Please configure OCR parameters before running it!</div>
+         <!-- Content -->
+         <div class="space-y-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p class="text-lg font-semibold text-yellow-800">This process might take a moment!</p>
+            <p class="text-sm text-yellow-700">
+               Please stay on this page and avoid closing the tab until the process is complete.
+            </p>
+         </div>
 
-         <!-- Form Fields -->
-         <div class="space-y-6">
-            {% for field in [parameter_form.detect_rotation, parameter_form.implicit_rows,
-            parameter_form.borderless_tables] %}
-            <div class="flex items-center w-full gap-x-4">
-               <label for="{{ field.id }}" class="w-2/5 text-mutedForeground">{{ field.label.text }}</label>
-               <div class="w-3/5">
-                  {{ field(class="w-full px-0 appearance-none bg-transparent border-0 border-b border-mutedForeground/50
-                  focus:outline-none focus:ring-0 focus:border-primary/80 transition duration-150") }} {% if
-                  field.errors %}
-                  <div>
-                     {% for error in field.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-                     {% endfor %}
-                  </div>
-                  {% endif %}
+         <!-- Bank ID Field -->
+         <div class="flex items-center gap-x-4 mb-6">
+            <label for="{{ parameter_form.bank_id.id }}" class="w-2/5 text-muted-foreground">
+               {{ parameter_form.bank_id.label.text }}
+            </label>
+            <div class="w-3/5">
+               {{ parameter_form.bank_id( class="w-full px-0 appearance-none bg-transparent border-0 border-b
+               border-muted-foreground/50 focus:outline-none focus:ring-0 focus:border-primary/80 transition
+               duration-150", required=true ) }} {% if parameter_form.bank_id.errors %}
+               <div class="mt-1">
+                  {% for error in parameter_form.bank_id.errors %}
+                  <p class="text-red-600 text-sm">{{ error }}</p>
+                  {% endfor %}
                </div>
+               {% endif %}
             </div>
-            {% endfor %}
-            <div class="flex items-start w-full gap-x-4">
-               <label for="{{ parameter_form.min_confidence.id }}" class="w-2/5 text-mutedForeground"
-                  >{{ parameter_form.min_confidence.label.text }}</label
-               >
-               <div class="w-3/5">
-                  {{ parameter_form.min_confidence(class="w-full px-0 ") }}
-                  <span id="min_confidence_value">{{ parameter_form.min_confidence.data }}</span>
-                  {% if parameter_form.min_confidence.errors %}
-                  <div>
-                     {% for error in parameter_form.min_confidence.errors %}
-                     <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-                     {% endfor %}
-                  </div>
-                  {% endif %}
-               </div>
-            </div>
+         </div>
+
+         <!-- Full Scan Checkbox Field -->
+
+         <div class="flex items-center gap-x-2 {% if statement.ocr is none %}hidden{% endif %}">
+            {{ parameter_form.full_scan( class="checked:bg-primary border-muted-foreground/50 focus:outline-none
+            focus:ring-0 transition duration-150 h-5 w-5") }}
+            <label for="{{ parameter_form.full_scan.id }}" class="text-primary cursor-pointer select-none">
+               {{ parameter_form.full_scan.label.text }}
+            </label>
          </div>
 
          <!-- Footer -->
          <div class="flex justify-end text-sm mt-4 pt-4">
             <button
-               type="submit"
-               class="text-secondary bg-primary/85 hover:bg-primary/90 rounded-md py-2 px-4 mr-2 transition duration-150"
+               id="loading-trigger"
+               type="button"
+               name="btn-action"
+               class="flex gap-x-2 items-center text-secondary bg-primary/85 hover:bg-primary/90 rounded-md py-2 px-4 mr-2 transition duration-150"
+               onclick="validateFormAndSubmit(this)"
             >
-               Execute
+               <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="hidden size-5"
+                  id="loading-spinner"
+               >
+                  <style>
+                     .spinner_z9k8 {
+                        transform-origin: center;
+                        animation: spinner_StKS 0.75s infinite linear;
+                        fill: white;
+                     }
+                     @keyframes spinner_StKS {
+                        100% {
+                           transform: rotate(360deg);
+                        }
+                     }
+                  </style>
+                  <path
+                     d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                     opacity=".25"
+                     fill="white"
+                  />
+                  <path
+                     d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+                     class="spinner_z9k8"
+                  />
+               </svg>
+
+               <span id="btn-confirm">Confirm</span>
             </button>
             <button
                type="button"
+               name="btn-close-modal"
                onclick="closeModal('scan-statement-modal-{{ statement.id }}')"
                class="bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded-md transition duration-150"
             >
                Cancel
             </button>
          </div>
+
+         <script>
+            function validateFormAndSubmit(button) {
+               const bankField = document.querySelector("[name='{{ parameter_form.bank_id.name }}']");
+               const spinner = button.querySelector("#loading-spinner");
+               const buttonText = button.querySelector("#btn-confirm");
+
+               if (bankField.value === "") {
+                  alert("Bank selection is required.");
+                  return false;
+               }
+
+               spinner.classList.remove("hidden");
+               buttonText.textContent = "Loading";
+               button.classList.add("bg-gray-400", "cursor-not-allowed");
+               button.classList.remove("hover:bg-primary/90");
+
+               const elements = document.querySelectorAll("[name='btn-action'], [name='btn-close-modal']");
+               elements.forEach((el) => {
+                  el.classList.add("bg-gray-400", "cursor-not-allowed");
+                  el.classList.remove("hover:bg-primary/90", "hover:bg-gray-300");
+                  el.disabled = true;
+                  el.style.pointerEvents = "none";
+               });
+
+               // Prevent default form submission and allow loading animation to show
+               document.getElementById("scan-form").addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  setTimeout(function () {
+                     document.getElementById("scan-form").submit();
+                  }, 100);
+               });
+
+               document.getElementById("scan-form").submit();
+            }
+         </script>
       </form>
    </div>
 </div>
-
-<script>
-   document.addEventListener("DOMContentLoaded", function () {
-      var minConfidenceInput = document.getElementById("min_confidence");
-      var minConfidenceValue = document.getElementById("min_confidence_value");
-
-      minConfidenceInput.addEventListener("input", function () {
-         minConfidenceValue.textContent = minConfidenceInput.value;
-      });
-   });
-</script>
