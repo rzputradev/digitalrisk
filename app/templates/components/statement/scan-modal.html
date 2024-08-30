@@ -27,7 +27,7 @@
       </div>
 
       <!-- Form -->
-      <form method="POST" action="{{ url_for('platform.statement.scan') }}" class="space-y-6" id="scan-form">
+      <form method="POST" action="{{ url_for('platform.statement.scan') }}" class="space-y-6 px-4" id="scan-form">
          <div>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" name="statement_id" value="{{ statement.id }}" />
@@ -41,32 +41,22 @@
             </p>
          </div>
 
-         <!-- Bank ID Field -->
-         <div class="flex items-center gap-x-4 mb-6">
-            <label for="{{ parameter_form.bank_id.id }}" class="w-2/5 text-muted-foreground">
-               {{ parameter_form.bank_id.label.text }}
+         <!-- Full Scan Field -->
+         <div class="flex items-center gap-x-4 mb-6 {% if statement.ocr is none %}hidden{% endif %}">
+            <label for="{{ parameter_form.full_scan.id }}" class="w-2/5 text-muted-foreground">
+               {{ parameter_form.full_scan.label.text }}
             </label>
             <div class="w-3/5">
-               {{ parameter_form.bank_id( class="w-full px-0 appearance-none bg-transparent border-0 border-b
+               {{ parameter_form.full_scan( class="w-full px-0 appearance-none bg-transparent border-0 border-b
                border-muted-foreground/50 focus:outline-none focus:ring-0 focus:border-primary/80 transition
-               duration-150", required=true ) }} {% if parameter_form.bank_id.errors %}
+               duration-150", required=true ) }} {% if parameter_form.full_scan.errors %}
                <div class="mt-1">
-                  {% for error in parameter_form.bank_id.errors %}
+                  {% for error in parameter_form.full_scan.errors %}
                   <p class="text-red-600 text-sm">{{ error }}</p>
                   {% endfor %}
                </div>
                {% endif %}
             </div>
-         </div>
-
-         <!-- Full Scan Checkbox Field -->
-
-         <div class="flex items-center gap-x-2 {% if statement.ocr is none %}hidden{% endif %}">
-            {{ parameter_form.full_scan( class="checked:bg-primary border-muted-foreground/50 focus:outline-none
-            focus:ring-0 transition duration-150 h-5 w-5") }}
-            <label for="{{ parameter_form.full_scan.id }}" class="text-primary cursor-pointer select-none">
-               {{ parameter_form.full_scan.label.text }}
-            </label>
          </div>
 
          <!-- Footer -->
@@ -123,29 +113,22 @@
 
          <script>
             function validateFormAndSubmit(button) {
-               const bankField = document.querySelector("[name='{{ parameter_form.bank_id.name }}']");
                const spinner = button.querySelector("#loading-spinner");
                const buttonText = button.querySelector("#btn-confirm");
 
-               if (bankField.value === "") {
-                  alert("Bank selection is required.");
-                  return false;
-               }
-
                spinner.classList.remove("hidden");
                buttonText.textContent = "Loading";
-               button.classList.add("bg-gray-400", "cursor-not-allowed");
+               button.classList.add("cursor-not-allowed");
                button.classList.remove("hover:bg-primary/90");
 
                const elements = document.querySelectorAll("[name='btn-action'], [name='btn-close-modal']");
                elements.forEach((el) => {
-                  el.classList.add("bg-gray-400", "cursor-not-allowed");
+                  el.classList.add("cursor-not-allowed");
                   el.classList.remove("hover:bg-primary/90", "hover:bg-gray-300");
                   el.disabled = true;
                   el.style.pointerEvents = "none";
                });
 
-               // Prevent default form submission and allow loading animation to show
                document.getElementById("scan-form").addEventListener("submit", function (e) {
                   e.preventDefault();
                   setTimeout(function () {

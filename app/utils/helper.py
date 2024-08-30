@@ -4,6 +4,7 @@ import re
 from uuid import uuid4
 from flask import current_app
 from flask import current_app, flash
+from datetime import datetime
 
 
 def generate_unique_filename(original_filename):
@@ -38,6 +39,15 @@ def save_json_file(filepath, data):
         flash('An error occurred while saving the updated transactions', 'danger')
         print(f'Error: {e}')
 
+
+def parse_date(date_str):
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+    except ValueError as e:
+        flash("Conversion error", "danger")
+        print(f"Error: {e}")
+        return date_str
+    
 
 def parse_integer(value):
     try:

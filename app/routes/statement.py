@@ -18,7 +18,7 @@ from app.models.application import Application
 from app.models.statement import Statement
 from app.models.statement import Bank
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm, UpdateStatementForm
-from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file
+from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file, parse_date
 from app.utils.scan.ocr import perform_ocr
 from app.utils.scan.exractor import Extractor
 
@@ -124,6 +124,8 @@ def preview(id):
     parameter_form = ParameterStatementForm(bank_id=statement.bank_id)
     update_form = UpdateStatementForm()
     result = None
+    transactions = None
+    summary = None
 
     if statement.result:
         result_json_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
@@ -131,6 +133,10 @@ def preview(id):
             try:
                 with open(result_json_path, 'r') as file:
                     result = json.load(file)
+                    transactions = result.get('transactions', [])
+                    summary = result.get('summary', {})
+                    if not summary:
+                        summary = None
             except json.JSONDecodeError:
                 flash('An error occurred while loading the result', 'danger')
                 print('Error: An error occurred while loading the result') 
@@ -178,7 +184,7 @@ def preview(id):
     update_form.name.data = statement.name
     # parameter_form.bank_id.data = statement.bank.name if statement.bank_id else None
 
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, result=result, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, transactions=transactions, summary=summary, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
 
 
 
@@ -208,7 +214,6 @@ def scan():
 
     if form.validate_on_submit():
         statement_id = form.statement_id.data
-        bank_id = form.bank_id.data
         full_scan = form.full_scan.data
 
         statement = Statement.query.get(statement_id)
@@ -225,7 +230,7 @@ def scan():
             
             print(full_scan)
             
-            if full_scan:
+            if full_scan == '1' or not statement.ocr:
                 ocr_result = perform_ocr(file_path)
                 extractor = Extractor(ocr_result)
                 result = extractor.extract()
@@ -252,8 +257,6 @@ def scan():
                 save_json_file(result_path, result)
                 statement.result = result_filename
                 
-
-            statement.bank_id = bank_id
             db.session.commit()
 
             flash('Statement scanned successfully', 'success')
