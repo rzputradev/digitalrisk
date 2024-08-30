@@ -1,285 +1,289 @@
-<form method="POST" action="{{ url_for('platform.statement.edit_transaction') }}" aria-labelledby="formTitle">
-   <div>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="hidden" name="statement_id" value="{{ statement.id }}" />
+<form method="POST" action="{{ url_for('platform.statement.edit_transaction') }}" class="h-full space-y-4">
+   <div class="max-h-[450px] overflow-auto">
+      <div>
+         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+         <input type="hidden" name="statement_id" value="{{ statement.id }}" />
+      </div>
+      <table id="transactionTable" class="w-full border-collapse text-base text-primary/80">
+         <thead>
+            <tr class="text-left">
+               <th class="px-4 py-2">Transaction Date</th>
+               <th class="px-4 py-2">Value Date</th>
+               <th class="px-4 py-2">Description</th>
+               <th class="px-4 py-2">Reference</th>
+               <th class="px-4 py-2 text-right">Debit</th>
+               <th class="px-4 py-2 text-right">Credit</th>
+               <th class="px-4 py-2 text-right">Balance</th>
+            </tr>
+         </thead>
+         <tbody id="transactionTableBody" class="divide-y divide-gray-200">
+            {% for transaction in transactions %}
+            <tr
+               id="row_{{ transaction.id }}"
+               class="transaction-row {{ 'new-row' if transaction.datetime.value == '' else '' }}"
+            >
+               <td
+                  class="px-4 py-3 truncate w-[200px]"
+                  data-confidence="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
+                  data-faulty="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
+               >
+                  <input
+                     id="datetime_{{ transaction.id }}"
+                     type="datetime-local"
+                     name="transactions[{{ transaction.id }}][datetime]"
+                     value="{{ transaction.datetime.value | replace(' ', 'T') | default('') if transaction.datetime is defined else '' }}"
+                     class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+                     aria-required="true"
+                     required
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][datetime_confidence]"
+                     value="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][datetime_faulty]"
+                     value="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px]"
+                  data-confidence="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
+                  data-faulty="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
+               >
+                  <input
+                     id="valuedate_{{ transaction.id }}"
+                     type="datetime-local"
+                     name="transactions[{{ transaction.id }}][valuedate]"
+                     value="{{ transaction.valuedate.value | replace(' ', 'T') | default('') if transaction.valuedate is defined else '' }}"
+                     class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][valuedate_confidence]"
+                     value="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][valuedate_faulty]"
+                     value="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px]"
+                  data-confidence="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
+                  data-faulty="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
+               >
+                  <input
+                     id="description_{{ transaction.id }}"
+                     type="text"
+                     name="transactions[{{ transaction.id }}][description]"
+                     value="{{ transaction.description.value | default('') if transaction.description is defined else '' }}"
+                     class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][description_confidence]"
+                     value="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][description_faulty]"
+                     value="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px]"
+                  data-confidence="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
+                  data-faulty="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
+               >
+                  <input
+                     id="reference_{{ transaction.id }}"
+                     type="text"
+                     name="transactions[{{ transaction.id }}][reference]"
+                     value="{{ transaction.reference.value | default('') if transaction.reference is defined else '' }}"
+                     class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][reference_confidence]"
+                     value="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][reference_faulty]"
+                     value="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px] text-right"
+                  data-confidence="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
+                  data-faulty="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
+               >
+                  <input
+                     id="debit_{{ transaction.id }}"
+                     type="text"
+                     name="transactions[{{ transaction.id }}][debit]"
+                     value="{{ transaction.debit.value | comma_separation | default('') if transaction.debit is defined else '' }}"
+                     class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][debit_confidence]"
+                     value="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][debit_faulty]"
+                     value="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px] text-right"
+                  data-confidence="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
+                  data-faulty="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
+               >
+                  <input
+                     id="credit_{{ transaction.id }}"
+                     type="text"
+                     name="transactions[{{ transaction.id }}][credit]"
+                     value="{{ transaction.credit.value | comma_separation | default('') if transaction.credit is defined else '' }}"
+                     class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][credit_confidence]"
+                     value="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][credit_faulty]"
+                     value="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
+                  />
+               </td>
+               <td
+                  class="px-4 py-3 truncate w-[200px] text-right"
+                  data-confidence="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
+                  data-faulty="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
+               >
+                  <input
+                     id="balance_{{ transaction.id }}"
+                     type="text"
+                     name="transactions[{{ transaction.id }}][balance]"
+                     value="{{ transaction.balance.value | comma_separation | default('') if transaction.balance is defined else '' }}"
+                     class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
+                     aria-required="true"
+                     required
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][balance_confidence]"
+                     value="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
+                  />
+                  <input
+                     type="hidden"
+                     name="transactions[{{ transaction.id }}][balance_faulty]"
+                     value="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
+                  />
+               </td>
+            </tr>
+            {% endfor %}
+         </tbody>
+      </table>
+
+      <div id="contextMenu" class="hidden absolute border bg-background shadow-lg rounded-md z-10" role="menu">
+         <ul class="list-none m-0 p-0 text-sm">
+            <li class="px-4 py-2 hover:bg-secondary" role="menuitem">
+               <button id="addRow" class="flex gap-x-2">
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-plus size-4"
+                  >
+                     <line x1="12" y1="5" x2="12" y2="19"></line>
+                     <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Row</span>
+               </button>
+            </li>
+            <li class="px-4 py-2" role="menuitem">
+               {% if transactions|length <= 1 %}
+               <button id="deleteRow" class="flex gap-x-2 opacity-50" disabled>
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-trash size-4 text-gray-400"
+                  >
+                     <polyline points="3 6 5 6 21 6"></polyline>
+                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  <span class="text-gray-400">Delete Row</span>
+               </button>
+               {% else %}
+               <button id="deleteRow" class="flex gap-x-2 hover:bg-secondary">
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="feather feather-trash size-4"
+                  >
+                     <polyline points="3 6 5 6 21 6"></polyline>
+                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  <span>Delete Row</span>
+               </button>
+               {% endif %}
+            </li>
+         </ul>
+      </div>
    </div>
-   <!-- <h2 id="formTitle" class="text-lg font-bold">Edit Transactions</h2> -->
-   <table id="transactionTable" class="table-auto w-full border-collapse text-base text-primary/80 text-left">
-      <thead>
-         <tr class="px-4 py-2 text-left">
-            <th class="px-4 py-2">Transaction Date</th>
-            <th class="px-4 py-2">Value Date</th>
-            <th class="px-4 py-2">Description</th>
-            <th class="px-4 py-2">Reference</th>
-            <th class="px-4 py-2 text-right">Debit</th>
-            <th class="px-4 py-2 text-right">Credit</th>
-            <th class="px-4 py-2 text-right">Balance</th>
-         </tr>
-      </thead>
-      <tbody id="transactionTableBody" class="divide-y divide-mutedForeground/20 text-left">
-         {% for transaction in result.transactions %}
-         <tr
-            id="row_{{ transaction.id }}"
-            class="transaction-row {{ 'new-row' if transaction.datetime.value == '' else '' }}"
-         >
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
-               data-faulty="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
-            >
-               <label for="datetime_{{ transaction.id }}" class="sr-only">Transaction Date</label>
-               <input
-                  id="datetime_{{ transaction.id }}"
-                  type="datetime-local"
-                  name="transactions[{{ transaction.id }}][datetime]"
-                  value="{{ transaction.datetime.value | replace(' ', 'T') | default('') if transaction.datetime is defined else '' }}"
-                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
-                  aria-required="true"
-                  required
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][datetime_confidence]"
-                  value="{{ transaction.datetime.confidence | default(1) if transaction.datetime is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][datetime_faulty]"
-                  value="{{ transaction.datetime.faulty | default(false) if transaction.datetime is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
-               data-faulty="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
-            >
-               <label for="valuedate_{{ transaction.id }}" class="sr-only">Value Date</label>
-               <input
-                  id="valuedate_{{ transaction.id }}"
-                  type="datetime-local"
-                  name="transactions[{{ transaction.id }}][valuedate]"
-                  value="{{ transaction.valuedate.value | replace(' ', 'T') | default('') if transaction.valuedate is defined else '' }}"
-                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][valuedate_confidence]"
-                  value="{{ transaction.valuedate.confidence | default(1) if transaction.valuedate is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][valuedate_faulty]"
-                  value="{{ transaction.valuedate.faulty | default(false) if transaction.valuedate is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
-               data-faulty="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
-            >
-               <label for="description_{{ transaction.id }}" class="sr-only">Description</label>
-               <input
-                  id="description_{{ transaction.id }}"
-                  type="text"
-                  name="transactions[{{ transaction.id }}][description]"
-                  value="{{ transaction.description.value | default('') if transaction.description is defined else '' }}"
-                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][description_confidence]"
-                  value="{{ transaction.description.confidence | default(1) if transaction.description is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][description_faulty]"
-                  value="{{ transaction.description.faulty | default(false) if transaction.description is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
-               data-faulty="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
-            >
-               <label for="reference_{{ transaction.id }}" class="sr-only">Reference</label>
-               <input
-                  id="reference_{{ transaction.id }}"
-                  type="text"
-                  name="transactions[{{ transaction.id }}][reference]"
-                  value="{{ transaction.reference.value | default('') if transaction.reference is defined else '' }}"
-                  class="w-full bg-inherit appearance-none focus:outline-none focus:ring-0"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][reference_confidence]"
-                  value="{{ transaction.reference.confidence | default(1) if transaction.reference is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][reference_faulty]"
-                  value="{{ transaction.reference.faulty | default(false) if transaction.reference is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
-               data-faulty="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
-            >
-               <label for="debit_{{ transaction.id }}" class="sr-only">Debit</label>
-               <input
-                  id="debit_{{ transaction.id }}"
-                  type="text"
-                  name="transactions[{{ transaction.id }}][debit]"
-                  value="{{ transaction.debit.value | comma_separation | default('') if transaction.debit is defined else '' }}"
-                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][debit_confidence]"
-                  value="{{ transaction.debit.confidence | default(1) if transaction.debit is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][debit_faulty]"
-                  value="{{ transaction.debit.faulty | default(false) if transaction.debit is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
-               data-faulty="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
-            >
-               <label for="credit_{{ transaction.id }}" class="sr-only">Credit</label>
-               <input
-                  id="credit_{{ transaction.id }}"
-                  type="text"
-                  name="transactions[{{ transaction.id }}][credit]"
-                  value="{{ transaction.credit.value | comma_separation | default('') if transaction.credit is defined else '' }}"
-                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][credit_confidence]"
-                  value="{{ transaction.credit.confidence | default(1) if transaction.credit is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][credit_faulty]"
-                  value="{{ transaction.credit.faulty | default(false) if transaction.credit is defined else false }}"
-               />
-            </td>
-            <td
-               class="px-4 py-3 truncate w-[200px]"
-               data-confidence="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
-               data-faulty="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
-            >
-               <label for="balance_{{ transaction.id }}" class="sr-only">Balance</label>
-               <input
-                  id="balance_{{ transaction.id }}"
-                  type="text"
-                  name="transactions[{{ transaction.id }}][balance]"
-                  value="{{ transaction.balance.value | comma_separation | default('') if transaction.balance is defined else '' }}"
-                  class="w-full bg-inherit text-right appearance-none focus:outline-none focus:ring-0"
-                  aria-required="true"
-                  required
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][balance_confidence]"
-                  value="{{ transaction.balance.confidence | default(1) if transaction.balance is defined else 1 }}"
-               />
-               <input
-                  type="hidden"
-                  name="transactions[{{ transaction.id }}][balance_faulty]"
-                  value="{{ transaction.balance.faulty | default(false) if transaction.balance is defined else false }}"
-               />
-            </td>
-         </tr>
-         {% endfor %}
-      </tbody>
-   </table>
 
    <div class="flex justify-end p-4">
       <button
          type="submit"
-         class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex items-center gap-x-1"
+         class="px-4 py-2 text-sm text-secondary bg-primary/85 hover:bg-primary/90 rounded-md font-semibold flex items-center justify-center gap-x-1"
       >
-         Save
+         <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="feather feather-save size-4"
+         >
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+         </svg>
+         <span>Save</span>
       </button>
    </div>
 </form>
-
-<div
-   id="contextMenu"
-   class="hidden absolute border bg-background shadow-lg rounded-md z-10"
-   role="menu"
-   aria-labelledby="contextMenuTitle"
->
-   <h3 id="contextMenuTitle" class="sr-only">Context Menu</h3>
-   <ul class="list-none m-0 p-0 text-sm">
-      <li class="px-4 py-2 hover:bg-secondary" role="menuitem">
-         <button id="addRow" class="flex gap-x-2">
-            <svg
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round"
-               class="feather feather-plus size-4"
-            >
-               <line x1="12" y1="5" x2="12" y2="19"></line>
-               <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            <span>Add Row</span>
-         </button>
-      </li>
-      <li class="px-4 py-2" role="menuitem">
-         {% if result.transactions|length <= 1 %}
-         <button id="deleteRow" class="flex gap-x-2 opacity-50" disabled>
-            <svg
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round"
-               class="feather feather-trash size-4 text-gray-400"
-            >
-               <polyline points="3 6 5 6 21 6"></polyline>
-               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-            <span class="text-gray-400">Delete Row</span>
-         </button>
-         {% else %}
-         <button id="deleteRow" class="flex gap-x-2 hover:bg-secondary">
-            <svg
-               xmlns="http://www.w3.org/2000/svg"
-               width="24"
-               height="24"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               stroke-linecap="round"
-               stroke-linejoin="round"
-               class="feather feather-trash size-4"
-            >
-               <polyline points="3 6 5 6 21 6"></polyline>
-               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-            <span>Delete Row</span>
-         </button>
-         {% endif %}
-      </li>
-   </ul>
-</div>
 
 <script>
    document.addEventListener("DOMContentLoaded", function () {

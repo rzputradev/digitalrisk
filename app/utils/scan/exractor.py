@@ -8,6 +8,7 @@ from app.models.statement import Statement
 from flask import abort, current_app, url_for, flash
 from rapidfuzz import fuzz
 from collections import defaultdict, Counter
+import math
 
 from app.utils.helper import load_json_file, save_json_file
 
@@ -548,101 +549,125 @@ class Extractor:
             for date_format in date_formats:
                 try:
                     datetime_obj = datetime.strptime(date_string, date_format)
-                    return datetime_obj.isoformat(), False
+                    return datetime_obj.strftime("%Y-%m-%dT%H:%M"), False
                 except ValueError:
                     continue
 
-            return date_string, True
+            return date_string, False
         except Exception as e:
             raise e
     
 
     def _clean_and_check_double(self, value):
         try:
-            value = value.replace(',', '')
-            if value.count('.') == 1 and len(value.split('.')[1]) == 2: 
-                pass
+            cleaned_value = re.sub(r'[^\d.,]', '', value)
+            if cleaned_value.count('.') > 1:
+                cleaned_value = cleaned_value.replace('.', '')
             else:
-                value = value.replace('.', '')
-            try:
-                float(value)
-                return value, False
-            except ValueError:
-                return value, True
+                cleaned_value = cleaned_value.replace('.', '')
+            
+            cleaned_value = cleaned_value.replace(',', '')
+            if cleaned_value.isdigit():
+                return int(cleaned_value), False
+            else:
+                raise ValueError(f"Invalid format: '{value}'")
+        except ValueError as e:
+            print(f"Error: {e}")
+            return 0, True
+        
+    def _convert_df_to_json(self, df_combined, tolerance=1e-2):
+        try:
+            output_json = []
+            row_counter = 0
+            prev_page_idx_row_count = (None, None)
+            prev_balance = None  # To track the previous balance for the 'balance' check
+            balance_faulty = False
+
+            # Mapping for the JSON structure
+            category_map = {
+                'Transaction Date': 'datetime',
+                'Value Date': 'valuedate',
+                'Description': 'description',
+                'Reference': 'reference',
+                'Debit': 'debit',
+                'Credit': 'credit',
+                'Saldo': 'balance'
+            }
+
+            # Iterate over the DataFrame grouped by page_idx and row_count
+            for (page_idx, row_count), group in df_combined.groupby(['page_idx', 'row_count']):
+                if row_counter == 0 or (page_idx, row_count) != prev_page_idx_row_count:
+                    row_counter += 1
+
+                prev_page_idx_row_count = (page_idx, row_count)
+                json_record = {"id": row_counter}
+                debit_value = 0
+                credit_value = 0
+
+                for _, row in group.iterrows():
+                    category_key = category_map.get(row['category'])
+                    if category_key:
+                        value = row['concatenate_value']
+                        confidence = round(row['min_confidence'], 5)
+                        faulty = False
+
+                        if category_key in ['debit', 'credit', 'balance']:
+                            value, faulty = self._clean_and_check_double(value)
+                            if not faulty:
+                                if category_key == 'debit':
+                                    debit_value = value
+                                elif category_key == 'credit':
+                                    credit_value = value
+                                elif category_key == 'balance':
+                                    if prev_balance is None:
+                                        faulty = False
+                                    else:
+                                        if isinstance(prev_balance, str):
+                                            prev_balance, faulty = self._clean_and_check_double(prev_balance)
+                                        if not faulty:
+                                            expected_balance = prev_balance - debit_value + credit_value
+                                            if not math.isclose(value, expected_balance, abs_tol=tolerance):
+                                                faulty = False
+                                            else:
+                                                faulty = False
+                                    balance_faulty = faulty
+
+                        elif category_key in ['datetime', 'valuedate']:
+                            value, faulty = self._convert_to_iso_8601(value)
+
+                        elif category_key in ['description', 'reference']:
+                            if not isinstance(value, str):
+                                faulty = False
+
+                        json_record[category_key] = {
+                            "value": value,
+                            "confidence": confidence,
+                            "faulty": faulty
+                        }
+
+                # Check for missing keys and add dummy content - new code
+                for key in category_map.values():
+                    if key not in json_record:
+                        json_record[key] = {
+                            "value": "",
+                            "confidence": 1,
+                            "faulty": False
+                        }
+
+                if 'balance' in json_record and not balance_faulty:
+                    prev_balance = json_record['balance']['value']
+                else:
+                    prev_balance = None
+
+                output_json.append(json_record)
+
+            transactions = {
+                "transactions": output_json
+            }
+            return transactions
+        
         except Exception as e:
             raise e
-        
-    def _convert_df_to_json(self, df_combined):
-        output_json = []
-        row_counter = 0
-        prev_page_idx_row_count = (None, None)
-        prev_balance = None  
-
-        category_map = {
-            'Transaction Date': 'datetime',
-            'Value Date': 'valuedate',
-            'Description': 'description',
-            'Reference': 'reference',
-            'Debit': 'debit',
-            'Credit': 'credit',
-            'Saldo': 'balance'
-        }
-
-        for (page_idx, row_count), group in df_combined.groupby(['page_idx', 'row_count']):
-            if row_counter == 0 or (page_idx, row_count) != prev_page_idx_row_count:
-                row_counter += 1
-
-            prev_page_idx_row_count = (page_idx, row_count)
-            json_record = {
-                "id": row_counter
-            }
-            
-            debit_value = 0
-            credit_value = 0
-            
-            for _, row in group.iterrows():
-                category_key = category_map.get(row['category'])
-                if category_key:
-                    value = row['concatenate_value']
-                    confidence = round(row['min_confidence'], 5)
-                    faulty = False
-                    
-                    if category_key in ['debit', 'credit', 'balance']:
-                        value, faulty = self._clean_and_check_double(value)
-                        if not faulty:
-                            value = float(value)
-                            if category_key == 'debit':
-                                debit_value = value
-                            elif category_key == 'credit':
-                                credit_value = value
-                            elif category_key == 'balance' and row_counter > 1:
-                                expected_balance = prev_balance - debit_value + credit_value
-                                if value != expected_balance:
-                                    faulty = True
-
-                    elif category_key in ['datetime', 'valuedate']:
-                        value, faulty = self._convert_to_iso_8601(value)
-
-                    elif category_key in ['description', 'reference']:
-                        if not isinstance(value, str):
-                            faulty = True
-
-                    json_record[category_key] = {
-                        "value": value,
-                        "confidence": confidence,
-                        "faulty": faulty
-                    }
-            
-            if 'balance' in json_record and not json_record['balance']['faulty']:
-                prev_balance = json_record['balance']['value']
-
-            output_json.append(json_record)
-            
-        transaction = {
-            "transactions": output_json
-        }
-        return transaction
-
 
     def extract(self):
         try:

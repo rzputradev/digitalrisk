@@ -35,12 +35,12 @@ class UpdateStatementForm(FlaskForm):
 
 class ParameterStatementForm(FlaskForm):
     statement_id = HiddenField('Statement ID', validators=[DataRequired()])
-    bank_id = SelectField('Bank', validators=[DataRequired()])
-    full_scan = BooleanField('Full Scan the statement', default=True)
+    # bank_id = SelectField('Bank', validators=[DataRequired()])
+    full_scan = SelectField('Full Scan', choices=[("0", 'No'), ("1", 'Yes')], validators=[DataRequired()], default="0")
     submit = SubmitField('Submit')
 
-    def __init__(self, *args, **kwargs):
-        super(ParameterStatementForm, self).__init__(*args, **kwargs)
-        self.bank_id.choices = [('', 'Select Bank')] + [(type.id, type.name) for type in Bank.query.all()]
+    # def __init__(self, *args, **kwargs):
+    #     super(ParameterStatementForm, self).__init__(*args, **kwargs)
+    #     self.bank_id.choices = [('', 'Select Bank')] + [(type.id, type.name) for type in Bank.query.all()]
 
 
