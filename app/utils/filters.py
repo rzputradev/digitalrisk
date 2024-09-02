@@ -24,11 +24,12 @@ def format_wib_datetime(datetime):
 
 def iso_date(date_str):
     try:
-        return datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+        date_format = '%Y-%m-%dT%H:%M'
+        datetime_obj = datetime.strptime(date_str, date_format)
+        return datetime_obj.strftime("%Y-%m-%dT%H:%M")
     except ValueError as e:
         print(f"Error: {e}")
         return date_str
-
 
 def comma_separation(value, decimal_places=None, currency_symbol=None):
     try:

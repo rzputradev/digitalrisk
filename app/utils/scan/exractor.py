@@ -561,19 +561,29 @@ class Extractor:
     def _clean_and_check_double(self, value):
         try:
             cleaned_value = re.sub(r'[^\d.,]', '', value)
+            cleaned_value = cleaned_value.replace(',', '.')
+
             if cleaned_value.count('.') > 1:
-                cleaned_value = cleaned_value.replace('.', '')
-            else:
-                cleaned_value = cleaned_value.replace('.', '')
+                parts = cleaned_value.rsplit('.', 1)
+                integer_part = parts[0].replace('.', '')
+                decimal_part = parts[1]
+                cleaned_value = f"{integer_part}.{decimal_part}"
             
-            cleaned_value = cleaned_value.replace(',', '')
-            if cleaned_value.isdigit():
-                return int(cleaned_value), False
+            if '.' in cleaned_value:
+                integer_part, decimal_part = cleaned_value.split('.', 1)
+                decimal_part = decimal_part.ljust(2, '0')[:2]
+                cleaned_value = f"{integer_part}.{decimal_part}"
             else:
-                raise ValueError(f"Invalid format: '{value}'")
+                cleaned_value += '.00'
+                
+            number = float(cleaned_value)
+
+            return number, False
+
         except ValueError as e:
             print(f"Error: {e}")
-            return 0, True
+            return 0.00, True
+        
         
     def _convert_df_to_json(self, df_combined, tolerance=1e-2):
         try:
