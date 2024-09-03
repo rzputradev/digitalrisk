@@ -242,53 +242,65 @@ class Extractor:
         except Exception as e:
             raise e
         
-    
     def _calculate_and_print_statistics(self, filtered_df, parameters):
         try:
+            # Initialize containers to accumulate results across all parameters
             all_global_y_end_q3 = {}
             all_global_keyword_coords = {}
             all_x_start_counter = Counter()
             all_x_end_counter = Counter()
             all_column_modes = {}
-            all_column_common_y_start = []
-            all_column_common_y_end = []
-
+            
             all_y_starts = []
             all_y_ends = []
 
+            threshold = 0.02  # Threshold for filtering coordinates within a certain range
+
+            # Step 1: Gather all y_start and y_end coordinates for matching keywords
+            # Redo -> should be calculating y start, y end per page idx
             for param in parameters:
+                # Reverse the mapping of column names for easy lookup
                 keywords = {value: key for key, value in param['column_name'].items()}
 
                 for _, group in filtered_df.groupby('page_idx'):
-                    coords_list = group['coordinates'].tolist()
-                    if coords_list:
+                    # Iterate over each keyword to find matches in word_value
+                    for value, key in keywords.items():
+                        if pd.isna(value):
+                            continue  # Skip if the keyword is NaN
+
+                        # Filter coordinates matching the keyword
+                        keyword_coords = group[group['word_value'].apply(lambda x: self._fuzzy_match(x, value))]['coordinates']
+                        coords_list = keyword_coords.dropna().tolist()
+
+                        # Collect y_start and y_end coordinates for matching keywords
                         y_start = [round(coord[0][1], 2) for coord in coords_list if coord]
                         y_end = [round(coord[1][1], 2) for coord in coords_list if coord]
                         all_y_starts.extend(y_start)
                         all_y_ends.extend(y_end)
 
+            # Calculate the mode of y_start and y_end coordinates across all pages
             column_common_y_start = self._calculate_mode(all_y_starts)
             column_common_y_end = self._calculate_mode(all_y_ends)
+            print(all_y_starts)
+            print(column_common_y_start)
 
-            threshold = 0.02
+            # Step 2: Process each parameter to compute statistics
             for param in parameters:
                 keywords = {value: key for key, value in param['column_name'].items()}
-
                 global_y_end_q3 = {}
                 global_keyword_coords = {key: {'x_start': [], 'x_end': [], 'y_start': [], 'y_end': []} for key in keywords.values()}
 
                 for page, group in filtered_df.groupby('page_idx'):
                     coords_list = group['coordinates'].tolist()
                     if coords_list:
+                        # Extract and round coordinates
                         x_start = [round(coord[0][0], 2) for coord in coords_list if coord]
                         x_end = [round(coord[1][0], 2) for coord in coords_list if coord]
                         y_start = [round(coord[0][1], 2) for coord in coords_list if coord]
                         y_end = [round(coord[1][1], 2) for coord in coords_list if coord]
 
-                        if y_end:
-                            global_y_end_q3[page] = np.percentile(y_end, 75)
-                        else:
-                            global_y_end_q3[page] = None
+                        # Calculate the 75th percentile of y_end coordinates
+                        global_y_end_q3[page] = np.percentile(y_end, 75) if y_end else None
 
                         for value, key in keywords.items():
                             if pd.isna(value):
@@ -297,6 +309,7 @@ class Extractor:
                                 global_keyword_coords[key]['y_start'].append(None)
                                 global_keyword_coords[key]['y_end'].append(None)
                             else:
+                                # Filter coordinates matching the keyword
                                 keyword_coords = group[group['word_value'].apply(lambda x: self._fuzzy_match(x, value))]['coordinates']
                                 coords_list = keyword_coords.dropna().apply(
                                     lambda row: {
@@ -308,6 +321,7 @@ class Extractor:
                                 ).tolist()
 
                                 if coords_list:
+                                    # Filter coordinates within the common y_start and y_end range
                                     filtered_coords = [
                                         coord for coord in coords_list
                                         if column_common_y_start - threshold <= coord['y_start'] <= column_common_y_start + threshold
@@ -318,14 +332,15 @@ class Extractor:
                                     global_keyword_coords[key]['y_start'].extend(coord['y_start'] for coord in filtered_coords)
                                     global_keyword_coords[key]['y_end'].extend(coord['y_end'] for coord in filtered_coords)
 
+                # Calculate the mode of coordinates for each keyword
                 column_modes = {}
-                for value, key in keywords.items():
-                    coords = global_keyword_coords[key]
+                for key, coords in global_keyword_coords.items():
                     column_modes[f'{key}_x_start'] = self._calculate_mode([x for x in coords['x_start'] if x is not None])
                     column_modes[f'{key}_x_end'] = self._calculate_mode([x for x in coords['x_end'] if x is not None])
                     column_modes[f'{key}_y_start'] = self._calculate_mode([y for y in coords['y_start'] if y is not None])
                     column_modes[f'{key}_y_end'] = self._calculate_mode([y for y in coords['y_end'] if y is not None])
 
+                # Step 3: Create mappings between x_start and x_end, and vice versa
                 x_start_to_end = defaultdict(list)
                 x_end_to_start = defaultdict(list)
 
@@ -337,9 +352,11 @@ class Extractor:
                             x_start_to_end[x_start].append(x_end)
                             x_end_to_start[x_end].append(x_start)
 
+                # Count occurrences of x_start and x_end mappings
                 x_start_counter = Counter(x_start_to_end)
                 x_end_counter = Counter(x_end_to_start)
 
+                # Step 4: Update global containers with the results from the current parameter
                 all_global_y_end_q3.update(global_y_end_q3)
                 for key, value in global_keyword_coords.items():
                     if key in all_global_keyword_coords:
@@ -351,9 +368,15 @@ class Extractor:
                 all_x_end_counter.update(x_end_counter)
                 all_column_modes.update(column_modes)
 
+            # Return the accumulated statistics
             return all_global_y_end_q3, all_global_keyword_coords, all_x_start_counter, all_x_end_counter, all_column_modes, column_common_y_start, column_common_y_end
+        
         except Exception as e:
+            # Raise any exception encountered during processing
             raise e
+
+
+
         
     
     
