@@ -12,8 +12,8 @@ function openModal(modalId) {
 function closeModal(modalId) {
    var modal = document.getElementById(modalId);
    if (modal) {
-      modal.classList.toggle('flex'); // Add or remove the 'flex' class
-      modal.classList.toggle('hidden'); // Add or remove the 'hidden' class
+      modal.classList.toggle('flex'); 
+      modal.classList.toggle('hidden'); 
    } else {
       console.error('Modal element not found.');
    }
@@ -28,9 +28,16 @@ function closeFlashMessage(button) {
 function commaSeparation(input) {
    let value = input.value.replace(/[^0-9]/g, "");
    if (value === "") return;
-   let formattedValue = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(value);
-   input.value = formattedValue.replace(/\./g, ",");
+
+   let integerPart = value.slice(0, -2) || "0";
+   let decimalPart = value.slice(-2).padStart(2, "0"); 
+
+   let formattedIntegerPart = new Intl.NumberFormat("en-US", { minimumFractionDigits: 0 }).format(integerPart);
+
+   input.value = formattedIntegerPart + "." + decimalPart;
 }
+
+
 
 
 document.addEventListener('DOMContentLoaded', function () {

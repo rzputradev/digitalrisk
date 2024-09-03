@@ -13,7 +13,7 @@ from app.models.address import Address
 from app.models.application import Application, ApplicationType
 from app.utils.form.application import CreateApplicationForm, UpdateApplicationForm
 from app.utils.form.statement import CreateStatementForm
-from app.utils.helper import parse_integer
+from app.utils.helper import parse_float
 
 
 application = Blueprint('application', __name__, url_prefix='/application')
@@ -70,8 +70,8 @@ def preview(id):
                 application.application_type_id = form.application_type_id.data
                 application.status = form.status.data
 
-                amount = parse_integer(form.amount.data)
-                duration = parse_integer(form.duration.data)
+                amount = parse_float(form.amount.data)
+                duration = parse_float(form.duration.data)
 
                 if amount is None or duration is None:
                     flash('Invalid amount or duration format.', 'danger')
@@ -106,8 +106,8 @@ def create():
     if request.method == "POST":
         if form.validate_on_submit():
             try:
-                amount = parse_integer(form.amount.data)
-                duration = parse_integer(form.duration.data)
+                amount = parse_float(form.amount.data)
+                duration = parse_float(form.duration.data)
 
                 if amount is None or duration is None:
                     flash('Invalid amount or duration format.', 'danger')

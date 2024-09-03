@@ -30,24 +30,18 @@ def iso_date(date_str):
     except ValueError as e:
         print(f"Error: {e}")
         return date_str
+    
 
-def comma_separation(value, decimal_places=None, currency_symbol=None):
+def comma_separation(value):
     try:
         numeric_value = float(value)
+        formatted_number = f"{numeric_value:,.2f}"
         
-        if decimal_places is not None:
-            formatted_value = f"{numeric_value:,.{decimal_places}f}"
-        else:
-            formatted_value = f"{numeric_value:,.0f}"
-        
-        if currency_symbol:
-            return f"{currency_symbol} {formatted_value}"
-        
-        return formatted_value
+        return formatted_number
     except (ValueError, TypeError):
         print(f"Error: Invalid value '{value}'")
         return value
-
+    
 
 def register_filters(app):
     app.jinja_env.filters['iso_date'] = iso_date

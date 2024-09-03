@@ -49,20 +49,13 @@ def parse_date(date_str):
         return date_str
     
 
-def parse_integer(value):
+def parse_float(value):
     try:
-        cleaned_value = re.sub(r'[^\d.,]', '', value)
-        if cleaned_value.count('.') > 1:
-            cleaned_value = cleaned_value.replace('.', '')
+        cleaned_value = re.sub(r',', '', value)
+        if '.' in cleaned_value:
+            return float(cleaned_value)
         else:
-            cleaned_value = cleaned_value.replace('.', '')
-        
-        cleaned_value = cleaned_value.replace(',', '')
-        if cleaned_value.isdigit():
-            return int(cleaned_value)
-        else:
-            raise ValueError(f"Invalid format: '{value}'")
+            return float(f"{int(cleaned_value)}.00")
     except ValueError as e:
-        flash("Conversion error", "danger")
         print(f"Error: {e}")
         return 0

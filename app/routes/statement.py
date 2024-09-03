@@ -18,7 +18,7 @@ from app.models.application import Application
 from app.models.statement import Statement
 from app.models.statement import Bank
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm, UpdateStatementForm
-from app.utils.helper import generate_unique_filename, parse_integer, save_json_file, load_json_file, parse_date
+from app.utils.helper import generate_unique_filename, parse_float, save_json_file, load_json_file
 from app.utils.scan.ocr import perform_ocr
 from app.utils.scan.exractor import Extractor
 
@@ -362,7 +362,7 @@ def edit_transaction():
                     if len(value.replace(',', '')) > 20:
                         errors.append(f"Transaction {index}: {field} must be a maximum of 20 digits.")
                     try:
-                        int_value = parse_integer(value)
+                        int_value = parse_float(value)
                         transactions_dict[index][field] = {
                             'value': int_value,
                             'confidence': round(confidence_value, 4),
@@ -383,7 +383,7 @@ def edit_transaction():
                 if len(value.replace(',', '')) > 20:
                     errors.append(f"Transaction {index}: Balance must be a maximum of 20 digits.")
                 try:
-                    int_value = parse_integer(value)
+                    int_value = parse_float(value)
                     transactions_dict[index][field] = {
                         'value': int_value,
                         'confidence': round(confidence_value, 4),
