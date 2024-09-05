@@ -1,10 +1,12 @@
+import logging
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from app.utils.form.user import RegistrationForm, LoginForm
 
 from app import db
 from app.models.user import User
 from app.utils.decorators import prevent_logged_in_user
+from app.utils.helper import log_message
 
 
 
@@ -21,10 +23,13 @@ def login():
         password = form.password.data
         user = User.get_user_by_email(email=email)
         if user is None:
+            log_message('Email does not exist!', logging.WARNING)
             flash('Email does not exist!', 'warning')
         else:
             if user.check_password(password):
                 login_user(user)
+                log_message(logging.INFO, 'Login successful!')
+                flash('Login successful!', 'success')
                 return redirect(url_for('platform.dashboard'))
             else:
                 flash('Password is incorrect', 'warning')
@@ -48,6 +53,7 @@ def register():
                 db.session.add(new_user)
                 db.session.commit()
                 flash('Registration successful!', 'success')
+                log_message(logging.INFO, 'Registration successful!')
                 return redirect(url_for('auth.login'))
             except Exception as e:
                 db.session.rollback()
@@ -64,5 +70,6 @@ def register():
 @login_required
 @auth.route('/logout')
 def logout():
+    log_message(logging.info, f'User {current_user.id} logout successful!')
     logout_user()
     return redirect(url_for('marketing.homepage'))

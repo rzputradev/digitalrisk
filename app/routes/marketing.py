@@ -1,11 +1,14 @@
 from flask import Blueprint, render_template
 from flask_login import current_user
+from app.utils.helper import log_message
+import logging
 
 marketing = Blueprint('marketing', __name__)
 
 
 @marketing.route('/')
 def homepage():
+    log_message(logging.INFO, 'homepage')
     return render_template('pages/marketing/homepage.html', user=current_user)
 
 
