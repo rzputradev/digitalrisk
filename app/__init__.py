@@ -20,7 +20,10 @@ def create_app():
     app = Flask(__name__)
     env = os.getenv('FLASK_ENV', 'development')
     app.config.from_object(config[env])
+    config[env].init_app(app)
     
+    app.debug = env == 'development'
+
     file_folder = app.config['FILE_FOLDER']
     if not os.path.exists(file_folder):
         os.makedirs(file_folder)
@@ -37,6 +40,7 @@ def create_app():
         storage_uri="memory://",
     )
 
+    # Import and register blueprints
     from app.models.user import User
     from app.models.address import Address
     from app.models.customer import Customer

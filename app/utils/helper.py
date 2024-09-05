@@ -1,10 +1,35 @@
 import os
 import json
 import re
+import logging
 from uuid import uuid4
-from flask import current_app
-from flask import current_app, flash
+from flask import current_app, request, flash
 from datetime import datetime
+from flask_login import current_user
+
+def log_message(level, message, include_request_info=True):
+    logger = current_app.logger
+    client_ip = request.remote_addr
+    user_id = current_user.id if current_user.is_authenticated else 'anonymous'
+
+    if include_request_info:
+        request_info = f" | User ID: {user_id} | IP: {client_ip} | Method: {request.method} | Path: {request.path}"
+        message = f"Message: {message}{request_info}"
+
+    if level == logging.DEBUG:
+        logger.debug(message)
+    elif level == logging.INFO:
+        logger.info(message)
+    elif level == logging.WARNING:
+        logger.warning(message)
+    elif level == logging.ERROR:
+        logger.error(message)
+    elif level == logging.CRITICAL:
+        logger.critical(message)
+    else:
+        logger.info(message)
+
+
 
 
 def generate_unique_filename(original_filename):

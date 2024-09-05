@@ -1,20 +1,19 @@
 import os
+import logging
 from flask import Blueprint, render_template, flash, redirect, url_for, request, abort, current_app
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import joinedload
-from pytz import timezone
-from math import ceil
 
 from app.utils.form.customer import CreateCustomerForm, UpdateCustomerForm
 from app import db
-from app.models.user import User
+from app.models.user import User, RoleEnum
 from app.models.customer import Customer
 from app.models.address import Address
 from app.models.statement import Statement
 from app.utils.form.application import CreateApplicationForm
 from app.utils.form.statement import CreateStatementForm
+from app.utils.helper import log_message
 
 
 customer = Blueprint('customer', __name__, url_prefix='/customer')
@@ -70,21 +69,29 @@ def preview(id):
 
     if request.method == 'POST':
         if customer_form.validate_on_submit():
-            customer_form.populate_obj(customer)
+            try:
+                customer_form.populate_obj(customer)
             
-            if not customer.address:
-                customer.address = Address()
+                if not customer.address:
+                    customer.address = Address()
 
-            customer_form.populate_obj(customer.address)
-            
-            db.session.commit()
-            flash('Customer updated successfully!', 'success')
-            return redirect(request.referrer or url_for('platform.customer.preview', id=customer.id))
+                customer_form.populate_obj(customer.address)
+                
+                db.session.commit()
+                flash('Customer updated successfully!', 'success')
+                log_message(logging.INFO, f'Customer {customer.id} updated')
+                return redirect(request.referrer or url_for('platform.customer.preview', id=customer.id))
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('Something went wrong!', 'danger')
+                print(f'Failed to update customer: {str(e)}')
+                log_message(logging.ERROR, f'Failed to update customer {customer.id}: {str(e)}')
         
         else:
             for field, errors in customer_form.errors.items():
                 for error in errors:
                     flash(f'Error in the {getattr(customer_form, field).label.text} field - {error}', 'danger')
+            log_message(logging.ERROR, f'Form validation errors for customer {customer.id} - Invalid fields: {list(customer_form.errors.keys())}')
 
     customer_form.id_type.data = customer.id_type.name
     customer_form.customer_type.data = customer.customer_type.name
@@ -131,17 +138,20 @@ def create():
 
                 flash(f'{new_customer.name} added successfully!', 'success')
                 preview_url = url_for('platform.customer.preview', id=new_customer.id)
+                log_message(logging.INFO, f'Customer {new_customer.id} added')
                 return redirect(preview_url)
 
             except SQLAlchemyError as e:
                 db.session.rollback()
                 flash('Something went wrong!', 'danger')
                 print(f'Failed to add customer: {str(e)}')
+                log_message(logging.ERROR, f'Failed to add customer: {str(e)}')
 
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
+            log_message(logging.ERROR, f'Form validation errors for customer creation - Invalid fields: {list(form.errors.keys())}')
 
     return render_template('pages/platform/customer-create.html', user=current_user, form=form)
 
@@ -154,11 +164,13 @@ def delete():
     customer_id = request.form.get('customer_id')
     customer = Customer.query.get(customer_id)
 
-    if customer.user_id != current_user.id:
+    if customer.user_id != current_user.id and not current_user.role == RoleEnum.ADMIN:
         flash('You do not have permission', 'warning')
-        return redirect(request.referrer or url_for('platform.application.index', data='all'))
+        log_message(logging.WARNING, f'User {current_user.id} tried to delete customer {customer_id} without permission')
+        return abort(403, description='Permission denied')
 
     if not customer:
+        log_message(logging.ERROR, f'Customer {customer_id} not found')
         return abort(404, description='Customer not found')
 
     try:
@@ -179,10 +191,12 @@ def delete():
         db.session.commit()
 
         flash('Customer deleted successfully', 'success')
+        log_message(logging.INFO, f'Customer {customer_id} deleted')
     except Exception as e:
         db.session.rollback()
         flash('An error occurred while deleting the customer and associated statements', 'danger')
         print(f'Error: {e}')
+        log_message(logging.ERROR, f'Failed to delete customer {customer_id}: {str(e)}')
 
     if request.referrer and '/customer/' in request.referrer:
         return redirect(url_for('platform.customer.index', data='user'))

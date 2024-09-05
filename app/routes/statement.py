@@ -25,7 +25,6 @@ from app.utils.scan.exractor import Extractor
 
 
 
-
 statement = Blueprint('statement', __name__, url_prefix='/statement')
 
 
