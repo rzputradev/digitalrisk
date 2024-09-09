@@ -28,7 +28,7 @@ def login():
         else:
             if user.check_password(password):
                 login_user(user)
-                log_message(logging.INFO, 'Login successful!')
+                log_message(logging.INFO, f'User {user.id} logged in')
                 flash('Login successful!', 'success')
                 return redirect(url_for('platform.dashboard'))
             else:
@@ -53,7 +53,7 @@ def register():
                 db.session.add(new_user)
                 db.session.commit()
                 flash('Registration successful!', 'success')
-                log_message(logging.INFO, 'Registration successful!')
+                log_message(logging.INFO, f'User {new_user.id} registered successfully!')
                 return redirect(url_for('auth.login'))
             except Exception as e:
                 db.session.rollback()
@@ -70,6 +70,6 @@ def register():
 @login_required
 @auth.route('/logout')
 def logout():
-    log_message(logging.info, f'User {current_user.id} logout successful!')
+    log_message(logging.info, f'User {current_user.id} logout')
     logout_user()
     return redirect(url_for('marketing.homepage'))

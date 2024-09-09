@@ -8,7 +8,6 @@ marketing = Blueprint('marketing', __name__)
 
 @marketing.route('/')
 def homepage():
-    log_message(logging.INFO, 'homepage')
     return render_template('pages/marketing/homepage.html', user=current_user)
 
 

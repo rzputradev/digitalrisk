@@ -34,6 +34,7 @@ def index():
         query = query.filter_by(user_id=current_user.id)
    
     if search:
+        log_message(logging.INFO, f'Searching for {search} in customers')
         query = query.join(Customer.user).filter(or_(
             Customer.id_no.ilike(f"%{search}%"),
             Customer.phone_number.ilike(f"%{search}%"),
@@ -44,6 +45,7 @@ def index():
     pagination = query.order_by(Customer.created_at.desc(), Customer.name.asc()).paginate(page=page, per_page=per_page, error_out=False,)
     customers = pagination.items
 
+    log_message(logging.INFO, f'Viewing customers - Data: {data}, Search: {search}')
     return render_template('pages/platform/customers.html', user=current_user, customers=customers, pagination=pagination, data='all',  application_form=application_form)
 
 
@@ -53,6 +55,7 @@ def index():
 def preview(id):
     customer = Customer.query.get(id)
     if customer is None:
+        log_message(logging.WARNING, f'Customer {id} not found')
         abort(404, description='Customer not found')
 
     customer_form = UpdateCustomerForm(obj=customer)
@@ -102,6 +105,7 @@ def preview(id):
     customer_form.zip_code.data = customer.address.zip_code if customer.address else None
     customer_form.country.data = customer.address.country if customer.address else None
 
+    log_message(logging.INFO, f'Previewing customer {customer.id}')
     return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, statement_form=statement_form, info=info)
 
 
@@ -153,6 +157,7 @@ def create():
                     flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
             log_message(logging.ERROR, f'Form validation errors for customer creation - Invalid fields: {list(form.errors.keys())}')
 
+    log_message(logging.INFO, f'Creating a new customer')
     return render_template('pages/platform/customer-create.html', user=current_user, form=form)
 
 
@@ -170,7 +175,6 @@ def delete():
         return abort(403, description='Permission denied')
 
     if not customer:
-        log_message(logging.ERROR, f'Customer {customer_id} not found')
         return abort(404, description='Customer not found')
 
     try:
