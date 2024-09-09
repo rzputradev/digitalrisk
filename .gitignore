@@ -1,5 +1,6 @@
 migrations/
 sample/
+logs/
 
 app/static/files/
 

@@ -1,12 +1,3 @@
-import os
-from flask import current_app, flash, abort
-from uuid import uuid4
-
-from app import db
-from app.models.statement import Statement
-from app.utils.helper import save_json_file
-
-
 def perform_ocr(file_path):
     try:
         from doctr.io import DocumentFile

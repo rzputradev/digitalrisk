@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from collections import defaultdict
 from datetime import datetime
 from uuid import uuid4
+import logging
 import json
 import re
 
@@ -18,7 +19,7 @@ from app.models.application import Application
 from app.models.statement import Statement
 from app.models.statement import Bank
 from app.utils.form.statement import CreateStatementForm, ParameterStatementForm, UpdateStatementForm
-from app.utils.helper import generate_unique_filename, parse_float, save_json_file, load_json_file
+from app.utils.helper import generate_unique_filename, parse_float, save_json_file, load_json_file, log_message
 from app.utils.scan.ocr import perform_ocr
 from app.utils.scan.exractor import Extractor
 
@@ -48,6 +49,7 @@ def index():
             User.name.ilike(f"%{search}%")
         )
         query = query.join(Statement.application).join(Application.customer).join(Application.user).filter(search_filter)
+        log_message(logging.INFO, f'Searching for {search} in statements')
     
     pagination = query.options(
         joinedload(Statement.application).joinedload(Application.customer),
@@ -56,6 +58,7 @@ def index():
     
     statements = pagination.items
 
+    log_message(logging.INFO, f'Viewing statements - Data: {data}, Search: {search}')
     return render_template('pages/platform/statement.html', user=current_user, statements=statements, pagination=pagination)
 
 
@@ -68,6 +71,7 @@ def create():
     application = Application.query.get(application_id)
 
     if not application:
+        log_message(logging.WARNING, f'Application {application_id} not found')
         abort(404, description="Application not found")
 
     form = CreateStatementForm()
@@ -91,21 +95,25 @@ def create():
                     db.session.commit()
 
                     flash('Statement uploaded successfully', 'success')
+                    log_message(logging.INFO, f'Statement {statement.id} uploaded')
                     return redirect(url_for('platform.statement.preview', id=statement.id))
                 else:
                     flash('No file uploaded.', 'danger')
+                    log_message(logging.WARNING, f'No file uploaded for statement')
                     return redirect(request.url)
 
             except SQLAlchemyError as e:
                 db.session.rollback()
                 flash('An error occurred while uploading the statement', 'danger')
                 print(f'Error: {e}')
+                log_message(logging.ERROR, f'Failed to upload statement - {str(e)}')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
+            log_message(logging.ERROR, f'Form validation errors for user {current_user.id} - Invalid fields: {list(form.errors.keys())}')
 
-
+    log_message(logging.INFO, f'Creating statement for application {application.id}')
     return redirect(request.referrer or url_for('platform.statement.index', data='user'))
 
 
@@ -117,6 +125,7 @@ def preview(id):
     statement = Statement.query.get(id)
     
     if not statement:
+        log_message(logging.WARNING, f'Statement {id} not found')
         abort(404, description="Statement not found")
 
     statement_form = CreateStatementForm()
@@ -136,9 +145,11 @@ def preview(id):
                     summary = result.get('summary', {})
                     if not summary:
                         summary = None
+                    log_message(logging.INFO, f'Loaded result for statement {statement.id}')
             except json.JSONDecodeError:
                 flash('An error occurred while loading the result', 'danger')
                 print('Error: An error occurred while loading the result') 
+                log_message(logging.ERROR, f'Failed to load result for statement {statement.id}')
     
     if request.method == "POST":
         if update_form.validate_on_submit():
@@ -167,6 +178,7 @@ def preview(id):
                 db.session.commit()
 
                 flash('Statement updated successfully', 'success')
+                log_message(logging.INFO, f'Statement {statement.id} updated')
                 return redirect(url_for('platform.statement.preview', id=statement.id))
 
             except SQLAlchemyError as e:
@@ -177,12 +189,14 @@ def preview(id):
             for field, errors in update_form.errors.items():
                 for error in errors:
                     flash(f'Error in the {getattr(update_form, field).label.text} field - {error}', 'danger')
+            log_message(logging.ERROR, f'Form validation errors for statement update - Invalid fields: {list(update_form.errors.keys())}')
 
     
     update_form.statement_id.data = statement.id
     update_form.name.data = statement.name
     # parameter_form.bank_id.data = statement.bank.name if statement.bank_id else None
 
+    log_message(logging.INFO, f'Viewing statement {statement.id}')
     return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, transactions=transactions, summary=summary, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
 
 
@@ -195,12 +209,15 @@ def view():
     statement = Statement.query.get(statement_id)
 
     if not statement:
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
         abort(404, description="Statement not found")
 
     file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
     if not os.path.exists(file_path):
+        log_message(logging.WARNING, f'File for statement {statement_id} not found')
         abort(404, description="File not found")
 
+    log_message(logging.INFO, f'Viewing file for statement {statement.id}') 
     return render_template('components/statement/view-file.html', user=current_user, statement=statement)
 
 
@@ -219,15 +236,15 @@ def scan():
 
         if not statement:
             flash('Statement not found', 'danger')
+            log_message(logging.WARNING, f'Statement {statement_id} not found')
             return redirect(url_for('platform.statement.preview', id=statement_id))
         
         try:
             file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.filename)
             if not os.path.exists(file_path):
                 flash('File not found', 'danger')
+                log_message(logging.WARNING, f'File for statement {statement_id} not found')
                 return redirect(url_for('platform.statement.preview', id=statement_id))
-            
-            print(full_scan)
             
             if full_scan == '1' or not statement.ocr:
                 ocr_result = perform_ocr(file_path)
@@ -245,6 +262,7 @@ def scan():
 
                 statement.ocr = ocr_filename
                 statement.result = result_filename
+                log_message(logging.INFO, f'Full scan statement')
             else:
                 ocr_result = load_json_file(os.path.join(current_app.config['FILE_FOLDER'], statement.ocr))
                 extractor = Extractor(ocr_result)
@@ -255,20 +273,24 @@ def scan():
 
                 save_json_file(result_path, result)
                 statement.result = result_filename
+                log_message(logging.INFO, f'Partial scan statement')
                 
             db.session.commit()
 
             flash('Statement scanned successfully', 'success')
+            log_message(logging.INFO, f'Statement {statement.id} scanned')
             return redirect(url_for('platform.statement.preview', id=statement_id))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('An error occurred while scanning the statement', 'danger')
             print(f'Error: {e}')
+            log_message(logging.ERROR, f'Failed to scan statement {statement_id}: {str(e)}')
             return redirect(url_for('platform.statement.preview', id=statement_id))
     else:
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f'Error in the {getattr(form, field).label.text} field - {error}', 'danger')
+        log_message(logging.ERROR, f'Form validation errors for statement scan - Invalid fields: {list(form.errors.keys())}')
     
 
 
@@ -283,17 +305,20 @@ def edit_transaction():
     
     if not statement:
         flash('Statement not found', 'danger')
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
     result_json_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
     
     if not os.path.exists(result_json_path):
         flash('JSON file not found', 'danger')
+        log_message(logging.WARNING, f'JSON file for statement {statement_id} not found')
         return redirect(url_for('platform.statement.preview', id=statement_id))
     
     result = load_json_file(result_json_path)
     if result is None:
         flash('Error loading JSON file', 'danger')
+        log_message(logging.ERROR, f'Failed to load JSON file for statement {statement_id}')
         return redirect(url_for('platform.statement.preview', id=statement_id))  
 
     form_transactions = {key: value for key, value in request.form.items() if key.startswith('transactions[')}
@@ -415,13 +440,18 @@ def edit_transaction():
     new_transactions = validate_and_parse_transaction(form_transactions)
     if new_transactions is None:
         flash('An error occurred while updating the transactions', 'danger')
+        log_message(logging.ERROR, f'Failed to update transactions for statement {statement_id}')
         return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
-    result['transactions'] = new_transactions['transactions']
-
-    save_json_file(result_json_path, result)
+    if result['transactions'] == new_transactions['transactions']:
+        flash('No changes made to transactions', 'warning')
+        log_message(logging.INFO, f'No changes made to transactions for statement {statement_id}')
+        return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
     
+    result['transactions'] = new_transactions['transactions']
+    save_json_file(result_json_path, result)
     flash('Transactions updated successfully', 'success')
+    log_message(logging.INFO, f'Transactions updated for statement {statement_id}')
     return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
 
@@ -435,6 +465,7 @@ def manual_result():
     
     if not statement:
         flash('Statement not found', 'danger')
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
     now = datetime.now()
@@ -490,11 +521,13 @@ def manual_result():
         db.session.commit()
 
         flash('Manual result generated successfully', 'success')
+        log_message(logging.INFO, f'Manual result generated for statement {statement_id}')
         return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
     except SQLAlchemyError as e:
         db.session.rollback()
         flash('An error occurred while generating the result', 'danger')
         print(f'Error: {e}')
+        log_message(logging.ERROR, f'Failed to generate manual result for statement {statement_id}')
         return redirect(request.referrer or url_for('platform.statement.index', data='user'))
 
 
@@ -508,6 +541,7 @@ def reset():
     
     if not statement:
         flash('Statement not found', 'danger')
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
         return redirect(url_for('platform.statement.preview', id=statement_id))
 
     try:
@@ -527,11 +561,13 @@ def reset():
         db.session.commit()
 
         flash('Statement reset successfully', 'success')
+        log_message(logging.INFO, f'Statement {statement_id} reset')
         return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
     except Exception as e:
         db.session.rollback()
         flash('An error occurred while deleting the result', 'danger')
         print(f'Error: {e}')
+        log_message(logging.ERROR, f'Failed to reset statement {statement_id}')
         return redirect(request.referrer or url_for('platform.statement.preview', id=statement_id))
 
 
@@ -544,9 +580,11 @@ def delete():
     statement = Statement.query.get(statement_id)
     
     if not statement:
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
         abort(404, description="Statement not found")
 
     if statement.user_id != current_user.id:
+        log_message(logging.WARNING, f'User {current_user.id} does not have permission to delete statement {statement_id}')
         abort(403, description="You do not have permission to delete this statement")
     
     try:
@@ -565,11 +603,13 @@ def delete():
         db.session.commit()
 
         flash('Statement deleted successfully', 'success')
+        log_message(logging.INFO, f'Statement {statement_id} deleted')
         return redirect(url_for('platform.statement.index', data='user'))
     except Exception as e:
         db.session.rollback()
         flash('An error occurred while deleting the statement', 'danger')
         print(f'Error: {e}')
+        log_message(logging.ERROR, f'Failed to delete statement {statement_id}')
 
     return redirect(request.referrer)
 
