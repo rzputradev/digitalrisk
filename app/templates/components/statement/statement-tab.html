@@ -8,23 +8,37 @@
             Transactions
          </li>
          <li
+            class="px-4 py-2 transition-colors {{ 'font-semibold border-b-2 border-current' if tab == 'analyze' else 'hover:border-b-2 text-mutedForeground' }} {{ 'opacity-50 cursor-not-allowed' if analyze is none }}"
+            data-tab="analyze"
+            {{ 'tabindex="-1" aria-disabled="true"' if analyze is none }}
+         >
+            Analyze
+         </li>
+         <li
             class="px-4 py-2 transition-colors {{ 'font-semibold border-b-2 border-current' if tab == 'summary' else 'hover:border-b-2 text-mutedForeground' }} {{ 'opacity-50 cursor-not-allowed' if summary is none }}"
             data-tab="summary"
             {{ 'tabindex="-1" aria-disabled="true"' if summary is none }}
          >
             Summary
          </li>
-      
-      
+         
       </ul>
    </div>
    <div id="tab-contents" class="pt-4 ">
       <div id="transactions" class="tab-content {{ '' if tab == 'transactions' else 'hidden' }}">
          {% include 'components/statement/edit-transaction.html' %}
       </div>
+      {% if analyze != None %}
+      <div id="analyze" class="tab-content {{ '' if tab == 'analyze' else 'hidden' }}">
+         {% include 'components/statement/edit-analyze.html' %}
+      </div>
+      {% endif %}
+
+      {% if summary != None %}
       <div id="summary" class="tab-content {{ '' if tab == 'summary' else 'hidden' }}">
          <p>Content for Summary</p>
       </div>
+      {% endif %}
    </div>
 </div>
 

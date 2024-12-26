@@ -1,0 +1,49 @@
+<div class="max-h-[450px] overflow-auto">
+   <div>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="statement_id" value="{{ statement.id }}" />
+   </div>
+   <table id="transactionTable" class="w-full border-collapse text-base text-primary/80">
+      <thead>
+         <tr class="text-left">
+            <th class="px-4 py-2">Transaction Date</th>
+            <th class="px-4 py-2 text-right">Debit</th>
+            <th class="px-4 py-2 text-right">Credit</th>
+            <th class="px-4 py-2 text-right">Balance</th>
+            <th class="px-4 py-2 text-right">Calculated Balance</th>
+            <th class="px-4 py-2 text-right">Balance Check</th>
+            <th class="px-4 py-2 text-right">Classification</th>
+         </tr>
+      </thead>
+      <tbody id="transactionTableBody" class="divide-y divide-gray-200">
+         {% for transaction in transactions %}
+         <tr
+            id="row_{{ transaction.id }}"
+            class="transaction-row {{ 'new-row' if transaction.datetime.value == '' else '' }}"
+         >
+            <td class="px-4 py-3 truncate w-[200px]">
+              {{ transaction.datetime.value | replace(' ', ' ') | default('') if transaction.datetime is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+              {{ transaction.debit.value | comma_separation | default('') if transaction.debit is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+              {{ transaction.credit.value | comma_separation | default('') if transaction.credit is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+              {{ transaction.balance.value | comma_separation | default('') if transaction.balance is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+              {{ transaction.calculated_balance.value | comma_separation | default('') if transaction.calculated_balance is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+               {{ 'Valid' if transaction.balance_check.value == true else 'Invalid' | default('') if transaction.balance_check is defined else '' }}
+            </td>
+            <td class="px-4 py-3 truncate w-[200px] text-right">
+               {{ transaction.classification.value | comma_separation | default('') if transaction.classification is defined else '' }}
+             </td>
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
+</div>

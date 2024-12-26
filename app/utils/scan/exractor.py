@@ -1,726 +1,862 @@
-import os
-import re
-import json
-import pandas as pd
-import numpy as np
 from datetime import datetime
-from app.models.statement import Statement
 from flask import abort, current_app, url_for, flash
-from rapidfuzz import fuzz
-from collections import defaultdict, Counter
-import math
-
-from app.utils.helper import load_json_file, save_json_file
-
+from copy import deepcopy
 
 class Extractor:
-    def __init__(self, json_result):  
-        self.json_result = json_result
-  
-    
-    def _load_md(self):
-        fileMD_Parameter_path = os.path.join(current_app.config['FILE_FOLDER'], 'MD_BankReportParameters.csv')
-        if not os.path.exists(fileMD_Parameter_path):
-            raise FileNotFoundError(f"File not found: {fileMD_Parameter_path}")
-        masterParameter_df = pd.read_csv(fileMD_Parameter_path, delimiter=';')
-        return masterParameter_df
-    
-        
-    def _fuzzy_match(self, text, target_text, threshold=80):
-        try:
-            return fuzz.partial_ratio(self._normalize_text(text), self._normalize_text(target_text)) >= threshold
-        except Exception as e:
-            raise e
-        
-    
-    def _normalize_text(self, text):
-        try:
-            return re.sub(r'\W+', '', str(text).lower())
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
-
-
-    def _normalize_master_data(self, master_df):
-        try:
-            master_df['OCR_Found_Bank_normalized'] = master_df['OCR_Found_Bank'].apply(self._normalize_text)
-            for i in range(1, 9):
-                master_df[f'OCR_Found_Type_{i:02d}_normalized'] = master_df[f'OCR_Found_Type_{i:02d}'].apply(self._normalize_text)
-            return master_df
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
-    
-
-    def _json_to_dataframe(self, data):
-        try:
-            rows = []
-            for page in data["pages"]:
-                page_idx = page["page_idx"]
-                language = page.get("language", "Unknown")  
-                for block in page["blocks"]:
-                    block_geometry = json.dumps(block["geometry"]) 
-                    for line in block["lines"]:
-                        line_geometry = json.dumps(line["geometry"])
-                        for word in line["words"]:
-                            word_value = word["value"]
-                            word_confidence = word["confidence"]
-                            word_geometry = json.dumps(word["geometry"])
-                            rows.append([
-                                page_idx,
-                                language,
-                                block_geometry,
-                                line_geometry,
-                                word_value,
-                                word_confidence,
-                                word_geometry
-                            ])
-            
-            df = pd.DataFrame(rows, columns=[
-                "page_idx",
-                "language",
-                "block_geometry",
-                "line_geometry",
-                "word_value",
-                "word_confidence",
-                "word_geometry"
-            ])
-            
-            return df
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
- 
-
-    def _find_multiple_types(self, ocr_data, master_df, page_index):
-        try:
-            ocr_data_filtered = ocr_data[ocr_data['page_idx'] == page_index].copy()
-
-            ocr_data_filtered['word_value_normalized'] = ocr_data_filtered['word_value'].apply(self._normalize_text)
-
-            ocr_words_set = set(ocr_data_filtered['word_value_normalized'])
-            
-            best_match = None
-            max_matches = 0
-            
-            for _, row in master_df.iterrows():
-                bank_match = any(fuzz.ratio(row['OCR_Found_Bank_normalized'], word) > 80 for word in ocr_words_set)
-                if not bank_match:
-                    continue
-                
-                matches = 0
-                for i in range(1, 9):
-                    type_match = any(fuzz.ratio(row[f'OCR_Found_Type_{i:02d}_normalized'], word) > 80 for word in ocr_words_set)
-                    if type_match:
-                        matches += 1
-                
-                if matches >= 5 and matches > max_matches:
-                    max_matches = matches
-                    best_match = row
-            
-            if best_match is not None:
-                column_name = {
-                    'DC_Column': best_match['DC_Column'],
-                    'Date_Trx_Column': best_match['Date_Trx_Column'],
-                    'Date_Val_Column': best_match['Date_Val_Column'],
-                    'Description_Column': best_match['Description_Column'],
-                    'Reference_Column': best_match['Reference_Column'],
-                    'Debit_Column': best_match['Debit_Column'],
-                    'Credit_Column': best_match['Credit_Column'],
-                    'Balance_Column': best_match['Balance_Column']
-                }
-                setting_parameters = {
-                    'OD_Possible': best_match['OD_Possible'],
-                    'OD_Location': best_match['OD_Location'],
-                    'OD_Identifier': best_match['OD_Identifier'],
-                    'DC_SingleColumn': best_match['DC_SingleColumn'],
-                    'DC_Location': best_match['DC_Location'],
-                    'DC_Identifier': best_match['DC_Identifier'],
-                    'Summary_Page': best_match['Summary_Page'],
-                    'Summary_Word': best_match['Summary_Word'],
-                    'Column_Repeat': best_match['Column_Repeat']
-                }
-                column_threshold = {
-                    'DC_Coord_Start': best_match['DC_Coord_Start'],
-                    'DC_Coord_End': best_match['DC_Coord_End'],
-                    'Date_Trx_Coord_Start': best_match['Date_Trx_Coord_Start'],
-                    'Date_Trx_Coord_End': best_match['Date_Trx_Coord_End'],
-                    'Date_Val_Coord_Start': best_match['Date_Val_Coord_Start'],
-                    'Date_Val_Coord_End': best_match['Date_Val_Coord_End'],
-                    'Description_Coord_Start': best_match['Description_Coord_Start'],
-                    'Description_Coord_End': best_match['Description_Coord_End'],
-                    'Reference_Coord_Start': best_match['Reference_Coord_Start'],
-                    'Reference_Coord_End': best_match['Reference_Coord_End'],
-                    'Debit_Coord_Start': best_match['Debit_Coord_Start'],
-                    'Debit_Coord_End': best_match['Debit_Coord_End'],
-                    'Credit_Coord_Start': best_match['Credit_Coord_Start'],
-                    'Credit_Coord_End': best_match['Credit_Coord_End'],
-                    'Balance_Coord_Start': best_match['Balance_Coord_Start'],
-                    'Balance_Coord_End': best_match['Balance_Coord_End']
-                }
-                column_default = {
-                    'DC_Coord_Default_Start': best_match['DC_Coord_Default_Start'],
-                    'DC_Coord_Default_End': best_match['DC_Coord_Default_End'],
-                    'Date_Trx_Coord_Default_Start': best_match['Date_Trx_Coord_Default_Start'],
-                    'Date_Trx_Coord_Default_End': best_match['Date_Trx_Coord_Default_End'],
-                    'Date_Val_Coord_Default_Start': best_match['Date_Val_Coord_Default_Start'],
-                    'Date_Val_Coord_Default_End': best_match['Date_Val_Coord_Default_End'],
-                    'Description_Coord_Default_Start': best_match['Description_Coord_Default_Start'],
-                    'Description_Coord_Default_End': best_match['Description_Coord_Default_End'],
-                    'Reference_Coord_Default_Start': best_match['Reference_Coord_Default_Start'],
-                    'Reference_Coord_Default_End': best_match['Reference_Coord_Default_End'],
-                    'Debit_Coord_Default_Start': best_match['Debit_Coord_Default_Start'],
-                    'Debit_Coord_Default_End': best_match['Debit_Coord_Default_End'],
-                    'Credit_Coord_Default_Start': best_match['Credit_Coord_Default_Start'],
-                    'Credit_Coord_Default_End': best_match['Credit_Coord_Default_End'],
-                    'Balance_Coord_Default_Start': best_match['Balance_Coord_Default_Start'],
-                    'Balance_Coord_Default_End': best_match['Balance_Coord_Default_End'],
-                    'YColumn_Coord_Default_Start': best_match['YColumn_Coord_Default_Start'],
-                    'YColumn_Coord_Default_End': best_match['YColumn_Coord_Default_End']
-                }
-                return best_match['Bank'], best_match['Type'], column_name, setting_parameters, column_threshold, column_default
-            
-            return None, None, None, None, None, None
-        except Exception as e:
-            raise e
-    
-
-    def _check_and_return_all_pages(self, df_json, masterParameter_df):
-        try:
-            masterParameter_df = self._normalize_master_data(masterParameter_df)
-            
-            results = []
-
-            unique_page_indices = df_json['page_idx'].unique()
-            for page_index in unique_page_indices:
-                bank_name, report_type, column_name, setting_parameters, column_threshold, column_default = self._find_multiple_types(df_json, masterParameter_df, page_index)
-                
-                if bank_name is not None:
-                    results.append({
-                        "page_index": page_index,                
-                        "bank_name": bank_name,
-                        "report_type": report_type,
-                        "column_name": column_name,
-                        "setting_parameters": setting_parameters,
-                        "column_threshold": column_threshold,
-                        "column_default": column_default
-                    })
-
-            bank_names = [param['bank_name'] for param in results]
-            report_types = [param['report_type'] for param in results]
-            if len(set(bank_names)) > 1 or len(set(report_types)) > 1:
-                flash("Bank name or report type are different for some pages.", "warning")
-
-            flash(f"Found {len(results)} pages with matching bank and report type.", "success")
-            return results
-        except Exception as e:
-            raise e
-        
-    
-
-    def _extract_coordinates_full(self, geometry):
-        if pd.isna(geometry) or not isinstance(geometry, str):
-            return None
-        try:
-            clean_str = geometry.translate({ord(i): None for i in '()[] '})
-            coords = clean_str.split(',')
-            if len(coords) != 4:
-                raise ValueError("Coordinate string does not have exactly four values")
-            coord_floats = [float(coord) for coord in coords]
-            return ((coord_floats[0], coord_floats[1]), (coord_floats[2], coord_floats[3]))
-        except Exception as e:
-            raise e
-
-
-    def _calculate_mode(self, values):
-        if not values:
-            return None
-        try:
-            value_counter = Counter(values)
-            mode = value_counter.most_common(1)
-            return mode[0][0] if mode else None
-        except Exception as e:
-            raise e
-        
-    def _calculate_and_print_statistics(self, filtered_df, parameters):
-        try:
-            # Initialize containers to accumulate results across all parameters
-            all_global_y_end_q3 = {}
-            all_global_keyword_coords = {}
-            all_x_start_counter = Counter()
-            all_x_end_counter = Counter()
-            all_column_modes = {}
-            
-            all_y_starts = []
-            all_y_ends = []
-
-            threshold = 0.02  # Threshold for filtering coordinates within a certain range
-
-            # Step 1: Gather all y_start and y_end coordinates for matching keywords
-            # Redo -> should be calculating y start, y end per page idx
-            for param in parameters:
-                # Reverse the mapping of column names for easy lookup
-                keywords = {value: key for key, value in param['column_name'].items()}
-
-                for _, group in filtered_df.groupby('page_idx'):
-                    # Iterate over each keyword to find matches in word_value
-                    for value, key in keywords.items():
-                        if pd.isna(value):
-                            continue  # Skip if the keyword is NaN
-
-                        # Filter coordinates matching the keyword
-                        keyword_coords = group[group['word_value'].apply(lambda x: self._fuzzy_match(x, value))]['coordinates']
-                        coords_list = keyword_coords.dropna().tolist()
-
-                        # Collect y_start and y_end coordinates for matching keywords
-                        y_start = [round(coord[0][1], 2) for coord in coords_list if coord]
-                        y_end = [round(coord[1][1], 2) for coord in coords_list if coord]
-                        all_y_starts.extend(y_start)
-                        all_y_ends.extend(y_end)
-
-            # Calculate the mode of y_start and y_end coordinates across all pages
-            column_common_y_start = self._calculate_mode(all_y_starts)
-            column_common_y_end = self._calculate_mode(all_y_ends)
-            print(all_y_starts)
-            print(column_common_y_start)
-
-            # Step 2: Process each parameter to compute statistics
-            for param in parameters:
-                keywords = {value: key for key, value in param['column_name'].items()}
-                global_y_end_q3 = {}
-                global_keyword_coords = {key: {'x_start': [], 'x_end': [], 'y_start': [], 'y_end': []} for key in keywords.values()}
-
-                for page, group in filtered_df.groupby('page_idx'):
-                    coords_list = group['coordinates'].tolist()
-                    if coords_list:
-                        # Extract and round coordinates
-                        x_start = [round(coord[0][0], 2) for coord in coords_list if coord]
-                        x_end = [round(coord[1][0], 2) for coord in coords_list if coord]
-                        y_start = [round(coord[0][1], 2) for coord in coords_list if coord]
-                        y_end = [round(coord[1][1], 2) for coord in coords_list if coord]
-
-                        # Calculate the 75th percentile of y_end coordinates
-                        global_y_end_q3[page] = np.percentile(y_end, 75) if y_end else None
-
-                        for value, key in keywords.items():
-                            if pd.isna(value):
-                                global_keyword_coords[key]['x_start'].append(None)
-                                global_keyword_coords[key]['x_end'].append(None)
-                                global_keyword_coords[key]['y_start'].append(None)
-                                global_keyword_coords[key]['y_end'].append(None)
-                            else:
-                                # Filter coordinates matching the keyword
-                                keyword_coords = group[group['word_value'].apply(lambda x: self._fuzzy_match(x, value))]['coordinates']
-                                coords_list = keyword_coords.dropna().apply(
-                                    lambda row: {
-                                        'x_start': round(float(row[0][0]), 2),
-                                        'y_start': round(float(row[0][1]), 2),
-                                        'x_end': round(float(row[1][0]), 2),
-                                        'y_end': round(float(row[1][1]), 2)
-                                    }
-                                ).tolist()
-
-                                if coords_list:
-                                    # Filter coordinates within the common y_start and y_end range
-                                    filtered_coords = [
-                                        coord for coord in coords_list
-                                        if column_common_y_start - threshold <= coord['y_start'] <= column_common_y_start + threshold
-                                        and column_common_y_end - threshold <= coord['y_end'] <= column_common_y_end + threshold
-                                    ]
-                                    global_keyword_coords[key]['x_start'].extend(coord['x_start'] for coord in filtered_coords)
-                                    global_keyword_coords[key]['x_end'].extend(coord['x_end'] for coord in filtered_coords)
-                                    global_keyword_coords[key]['y_start'].extend(coord['y_start'] for coord in filtered_coords)
-                                    global_keyword_coords[key]['y_end'].extend(coord['y_end'] for coord in filtered_coords)
-
-                # Calculate the mode of coordinates for each keyword
-                column_modes = {}
-                for key, coords in global_keyword_coords.items():
-                    column_modes[f'{key}_x_start'] = self._calculate_mode([x for x in coords['x_start'] if x is not None])
-                    column_modes[f'{key}_x_end'] = self._calculate_mode([x for x in coords['x_end'] if x is not None])
-                    column_modes[f'{key}_y_start'] = self._calculate_mode([y for y in coords['y_start'] if y is not None])
-                    column_modes[f'{key}_y_end'] = self._calculate_mode([y for y in coords['y_end'] if y is not None])
-
-                # Step 3: Create mappings between x_start and x_end, and vice versa
-                x_start_to_end = defaultdict(list)
-                x_end_to_start = defaultdict(list)
-
-                for _, group in filtered_df.groupby('page_idx'):
-                    for coord in group['coordinates']:
-                        if coord:
-                            x_start, y_start = round(coord[0][0], 2), round(coord[0][1], 2)
-                            x_end, y_end = round(coord[1][0], 2), round(coord[1][1], 2)
-                            x_start_to_end[x_start].append(x_end)
-                            x_end_to_start[x_end].append(x_start)
-
-                # Count occurrences of x_start and x_end mappings
-                x_start_counter = Counter(x_start_to_end)
-                x_end_counter = Counter(x_end_to_start)
-
-                # Step 4: Update global containers with the results from the current parameter
-                all_global_y_end_q3.update(global_y_end_q3)
-                for key, value in global_keyword_coords.items():
-                    if key in all_global_keyword_coords:
-                        for k, v in value.items():
-                            all_global_keyword_coords[key][k].extend(v)
-                    else:
-                        all_global_keyword_coords[key] = value
-                all_x_start_counter.update(x_start_counter)
-                all_x_end_counter.update(x_end_counter)
-                all_column_modes.update(column_modes)
-
-            # Return the accumulated statistics
-            return all_global_y_end_q3, all_global_keyword_coords, all_x_start_counter, all_x_end_counter, all_column_modes, column_common_y_start, column_common_y_end
-        
-        except Exception as e:
-            # Raise any exception encountered during processing
-            raise e
-
-
-
-        
-    
-    
-    def _get_parameters_for_page(self, page_index, parameters):
-        for param in parameters:
-            if param['page_index'] == page_index:
-                return param
-        return None
-    
-
-    def _adjust_coordinates(self, column_modes, page_idx, keyword, column_threshold, column_default):
-        try:
-            try:
-                threshold_start_key = f'{keyword}_Coord_Start'
-                threshold_end_key = f'{keyword}_Coord_End'
-                default_start_key = f'{keyword}_Coord_Default_Start'
-                default_end_key = f'{keyword}_Coord_Default_End'
-
-                threshold_start = column_threshold.get(threshold_start_key, np.nan)
-                threshold_end = column_threshold.get(threshold_end_key, np.nan)
-                default_start = column_default.get(default_start_key, np.nan)
-                default_end = column_default.get(default_end_key, np.nan)
-                x_start_mode = column_modes.get(f'{keyword}_x_start', default_start)
-                x_end_mode = column_modes.get(f'{keyword}_x_end', default_end)
-                
-                x_start = float(x_start_mode) + threshold_start if not np.isnan(threshold_start) else default_start
-                x_end = float(x_end_mode) + threshold_end if not np.isnan(threshold_end) else default_end
-
-            except (IndexError, ValueError, TypeError, KeyError):
-                x_start = default_start
-                x_end = default_end
-            return x_start, x_end
-        except Exception as e:
-            raise e
-
-
-    def _categorize_based_on_coordinates(self, coords, page_idx, column_modes, parameters, column_common_y_start, column_common_y_end):
-        if not coords:
-            return None
-
-        x_start, y_start = coords[0]
-        x_end, y_end = coords[1]
-
-        param = self._get_parameters_for_page(page_idx, parameters)
-        if not param:
-            return "Other"
-
-        column_threshold = param['column_threshold']
-        column_default = param['column_default']
-
-        y_threshold = column_common_y_end
-
-        dc_x_start, dc_x_end = self._adjust_coordinates(column_modes, page_idx, "DC", column_threshold, column_default)
-        trx_x_start, trx_x_end = self._adjust_coordinates(column_modes, page_idx, "Date_Trx", column_threshold, column_default)
-        value_x_start, value_x_end = self._adjust_coordinates(column_modes, page_idx, "Date_Val", column_threshold, column_default)
-        description_x_start, description_x_end = self._adjust_coordinates(column_modes, page_idx, "Description", column_threshold, column_default)
-        reference_x_start, reference_x_end = self._adjust_coordinates(column_modes, page_idx, "Reference", column_threshold, column_default)
-        debit_x_start, debit_x_end = self._adjust_coordinates(column_modes, page_idx, "Debit", column_threshold, column_default)
-        credit_x_start, credit_x_end = self._adjust_coordinates(column_modes, page_idx, "Credit", column_threshold, column_default)
-        saldo_x_start, saldo_x_end = self._adjust_coordinates(column_modes, page_idx, "Balance", column_threshold, column_default)
-
-        if y_start >= y_threshold:
-            if dc_x_start <= x_start and x_end <= dc_x_end:
-                return "DC"
-            elif trx_x_start <= x_start and x_end <= trx_x_end:
-                return "Transaction Date"
-            elif value_x_start <= x_start and x_end <= value_x_end:
-                return "Value Date"
-            elif description_x_start <= x_start and x_end <= description_x_end:
-                return "Description"
-            elif reference_x_start <= x_start and x_end <= reference_x_end:
-                return "Reference"
-            elif debit_x_start <= x_start and x_end <= debit_x_end:
-                return "Debit"
-            elif credit_x_start <= x_start and x_end <= credit_x_end:
-                return "Credit"
-            elif saldo_x_start <= x_start and x_end <= saldo_x_end:
-                return "Saldo"
-        return "Other"
-    
-
-    def _get_y_start(self, coords):
-        try:
-            result = self._extract_coordinates_full(coords)
-            if result is not None:
-                return result[0][1]
-            return float('nan')
-        except Exception as e:
-            raise e
-        
-
-    def _get_x_start(self, coords):
-        try:
-            result = self._extract_coordinates_full(coords)
-            if result is not None:
-                return result[0][0]
-            return float('nan')
-        except Exception as e:
-            raise e
-    
-
-    def _categorize_by_date_time(self, df, category='Transaction Date', y_start_threshold=0.005):
-        try:
-            df['y_start'] = df['word_geometry'].apply(self._get_y_start)
-            df['x_start'] = df['word_geometry'].apply(self._get_x_start)
-
-            filtered_df = df[df['category'] == category].copy()
-
-            filtered_df.dropna(subset=['y_start'], inplace=True)
-
-            if filtered_df.empty:
-                print("No valid data to categorize. Returning original DataFrame.")
-                return df
-
-            filtered_df.sort_values(by=['page_idx', 'y_start'], inplace=True)
-
-            current_row_count = 1
-            current_page_idx = round(filtered_df.iloc[0]['page_idx'], 2)
-            current_y_start = round(filtered_df.iloc[0]['y_start'], 2)
-            row_counts = [current_row_count]
-
-            for idx in range(1, len(filtered_df)):
-                if filtered_df.iloc[idx]['page_idx'] != current_page_idx:
-                    current_row_count = 1
-                    current_page_idx = filtered_df.iloc[idx]['page_idx']
-                elif filtered_df.iloc[idx]['y_start'] - current_y_start >= y_start_threshold:
-                    current_row_count += 1
-
-                current_y_start = filtered_df.iloc[idx]['y_start']
-                row_counts.append(current_row_count)
-
-            filtered_df['row_count'] = row_counts
-            final_df = df.merge(filtered_df['row_count'], left_index=True, right_index=True, how='left')
-
-            return final_df
-        except Exception as e: 
-            raise e
-
-
-    def _propagate_row_count(self, df):
-        try:
-            dt_df = df[df['category'] == 'Transaction Date'].copy()
-            dt_df.sort_values(by=['page_idx', 'y_start'], inplace=True)
-            dt_df['next_y_start'] = dt_df.groupby('page_idx')['y_start'].shift(-1)
-            for idx, row in df.iterrows():
-                if row['category'] in ['Other', 'Transaction Date']:
-                    continue
-                boundaries = dt_df[dt_df['page_idx'] == row['page_idx']]
-                for _, boundary in boundaries.iterrows():
-                    if boundary['y_start'] <= row['y_start'] and (pd.isna(boundary['next_y_start']) or row['y_start'] < boundary['next_y_start']):
-                        df.at[idx, 'row_count'] = boundary['row_count']
-                        break  
-            return df
-        
-        except Exception as e:
-            raise e
-    
-
-    def _concatenate_words(self, group):
-        return ' '.join(group['word_value'])
-
-    def _concatenate_and_min(self, group):
-        average_confidence = group['word_confidence'].min()
-        return average_confidence
-        
-    
-    def _get_df(self, df_flexcoord_04):
-        try:
-            df_flexcoord_04['y_start'] = round(df_flexcoord_04['y_start'], 2)
-            df_flexcoord_04['x_start'] = round(df_flexcoord_04['x_start'], 2)
-            df_flexcoord_05 = df_flexcoord_04.sort_values(by=['page_idx', 'row_count', 'y_start', 'x_start'])
-            df_flexcoord_06 = df_flexcoord_05.groupby(['page_idx', 'row_count', 'category']).apply(self._concatenate_words).reset_index(name='concatenate_value')
-            df_flexcoord_07 = df_flexcoord_05.groupby(['page_idx','row_count', 'category']).apply(self._concatenate_and_min).reset_index(name='min_confidence')
-            df_combined = pd.merge(df_flexcoord_06, df_flexcoord_07, on=['page_idx', 'row_count', 'category'])
-            return df_combined
-        
-        except Exception as e:
-            raise e
-        
-    
-    def _convert_to_iso_8601(self, date_string):
-        date_formats = [
-            "%d-%m-%Y",
-            "%Y-%m-%d",
-            "%d/%m/%Y %H.%M.%S",
-            "%d/%m/%Y %H:%M:%S",
-            "%d/%m/%Y",
-            "%m/%d/%Y",
-            "%d-%b-%Y", 
-            "%Y%m%d",
+    def __init__(self, json_data):  
+        self.json_data = json_data
+        self.expected_headers = [
+            {"Posting", "Date", "Effective", "Branch", "Journal", "Transaction", "Description", "Amount", "DB/CR", "Balance"},
+            {"Tgl", "Transaksi", "No.", "Dokumen", "Uraian", "Tipe", "Mutasi", "Saldo"},
+            {"TIME", "REMARK", "DEBET", "CREDIT", "TELLER", "ID"},
+            {"Tanggal", "Keterangan", "Debit", "Kredit", "Saldo", "SEQ"},
+            {"Posting", "Date", "Remark", "Reference", "No", "Debit", "Credit", "Balance"},
+            {"Date", "Val.Date", "Description", "Reference", "No.", "Debet", "Credit", "Balance"},
+            {"Date", "Time", "Value", "Description", "Reference", "No.", "Debit", "Credit", "Saldo"},
         ]
-        try:  
-            for date_format in date_formats:
-                try:
-                    datetime_obj = datetime.strptime(date_string, date_format)
-                    return datetime_obj.strftime("%Y-%m-%dT%H:%M"), False
-                except ValueError:
-                    continue
+        self.statement_settings = [
+            {
+                "id": 0,
+                "report_type": ["BNI", "ACCOUNT", "STATEMENT"],
+                "lower_limit": [
+                    ["Ending", "Balance"]
+                ]
+            },
+            {
+                "id": 1,
+                "report_type": ["Histori", "Transaksi"],
+                "lower_limit": [
+                    ["Apabila", "terdapat", "perbedaan", "dengan", "catatan"],
+                    ["Saldo", "Awal"]
+                ]
+            },
+            {
+                "id": 2,
+                "report_type": ["BANK", "RAKYAT", "INDONESIA", "Account", "Statement"],
+                "lower_limit": [
+                    ["OPENING", "CLOSING", "BALANCE"]
+                ]
+            },
+            {
+                "id": 3,
+                "report_type": ["BANK", "BRI", "LAPORAN", "TRANSAKSI"],
+                "lower_limit": [
+                    ["Saldo", "Awal", "Total", "Debit"]
+                ]
+            },
+            {
+                "id": 4,
+                "report_type": ["mandiri", "Laporan", "Rekening", "Koran"],
+                "lower_limit": [
+                    ["No", "of", "Debit"]
+                ]
+            },
+            {
+                "id": 5,
+                "report_type": ["mandiri", "rekening", "koran"],
+                "lower_limit": [
+                    ["Mutasi", "Kredit"]
+                ]
+            },
+            {
+                "id": 6,
+                "report_type": ["mandiri", "TRANSACTION", "INQUIRY"],
+                "lower_limit": [
+                    ["Total", "Transaction"]
+                ]
+            }
 
-            return date_string, False
-        except Exception as e:
-            raise e
-    
+        ]
+        self.normalize = []
+        self.template = {
+                            "id": 0,
+                            "datetime": {
+                                "value": "",
+                                "confidence": 0.0,
+                            },
+                            "valuedate": {
+                                "value": "",
+                                "confidence": 0.0,
+                            },
+                            "description": {
+                                "value": "",
+                                "confidence": 0.0,
+                            },
+                            "debit": {
+                                "value": 0.0,
+                                "confidence": 0.0,
+                            },
+                            "credit": {
+                                "value": 0.0,
+                                "confidence": 0.0,
+                            },
+                            "balance": {
+                                "value": 0.0,
+                                "confidence": 1.0,
+                            },
+                            "calculated_balance": {
+                                "value": 0.0,
+                            },
+                            "balance_check": {
+                                "value": False
+                            },
+                            "classification": {
+                                "value": "",
+                            },
+                        }
 
-    def _clean_and_check_double(self, value):
-        try:
-            cleaned_value = re.sub(r'[^\d.,]', '', value)
-            cleaned_value = cleaned_value.replace(',', '.')
+    def find_table_header(self, json_data, page_idx):
+        blocks = json_data["pages"][page_idx]["blocks"]
+        
+        found_words = {}
+        
+        for block in blocks:
+            for line in block.get("lines", []):
+                for word in line.get("words", []):
+                    value = word["value"]
+                    found_words[value] = found_words.get(value, []) + [word["geometry"]]
+        
+        for header in self.expected_headers:
+            matched_count = sum(1 for word in header if word in found_words)
+            if matched_count >= len(header) * 0.8: 
+                matched_geometries = {word: found_words[word] for word in header if word in found_words}
+                return matched_geometries
+        
+        return None
 
-            if cleaned_value.count('.') > 1:
-                parts = cleaned_value.rsplit('.', 1)
-                integer_part = parts[0].replace('.', '')
-                decimal_part = parts[1]
-                cleaned_value = f"{integer_part}.{decimal_part}"
-            
-            if '.' in cleaned_value:
-                integer_part, decimal_part = cleaned_value.split('.', 1)
-                decimal_part = decimal_part.ljust(2, '0')[:2]
-                cleaned_value = f"{integer_part}.{decimal_part}"
-            else:
-                cleaned_value += '.00'
+    def find_header_coordinate(self, matched_geometries, y_tolerance=0.01):
+        rows = {}
+        
+        for word, geometries in matched_geometries.items():
+            for geometry in geometries:
+                y_coord = geometry[0][1]
+                matched_row = None
+                for existing_y in rows.keys():
+                    if abs(existing_y - y_coord) < y_tolerance:
+                        matched_row = existing_y
+                        break
                 
-            number = float(cleaned_value)
-
-            return number, False
-
-        except ValueError as e:
-            print(f"Error: {e}")
-            return 0.00, True
-        
-        
-    def _convert_df_to_json(self, df_combined, tolerance=1e-2):
-        try:
-            output_json = []
-            row_counter = 0
-            prev_page_idx_row_count = (None, None)
-            prev_balance = None  # To track the previous balance for the 'balance' check
-            balance_faulty = False
-
-            # Mapping for the JSON structure
-            category_map = {
-                'Transaction Date': 'datetime',
-                'Value Date': 'valuedate',
-                'Description': 'description',
-                'Reference': 'reference',
-                'Debit': 'debit',
-                'Credit': 'credit',
-                'Saldo': 'balance'
-            }
-
-            # Iterate over the DataFrame grouped by page_idx and row_count
-            for (page_idx, row_count), group in df_combined.groupby(['page_idx', 'row_count']):
-                if row_counter == 0 or (page_idx, row_count) != prev_page_idx_row_count:
-                    row_counter += 1
-
-                prev_page_idx_row_count = (page_idx, row_count)
-                json_record = {"id": row_counter}
-                debit_value = 0
-                credit_value = 0
-
-                for _, row in group.iterrows():
-                    category_key = category_map.get(row['category'])
-                    if category_key:
-                        value = row['concatenate_value']
-                        confidence = round(row['min_confidence'], 5)
-                        faulty = False
-
-                        if category_key in ['debit', 'credit', 'balance']:
-                            value, faulty = self._clean_and_check_double(value)
-                            if not faulty:
-                                if category_key == 'debit':
-                                    debit_value = value
-                                elif category_key == 'credit':
-                                    credit_value = value
-                                elif category_key == 'balance':
-                                    if prev_balance is None:
-                                        faulty = False
-                                    else:
-                                        if isinstance(prev_balance, str):
-                                            prev_balance, faulty = self._clean_and_check_double(prev_balance)
-                                        if not faulty:
-                                            expected_balance = prev_balance - debit_value + credit_value
-                                            if not math.isclose(value, expected_balance, abs_tol=tolerance):
-                                                faulty = False
-                                            else:
-                                                faulty = False
-                                    balance_faulty = faulty
-
-                        elif category_key in ['datetime', 'valuedate']:
-                            value, faulty = self._convert_to_iso_8601(value)
-
-                        elif category_key in ['description', 'reference']:
-                            if not isinstance(value, str):
-                                faulty = False
-
-                        json_record[category_key] = {
-                            "value": value,
-                            "confidence": confidence,
-                            "faulty": faulty
-                        }
-
-                # Check for missing keys and add dummy content - new code
-                for key in category_map.values():
-                    if key not in json_record:
-                        json_record[key] = {
-                            "value": "",
-                            "confidence": 1,
-                            "faulty": False
-                        }
-
-                if 'balance' in json_record and not balance_faulty:
-                    prev_balance = json_record['balance']['value']
+                if matched_row is None:
+                    rows[y_coord] = []
                 else:
-                    prev_balance = None
-
-                output_json.append(json_record)
-
-            transactions = {
-                "transactions": output_json
-            }
-            return transactions
+                    y_coord = matched_row
+                    
+                rows[y_coord].append({
+                    'word': word,
+                    'geometry': geometry
+                })
         
-        except Exception as e:
-            raise e
+        header_row = max(rows.items(), key=lambda x: len(x[1]))
+        
+        header_row_sorted = sorted(header_row[1], key=lambda x: x['geometry'][0][0])
+        words_in_order = [item['word'] for item in header_row_sorted]
+        geometries = [item['geometry'][0][1] for item in header_row_sorted]
+        highest_geometry = max(geometries)
+        lowest_geometry = min(geometries)
+        
+        return {
+            'highest_geometry': highest_geometry,
+            'lowest_geometry': lowest_geometry,
+            'words': words_in_order, #show words for debugging
+            'geometries': geometries #show geometries for debugging
+        }
 
-    def extract(self):
+    def split_json_data(self, json_data, lowest_geometry, highest_geometry, page_idx):
+        above_header = []
+        below_header = []
+
+        blocks = json_data["pages"][page_idx]["blocks"]
+        
+        for block in blocks:
+            for line in block.get("lines", []):
+                for word in line.get("words", []):
+                        word_y_coord = word['geometry'][0][1]
+                        word_x_coord = word['geometry'][0][0]
+                        
+                        if word_y_coord < lowest_geometry:
+                            above_header.append({
+                                'value': word['value'],
+                                'y_coord': word_y_coord,
+                                'x_coord': word_x_coord
+                            })
+                        elif word_y_coord > highest_geometry:
+                            below_header.append({
+                                'value': word['value'],
+                                'confidence': word['confidence'],
+                                'geometry': word['geometry'],
+                            })
+
+        return above_header, below_header
+    
+    def get_statement_id(self, above_header):
+        values = {item['value'] for item in above_header}
+        
+        statement_id = None
+        lower_limit = None
+
+        for setting in self.statement_settings:
+            match_statement_count = sum(1 for value in setting["report_type"] if value in values)
+            if match_statement_count == len(setting["report_type"]):
+                statement_id = setting["id"]
+                lower_limit = setting["lower_limit"]
+
+        if statement_id:
+            return statement_id, lower_limit
+        else:
+            return None, None
+
+    def get_table_content(self, below_header, limits, tolerance=0.01):
+        results = []
+        table_content = []
+
+        for limit in limits:
+            matched_items = [item for item in below_header if item['value'] in limit]
+            grouped_items = {}
+            
+            for item in matched_items:
+                rounded_y = round(item['geometry'][0][1] / tolerance) * tolerance
+                
+                if rounded_y not in grouped_items:
+                    grouped_items[rounded_y] = []
+                grouped_items[rounded_y].append(item)
+
+            for y_coord, items in grouped_items.items():
+                matched_values = {item['value'] for item in items}
+                if all(value in matched_values for value in limit):
+                    results.append(items)
+
+        if results:
+            limit_coordinate = [item for sublist in results for item in sublist]
+            min_coordinate = min(limit_coordinate, key=lambda item: item['geometry'][0][1])['geometry'][0][1]
+
+            for words in below_header:
+                if words["geometry"][0][1] < (min_coordinate - 0.01):
+                    table_content.append(words)
+
+            return table_content
+        else:
+            return below_header
+        
+    
+    #---extractor methhod---
+    def get_date_balance(self, normalized_data, target_page, balance_align, tolerance=0.01):
+
+        x_date = float('inf')
+        x_balance = float('-inf')
+        dates = []
+        balances = []
+
+        for page in normalized_data:
+            if page['page_id'] == target_page and 'words' in page:
+                page_data = page['words']
+
+                for word in page['words']:
+                    x_date_coordinate = word['geometry'][0][0]
+                    x_balance_coordinate = word['geometry'][balance_align][0]
+
+                    if x_date_coordinate < x_date:
+                        x_date = x_date_coordinate
+
+                    if x_balance_coordinate > x_balance:
+                        x_balance = x_balance_coordinate
+
+                for word in page['words']:
+                    x_date_coordinate = word['geometry'][0][0]
+                    y_date_coordinate = word['geometry'][0][1]
+                    x_balance_coordinate = word['geometry'][balance_align][0]
+                    y_balance_coordinate = word['geometry'][0][1]
+
+                    if abs(x_date_coordinate - x_date) <= tolerance:
+                        dates.append((word['value'], word['confidence'], y_date_coordinate))
+
+                    if abs(x_balance_coordinate - x_balance) <= tolerance:
+                        balances.append((word['value'], word['confidence'], y_balance_coordinate))
+
+        if len(balances) > len(dates):
+            smallest_balance = min(balances, key=lambda x: x[2])
+            balances.remove(smallest_balance)
+
+        return dates, balances, page_data
+
+    def group_rows(self, date, balance, page_data):
+        distances = []
+        rows = []
+        filtered_date_balance_rows = []    
+        for i in range(len(date)):
+            distance = abs(date[i][2] - balance[i][2])
+            max_y = max(date[i][2], balance[i][2])
+            min_y = min(date[i][2], balance[i][2])
+            distances.append((distance, max_y, min_y))
+
+        for i in range(len(distances)):
+            if i + 1 < len(distances):
+                next_y_coord = distances[i + 1][2]
+            else:
+                next_y_coord = distances[i][2] + 0.02
+            row_data = []
+            for word in page_data:
+                item_y_coord = word['geometry'][0][1]
+                if item_y_coord < (next_y_coord - 0.001) and (item_y_coord + distances[i][0] + 0.001) >= distances[i][1]:
+                    row_data.append(word)
+
+            rows.append({'row_data': row_data})
+
+
+        date_set = set(date)
+        balance_set = set(balance)
+        
+        for row in rows:
+            filtered_row = {
+                'row_data': []
+            }
+            for item in row['row_data']:
+                value = item['value']
+                confidence = item['confidence']
+                geometry_y = item['geometry'][0][1]
+
+                if (value, confidence, geometry_y,) not in date_set and (value, confidence, geometry_y) not in balance_set:
+                    filtered_row['row_data'].append(item)
+            
+            if filtered_row['row_data']:
+                filtered_date_balance_rows.append(filtered_row)
+
+                
+        return filtered_date_balance_rows
+    
+    #---statement_id = bni-digics
+    def get_debit_credit(self, filtered_date_balance_rows):
+        mutation = []
+        type = []
+        debits = []
+        credits = []
+        debits_credits = []
+        no_document = []
+
+        filtered_mutation = []
+        filtered_type = []
+        filtered_no_doc = []
+
+        #get mutation
+        for row in filtered_date_balance_rows:
+            mutation_coordinate = max(row['row_data'], key=lambda x: x['geometry'][1][0])
+            mutation.append(mutation_coordinate)
+
+        mutation_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in mutation}
+
+        for entry in filtered_date_balance_rows:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in mutation_set 
+            ]
+            if filtered_row_data: 
+                filtered_mutation.append({'row_data': filtered_row_data})
+        #get type
+        for row in filtered_mutation:
+            type_coordinate = max(row['row_data'], key=lambda x: x['geometry'][1][0])
+            type.append(type_coordinate)
+
+        type_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in type}
+
+        for entry in filtered_mutation:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in type_set 
+            ]
+            if filtered_row_data: 
+                filtered_type.append({'row_data': filtered_row_data})
+
+        if len(type) != len(mutation):
+            raise ValueError("The lengths of type_data and mutation_data must be the same.")
+        
+        #get debits and credits from combined type and mutation
+        for t, m in zip(type, mutation):
+            debits_credits.append({
+                'value': [[t['value']], [m['value']]],
+                'confidence': max(t['confidence'], m['confidence'])
+            })
+
+        debits = [(0.0, 1)] * len(debits_credits)
+        credits = [(0.0, 1)] * len(debits_credits)
+
+        for index, item in enumerate(debits_credits):
+            value_type = item['value'][0][0]  
+            value_amount = item['value'][1][0]  
+            confidence = item['confidence']  
+
+            if value_type == 'D':
+                debits[index] = (value_amount, confidence)
+            elif value_type == 'K':
+                credits[index] = (value_amount, confidence)
+            else:
+                debits[index] = (0.0, 0)
+                credits[index] = (0.0, 0)
+        
+        #clear number of document
+        for row in filtered_type:
+            no_doc_coordinate = min(row['row_data'], key= lambda x: x['geometry'][0][0])
+            no_document.append(no_doc_coordinate)
+
+        no_doc_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in no_document}
+
+        for entry in filtered_type:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in no_doc_set 
+            ]
+            if filtered_row_data: 
+                filtered_no_doc.append({'row_data': filtered_row_data})
+
+        return debits, credits, filtered_no_doc
+
+    #---statement_id = bri-statement_transaction---
+
+    def get_datetime_userId(self, filtered_data, dates):
+
+        userId_collumn = []
+        time_collum = []
+        times = []
+        tolerance = 0.02
+
+        for row in filtered_data:
+            max_x_coordinate = max(row['row_data'], key=lambda x: x['geometry'][0][0])
+            min_x_coordinate = min(row['row_data'], key=lambda x: x['geometry'][0][0])
+
+            userId_collumn.append(max_x_coordinate)                
+            time_collum.append(min_x_coordinate)
+            times.append((min_x_coordinate['value'], min_x_coordinate['confidence']))
+
+        highest_userId = max(item['geometry'][0][0] for item in userId_collumn)
+        userId = [item for item in userId_collumn if abs(item['geometry'][0][0] - highest_userId) <= tolerance]
+
+        date_times = [
+            (f"{date} {time}", min(date_conf, time_conf))
+            for (date, date_conf, _), (time, time_conf) in zip(dates, times)
+        ]
+
+        userId_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in userId}
+        times_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in time_collum}
+
+        filtered_time_userId = []
+
+        for entry in filtered_data:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in userId_set and (item['value'], tuple(map(tuple, item['geometry']))) not in times_set 
+            ]
+            if filtered_row_data: 
+                filtered_time_userId.append({'row_data': filtered_row_data})
+        return date_times, filtered_time_userId
+
+    def get_balance_credit_debit(self, filtered_time_userId):
+
+        balances = []
+        balance_collumn = []
+        filtered_balance = []
+        
+        credits = []
+        credit_collumn = []
+        filtered_credit = []
+
+        debits = []
+        debit_collumn = []
+        filtered_debit = []
+
+
+        for row in filtered_time_userId:
+            max_x_coordinate = max(row['row_data'], key=lambda x: x['geometry'][1][0])
+            balances.append((max_x_coordinate['value'], max_x_coordinate['confidence']))
+            balance_collumn.append(max_x_coordinate)
+        
+        balance_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in balance_collumn}
+
+        for entry in filtered_time_userId:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in balance_set 
+            ]
+            if filtered_row_data: 
+                filtered_balance.append({'row_data': filtered_row_data})
+
+        for row in filtered_balance:
+            credit_coordinate = max(row['row_data'], key=lambda x: x['geometry'][1][0])
+            credits.append((credit_coordinate['value'], credit_coordinate['confidence']))
+            credit_collumn.append(credit_coordinate)
+
+        credit_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in credit_collumn}
+
+        for entry in filtered_balance:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in credit_set 
+            ]
+            if filtered_row_data: 
+                filtered_credit.append({'row_data': filtered_row_data})
+            
+        for row in filtered_credit:
+            debit_coordinate = max(row['row_data'], key=lambda x: x['geometry'][1][0])
+            debits.append((debit_coordinate['value'], debit_coordinate['confidence']))
+            debit_collumn.append(debit_coordinate)
+        
+        debit_set = {(item['value'], tuple(map(tuple, item['geometry']))) for item in debit_collumn}
+
+        for entry in filtered_credit:
+            filtered_row_data = [
+                item for item in entry['row_data']
+                if (item['value'], tuple(map(tuple, item['geometry']))) not in debit_set 
+            ]
+            if filtered_row_data: 
+                filtered_debit.append({'row_data': filtered_row_data})
+
+        return balances, credits, debits, filtered_debit
+    
+    #---statement_id = Mandiri-account_statement---
+    def valid_date_format(self, date_string):
         try:
-            df_json = self._json_to_dataframe(self.json_result)
-            masterParameter_df = self._load_md()
-            parameters = self._check_and_return_all_pages(df_json, masterParameter_df)
-            df_flexcoord_01 = df_json.copy()
-            df_flexcoord_01['coordinates'] = df_flexcoord_01['word_geometry'].apply(self._extract_coordinates_full)
-            global_y_end_q3, global_keyword_coords, x_start_counter, x_end_counter, column_modes, column_common_y_start, column_common_y_end = self._calculate_and_print_statistics(df_flexcoord_01, parameters)
-            df_flexcoord_02 = df_flexcoord_01.copy()
-            df_flexcoord_02['category'] = df_flexcoord_02.apply(lambda row: self._categorize_based_on_coordinates(row['coordinates'], row['page_idx'], column_modes, parameters, column_common_y_start, column_common_y_end), axis=1)
-            df_flexcoord_03 = self._categorize_by_date_time(df_flexcoord_02)
-            df_flexcoord_04 = self._propagate_row_count(df_flexcoord_03)
-            df_combined = self._get_df(df_flexcoord_04)
-            output_json = self._convert_df_to_json(df_combined)
+            datetime.strptime(date_string, '%d/%m')
+            return True
+        except ValueError:
+            return False
+        
+    def number_format(self, input_str):
+        if all(char.isdigit() or char in ",." for char in input_str):
+            return True
+        else:
+            return False
 
-            return output_json
+    def get_valdate_credit(self, filtered_data, tolerance=0.02):
+        x_start = float('inf')
+        x_end = float('-inf')
+        valdate = []
+        debit_credit = []
+        credits = []
+        debits = []
 
+        for row in filtered_data:
+            
+            for item in row['row_data']:
+                left_x_coordinate = item['geometry'][0][0]
+                right_x_coordinate = item['geometry'][1][0]
 
+                if left_x_coordinate < x_start:
+                    x_start = left_x_coordinate
 
+                if right_x_coordinate > x_end:
+                    x_end = right_x_coordinate
+
+        for row in filtered_data:
+            row_credits = []
+            row_data_to_remove = []
+            for item in row['row_data']:
+                left_x_coordinate = item['geometry'][0][0]
+                right_x_coordinate = item['geometry'][1][0]
+
+                if abs(left_x_coordinate - x_start) <= tolerance:
+                    if self.valid_date_format(item['value']) :
+                        valdate.append((item['value'], item['confidence']))
+                        row_data_to_remove.append(item)
+
+                if abs(right_x_coordinate - x_end) <= tolerance:
+                    if self.number_format(item['value']) or len(item['value']) <= 1:
+                        row_credits.append((item['value'], item['confidence']))
+                        row_data_to_remove.append(item)
+                    
+            for data in row_data_to_remove:
+                row['row_data'].remove(data)
+                    
+            debit_credit.append(row_credits)
+            
+        if debit_credit != [[]]:
+            for row in debit_credit:
+                if len(row) > 1 or any(item[0] == "D" for item in row):
+                    debits.append(row[0])
+                    credits.append((0,1))
+                else:
+                    credits.append(row[0])
+                    debits.append((0,1))
+
+        return valdate, debits, credits, filtered_data
+
+    #---mandiri-transaction_inquery---
+    def get_datetime_credit(self, filtered_data, dates, tolerance=0.01):
+        x_start = float('inf')
+        x_end = float('-inf')
+        times = []
+        credits = []
+
+        for row in filtered_data:
+            credit_added = False
+            row_data_to_remove = []
+
+            for item in row['row_data']:
+                left_x_coordinate = item['geometry'][0][0]
+                right_x_coordinate = item['geometry'][1][0]
+
+                if left_x_coordinate < x_start:
+                    x_start = left_x_coordinate
+
+                if right_x_coordinate > x_end:
+                    x_end = right_x_coordinate
+            
+            for item in row['row_data']:
+                left_x_coordinate = item['geometry'][0][0]
+                right_x_coordinate = item['geometry'][1][0]
+
+                if abs(left_x_coordinate - x_start) <= tolerance:
+                    times.append((item['value'], item['confidence']))
+                    row_data_to_remove.append(item)
+
+                if abs(right_x_coordinate - x_end) <= tolerance and not credit_added:
+                    credits.append((item['value'], item['confidence']))
+                    credit_added = True
+
+                if abs(right_x_coordinate - x_end) <= tolerance:
+                    row_data_to_remove.append(item)
+
+            for data in row_data_to_remove:
+                row['row_data'].remove(data)
+
+        date_times = [
+            (f"{date} {time}", min(date_conf, time_conf))
+            for (date, date_conf, _), (time, time_conf) in zip(dates, times)
+        ]
+                    
+        return date_times, credits, filtered_data
+
+    def get_valuedate_debit(self, filtered_data, tolerance=0.01):
+        x_start = float('inf')
+        x_end = float('-inf')
+        valuedates = []
+        debits = []
+
+        for row in filtered_data:
+            row_data_to_remove = []
+            
+            for item in row['row_data']:
+                x_coordinate = item['geometry'][1][0]
+
+                if x_coordinate < x_start:
+                    x_start = x_coordinate
+
+                if x_coordinate > x_end:
+                    x_end = x_coordinate
+                    
+            for item in row['row_data']:
+                x_coordinate = item['geometry'][1][0]
+
+                if abs(x_coordinate - x_start) <= tolerance:
+                    valuedates.append((item['value'], item['confidence']))
+                    row_data_to_remove.append(item)
+
+                if abs(x_coordinate - x_end) <= tolerance:
+                    debits.append((item['value'], item['confidence']))
+                    row_data_to_remove.append(item)
+            
+            for data in row_data_to_remove:
+                row['row_data'].remove(data)
+        
+
+        return valuedates, debits, filtered_data
+    
+    def get_description(self, filtered_data):
+        descriptions = []
+        for row in filtered_data:
+            if not row['row_data']:
+                # Handle empty `row_data` case
+                descriptions.append((" ", 0))  # Replace with a suitable default value
+            else:
+                description = ' '.join(entry['value'] for entry in row['row_data'])
+                confidence = min(entry['confidence'] for entry in row['row_data'])
+                descriptions.append((description, confidence))
+        return descriptions
+    
+    def clean_float_string(self, value):
+        if len(value) > 2 and (value[-3] == '.' or value[-3] == ','):
+            value = value[:-3]
+
+        value = value.replace(',', '')
+        value = value.replace('.', '')
+
+        return int(value)
+
+    def make_transaction(self, template,  date_times, valuedates, descriptions, debits, credits, balances):
+        transactions = []
+        transaction_id = 0
+
+        for page_id, dt_list in date_times.items():
+            for i, (dt, dt_conf) in enumerate(dt_list):
+
+                credit_val, credit_conf = (0.0, 0.0)
+                balance_val, balance_conf = (0.0, 0.0)
+                valuedate_val, valuedate_conf = ("", 0.0)
+                debit_val, debit_conf = (0.0, 0.0)
+                description_val, description_conf = ("", 0.0)
+
+                try:
+                    if page_id in credits and i < len(credits[page_id]):
+                        credit_val, credit_conf = credits[page_id][i]
+                    
+                    if page_id in balances and i < len(balances[page_id]):
+                        balance_val, balance_conf = balances[page_id][i][:2]
+
+                    if page_id in valuedates and i < len(valuedates[page_id]):
+                        valuedate_val, valuedate_conf = valuedates[page_id][i]
+
+                    if page_id in debits and i < len(debits[page_id]):
+                        debit_val, debit_conf = debits[page_id][i]
+
+                    if page_id in descriptions and i < len(descriptions[page_id]):
+                        description_val, description_conf = descriptions[page_id][i]
+
+                except IndexError:
+                    continue 
+
+                transaction = deepcopy(template)
+                transaction["id"] = transaction_id
+                transaction["datetime"]["value"] = dt
+                transaction["datetime"]["confidence"] = dt_conf
+                transaction["valuedate"]["value"] = valuedate_val 
+                transaction["valuedate"]["confidence"] = valuedate_conf if valuedate_conf else 1
+                transaction["description"]["value"] = description_val
+                transaction["description"]["confidence"] = description_conf
+                transaction["debit"]["value"] = self.clean_float_string(debit_val) if debit_val else 0.0
+                transaction["debit"]["confidence"] = debit_conf if debit_conf else 1
+                transaction["credit"]["value"] = self.clean_float_string(credit_val) if credit_val else 0.0
+                transaction["credit"]["confidence"] = credit_conf if credit_conf else 1
+                transaction["balance"]["value"] = self.clean_float_string(balance_val) if balance_val else 0.0
+                transaction["balance"]["confidence"] = balance_conf if balance_conf else 0.0
+
+                transactions.append(transaction)
+                transaction_id += 1 
+
+        return transactions
+    
+    def extract(self):
+        table_headers, header_coordinates, above_headers, below_headers, table_contents = {}, {}, {}, {}, {}
+
+        date_times, valuedates, descriptions, debits, credits, balances, seqs = {}, {}, {}, {}, {}, {}, {}
+        dates = {}
+        pages_data, filtered_date_balance_rows, filtered_datetime_credit_rows, filtered_valuedate_debit_row, filtered_valdate_credit_rows = {}, {}, {}, {}, {}
+        filtered_date_seqs, filtered_times_userIds, filtered_debits, filtered_no_docs = {}, {}, {}, {}
+        try:
+            #---start normalize---
+            for page in self.json_data["pages"]:
+                page_idx = page["page_idx"]
+                words_without_header = []
+
+                table_header = self.find_table_header(self.json_data, page_idx)
+                table_headers[page_idx] = table_header
+
+                if table_headers[0] is not None and table_header is not None:
+                    header_coordinate = self.find_header_coordinate(table_headers[page_idx])
+                    header_coordinates[page_idx] = header_coordinate
+
+                    above_header, below_header = self.split_json_data(self.json_data, header_coordinates[page_idx]['lowest_geometry'], header_coordinates[page_idx]['highest_geometry'], page_idx)
+                    above_headers[page_idx], below_headers[page_idx] = above_header, below_header
+
+                    if above_headers[0] != []:
+                            statement_id, lower_limit = self.get_statement_id(above_headers[0])
+                    elif above_header[0] == []:
+                        print("Account Statement is unknown")
+                        break
+
+                    if statement_id:
+                        table_content = self.get_table_content(below_headers[page_idx], lower_limit)
+                        table_contents[page_idx] = table_content
+                    else:
+                        print("Account Statement is unknown")
+                        break
+
+                elif table_headers[0] is not None and table_header is None:
+                    for block in page.get("blocks", []):
+                        for line in block.get("lines", []):
+                            for word in line.get("words", []):
+                                words_without_header.append({
+                                    'value': word['value'],
+                                    'confidence': word['confidence'],
+                                    'geometry': word['geometry'],
+                                })
+
+                    below_headers[page_idx] = words_without_header
+                    table_content = self.get_table_content(below_headers[page_idx], lower_limit)
+                    table_contents[page_idx] = table_content
+                else:
+                    print("Input is invald!")
+                    break
+                page_data = {
+                    "page_id": page_idx,
+                    "statement_id": statement_id,
+                    "words": []
+                }
+                page_data["words"].extend(table_contents[page_idx])
+                self.normalize.append(page_data)
+            
+            #---start extractor---
+            for page in self.normalize:
+                page_id = page.get("page_id")
+
+                if page.get("statement_id") == 1 :
+                    date, balance, page_data = self.get_date_balance(self.normalize, page_id, 1)
+                    dates[page_id], balances[page_id], pages_data[page_id] = date, balance, page_data
+
+                    filtered_date_balance_row = self.group_rows(dates[page_id], balances[page_id], pages_data[page_id])
+                    filtered_date_balance_rows[page_id] = filtered_date_balance_row        
+                    #modify dates tuples
+                    date_times = {}
+                    for key, value in dates.items():
+                        date_times[key] = [(item[0], item[1]) for item in value]
+
+                    debit, credit, filtered_doc  = self.get_debit_credit(filtered_date_balance_rows[page_id])
+                    debits[page_id], credits[page_id], filtered_no_docs[page_id] = debit, credit, filtered_doc
+
+                    descriptions[page_id] = self.get_description(filtered_no_docs[page_id])
+                
+                elif page.get("statement_id") == 3 :
+                    date, seq, page_data = self.get_date_balance(self.normalize, page_id, 0)
+                    dates[page_id], seqs[page_id], pages_data[page_id] = date, seq, page_data
+
+                    filtered_date_seq = self.group_rows(dates[page_id], seqs[page_id], pages_data[page_id])
+                    filtered_date_seqs[page_id] = filtered_date_seq
+
+                    date_time, filtered_time_userId = self.get_datetime_userId(filtered_date_seqs[page_id], dates[page_id])
+                    date_times[page_id], filtered_times_userIds[page_id] = date_time, filtered_time_userId    
+                    
+                    balance, credit, debit, filtered_debit = self.get_balance_credit_debit(filtered_times_userIds[page_id])
+                    balances[page_id], credits[page_id], debits[page_id], filtered_debits[page_id] = balance, credit, debit, filtered_debit
+
+                    descriptions[page_id] = self.get_description(filtered_debits[page_id])
+                elif page.get("statement_id") == 5:
+                    date, balance, page_data = self.get_date_balance(self.normalize, page_id, 1)
+                    dates[page_id], balances[page_id], pages_data[page_id] = date, balance, page_data
+
+                    #modify dates tuples
+                    date_times = {}
+                    for key, value in dates.items():
+                        date_times[key] = [(item[0], item[1]) for item in value]
+                                          
+                    filtered_date_balance_row = self.group_rows(dates[page_id], balances[page_id], pages_data[page_id])
+                    filtered_date_balance_rows[page_id] = filtered_date_balance_row
+
+                    valdate, debit, credit, filtered_valdate_credit_row = self.get_valdate_credit(filtered_date_balance_rows[page_id])
+                    valuedates[page_id], debits[page_id], credits[page_id], filtered_valdate_credit_rows[page_id] = valdate, debit, credit, filtered_valdate_credit_row
+                    descriptions[page_id] = self.get_description(filtered_valdate_credit_rows[page_id])
+                elif page.get("statement_id") == 6 and len(page.get("words", [])) >= 6:
+                    date, balance, page_data = self.get_date_balance(self.normalize, page_id, 0)
+                    dates[page_id], balances[page_id], pages_data[page_id] = date, balance, page_data
+
+                    filtered_date_balance_row = self.group_rows(dates[page_id], balances[page_id], pages_data[page_id])
+                    filtered_date_balance_rows[page_id] = filtered_date_balance_row
+
+                    datetime, credit, filtered_datetime_credit_row = self.get_datetime_credit(filtered_date_balance_rows[page_id], date)
+                    date_times[page_id], credits[page_id], filtered_datetime_credit_rows[page_id] = datetime, credit, filtered_datetime_credit_row
+
+                    valuedate, debit, filtered_row = self.get_valuedate_debit(filtered_datetime_credit_rows[page_id])
+                    valuedates[page_id], debits[page_id], filtered_valuedate_debit_row[page_id] = valuedate, debit, filtered_row
+
+                    descriptions[page_id] = self.get_description(filtered_valuedate_debit_row[page_id])
+
+            transactions = self.make_transaction(self.template, date_times, valuedates, descriptions, debits, credits, balances)
+            transaction_result = {"transactions": transactions}
+            return transaction_result
         except Exception as e:
             print(f"Error: {e}")
             flash("An error occurred during the extraction process.", "danger")

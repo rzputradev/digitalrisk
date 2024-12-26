@@ -12,6 +12,7 @@ from app.models.customer import Customer
 from app.models.address import Address
 from app.models.statement import Statement
 from app.utils.form.application import CreateApplicationForm
+from app.utils.form.customer_relation import CreateCustomerRelationForm
 from app.utils.form.statement import CreateStatementForm
 from app.utils.helper import log_message
 
@@ -27,6 +28,8 @@ def index():
     search = request.args.get('search', '', type=str)
     per_page = 12
     application_form = CreateApplicationForm()
+    
+
 
     query = Customer.query
 
@@ -60,6 +63,7 @@ def preview(id):
 
     customer_form = UpdateCustomerForm(obj=customer)
     application_form = CreateApplicationForm()
+    customer_relation_form = CreateCustomerRelationForm()
     statement_form = CreateStatementForm()
 
     info = {
@@ -106,7 +110,7 @@ def preview(id):
     customer_form.country.data = customer.address.country if customer.address else None
 
     log_message(logging.INFO, f'Previewing customer {customer.id}')
-    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, statement_form=statement_form, info=info)
+    return render_template('pages/platform/customer-preview.html', user=current_user, customer=customer, customer_form=customer_form, application_form=application_form, statement_form=statement_form, info=info, customer_relation_form=customer_relation_form)
 
 
 

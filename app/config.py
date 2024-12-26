@@ -15,6 +15,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FILE_FOLDER = os.path.join(os.getcwd(), 'app/static/files')
 
+    @staticmethod
+    def init_app(app):
+        """Default init_app does nothing."""
+        pass
+
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DEV_DATABASE_URI', 'sqlite:///dev.db')
 

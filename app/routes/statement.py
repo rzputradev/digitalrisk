@@ -22,6 +22,7 @@ from app.utils.form.statement import CreateStatementForm, ParameterStatementForm
 from app.utils.helper import generate_unique_filename, parse_float, save_json_file, load_json_file, log_message
 from app.utils.scan.ocr import perform_ocr
 from app.utils.scan.exractor import Extractor
+from app.utils.scan.analyze import Analyze
 
 
 
@@ -132,8 +133,9 @@ def preview(id):
     parameter_form = ParameterStatementForm(bank_id=statement.bank_id)
     update_form = UpdateStatementForm()
     result = None
-    transactions = None
+    transactions = []
     summary = None
+    analyze = None
 
     if statement.result:
         result_json_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
@@ -141,10 +143,11 @@ def preview(id):
             try:
                 with open(result_json_path, 'r') as file:
                     result = json.load(file)
-                    transactions = result.get('transactions', [])
-                    summary = result.get('summary', {})
-                    if not summary:
-                        summary = None
+                    if result:
+                        transactions = result.get('transactions', [])
+                        analyze = result.get('status', {}).get('analyze', None)
+                        summary = result.get('status', {}).get('summary', None)
+
                     log_message(logging.INFO, f'Loaded result for statement {statement.id}')
             except json.JSONDecodeError:
                 flash('An error occurred while loading the result', 'danger')
@@ -197,7 +200,7 @@ def preview(id):
     # parameter_form.bank_id.data = statement.bank.name if statement.bank_id else None
 
     log_message(logging.INFO, f'Viewing statement {statement.id}')
-    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, transactions=transactions, summary=summary, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
+    return render_template('pages/platform/statement-preview.html', user=current_user, statement=statement, transactions=transactions, summary=summary, analyze=analyze, statement_form=statement_form, parameter_form=parameter_form, update_form=update_form)
 
 
 
@@ -343,42 +346,30 @@ def edit_transaction():
             confidence_key = f'transactions[{index}][{field}_confidence]'
             confidence_value = float(form_data.get(confidence_key, 0))
 
-            faulty_key = f'transactions[{index}][{field}_faulty]'
-            faulty_value = form_data.get(faulty_key, 'False') == 'True'
-
             if field == 'datetime':
                 try:
                     if not value:
                         errors.append(f"Transaction {index}: Date and time is required.")
-                    else:
-                        datetime.strptime(value, '%Y-%m-%dT%H:%M')  
+
                     transactions_dict[index][field] = {
                         'value': value,
-                        'confidence': round(confidence_value, 4),
-                        'faulty': faulty_value
+                        'confidence': round(confidence_value, 4)
                     }
                 except ValueError:
                     errors.append(f"Transaction {index}: Invalid date and time format.")
 
             elif field == 'valuedate':
-                if value: 
-                    try:
-                        datetime.strptime(value, '%Y-%m-%dT%H:%M')  
-                    except ValueError:
-                        errors.append(f"Transaction {index}: Invalid value date format.")
                 transactions_dict[index][field] = {
                     'value': value,
-                    'confidence': round(confidence_value, 4),
-                    'faulty': faulty_value
+                    'confidence': round(confidence_value, 4)
                 }
             
-            elif field in {'description', 'reference'}:
+            elif field in {'description'}:
                 if len(value) > 150:
                     errors.append(f"Transaction {index}: {field.replace('_', ' ').capitalize()} must be less than 150 characters.")
                 transactions_dict[index][field] = {
                     'value': value[:150], 
-                    'confidence': round(confidence_value, 4),
-                    'faulty': faulty_value
+                    'confidence': round(confidence_value, 4)
                 }
             
             elif field in {'debit', 'credit'}:
@@ -389,16 +380,14 @@ def edit_transaction():
                         int_value = parse_float(value)
                         transactions_dict[index][field] = {
                             'value': int_value,
-                            'confidence': round(confidence_value, 4),
-                            'faulty': faulty_value
+                            'confidence': round(confidence_value, 4)
                         }
                     except ValueError:
                         errors.append(f"Transaction {index}: Invalid {field} value.")
                 else:
                     transactions_dict[index][field] = {
                         'value': value,
-                        'confidence': round(confidence_value, 4),
-                        'faulty': faulty_value
+                        'confidence': round(confidence_value, 4)
                     }
             
             elif field == 'balance':
@@ -410,11 +399,22 @@ def edit_transaction():
                     int_value = parse_float(value)
                     transactions_dict[index][field] = {
                         'value': int_value,
-                        'confidence': round(confidence_value, 4),
-                        'faulty': faulty_value
+                        'confidence': round(confidence_value, 4)
                     }
                 except ValueError:
                     errors.append(f"Transaction {index}: Invalid balance value.")
+            elif field == 'calculated_balance':
+                transactions_dict[index][field] = {
+                    'value': value,
+                }
+            elif field == 'balance_check':
+                transactions_dict[index][field] = {
+                    'value': value,
+                }
+            elif field == 'classification':
+                transactions_dict[index][field] = {
+                    'value': value,
+                }
 
         if errors:
             for error in errors:
@@ -427,11 +427,13 @@ def edit_transaction():
                 'id': int(index),
                 'datetime': data.get('datetime', {}),
                 'valuedate': data.get('valuedate', {}),
-                'description': data.get('description', {}),
-                'reference': data.get('reference', {}),
+                'description': data.get('description', {}),                
                 'debit': data.get('debit', {}),
                 'credit': data.get('credit', {}),
-                'balance': data.get('balance', {})
+                'balance': data.get('balance', {}),
+                'calculated_balance': data.get('calculated_balance', {}),
+                'balance_check': data.get('balance_check', {}),
+                'classification': data.get('classification', {}),
             }
             transaction_list.append(transaction)
 
@@ -613,3 +615,51 @@ def delete():
 
     return redirect(request.referrer)
 
+@statement.route('/analyze', methods=['POST'])
+@login_required
+def analyze():
+    statement_id = request.form.get('statement_id')
+    statement = Statement.query.get(statement_id)
+
+    if not statement:
+        log_message(logging.WARNING, f'Statement {statement_id} not found')
+        abort(404, description="Statement not found")
+
+    if statement.user_id != current_user.id:
+        log_message(logging.WARNING, f'User {current_user.id} does not have permission to analyze statement {statement_id}')
+        abort(403, description="You do not have permission to analyze this statement")
+    try:
+        file_path = os.path.join(current_app.config['FILE_FOLDER'], statement.result)
+
+        if not os.path.exists(file_path):
+            flash('File not found', 'danger')
+            log_message(logging.WARNING, f'File for statement {statement_id} not found')
+            return redirect(url_for('platform.statement.preview', id=statement_id))
+        
+        analyze = Analyze(file_path)
+        
+        try:
+            analyze.process_transactions()
+        except ValueError as process_error:
+            flash(f'An error occurred while processing transactions: {process_error}', 'danger')
+            print(f'Processing Error: {process_error}')
+            log_message(logging.ERROR, f'Failed to process transactions for statement {statement_id}: {process_error}')
+            return redirect(url_for('platform.statement.preview', id=statement.id))
+        except Exception as e:
+            flash('An unexpected error occurred while processing transactions.', 'danger')
+            print(f'Unexpected Error: {e}')
+            log_message(logging.ERROR, f'Unexpected error while processing transactions for statement {statement_id}: {e}')
+            return redirect(url_for('platform.statement.preview', id=statement.id))
+
+        flash('Statement analyzed successfully', 'success')
+        log_message(logging.INFO, f'Statement {statement.id} analyzed')
+        return redirect(url_for('platform.statement.preview', id=statement.id, tab='analyze'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('An error analyzing the statement', 'danger')
+        print(f'Error: {e}')
+        log_message(logging.ERROR, f'Failed to analyze statement {statement_id}') 
+
+
+    return redirect(request.referrer)

@@ -67,6 +67,7 @@
             role="menuitem"
             tabindex="-1"
             id="menu-item-4"
+            onclick="openModal('statement-analyze-modal-{{ statement.id }}')"
             {{ 'disabled' if statement.result == None else '' }}
          >
             Analyze
@@ -96,8 +97,11 @@
    </div>
 </div>
 
-{% include 'components/statement/edit-modal.html' %} {% include 'components/statement/delete-modal.html' %}
+{% include 'components/statement/edit-modal.html' %}
+{% include 'components/statement/delete-modal.html' %}
 {% include 'components/statement/reset-modal.html' %}
+{% include 'components/statement/analyze-modal.html' %}
+
 
 
 <script>

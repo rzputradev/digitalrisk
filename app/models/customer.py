@@ -16,6 +16,10 @@ class CustomerTypeEnum(Enum):
     company = 'Company'
     individual = 'Individual'
 
+class CustomerRelationTypeEnum(Enum):
+    related = 'Related'
+    buyer = 'Buyer'
+    seller = 'Seller'
 
 class Customer(db.Model):
     __tablename__ = 'customer'
@@ -33,6 +37,7 @@ class Customer(db.Model):
     user = db.relationship('User', back_populates='customers')
     address = db.relationship('Address', back_populates='customer', uselist=False, cascade="all, delete-orphan")
     applications = db.relationship('Application', back_populates='customer', cascade='all, delete-orphan')
+    customer_relations = db.relationship('CustomerRelation', back_populates = 'customer', cascade='all, delete-orphan')
 
 
     def __repr__(self):
@@ -79,4 +84,13 @@ class Customer(db.Model):
             flash('Something went wrong!', 'danger')
             print(f'Failed to delete customer: {str(e)}')
 
-
+class CustomerRelation(db.Model):
+    __tablename__ = 'customer_relation'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    relation_type = db.Column(db.Enum(CustomerRelationTypeEnum), nullable=False, default=CustomerRelationTypeEnum.related)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    
+    customer = db.relationship('Customer', back_populates='customer_relations')
