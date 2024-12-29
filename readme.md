@@ -8,6 +8,15 @@ Welcome to DigitalRisk! This Flask-based project is designed to provide OCR (Opt
 -  `pip` package manager
 -  MySQL database (or another compatible sql database)
 
+## Beginner's Guide to Python and MySQL
+- Install Python 3.10
+Download Python 3.10 at the official Python website at python.org. Locate the downloaded file (e.g., python-3.10.0-amd64.exe) and download it, then install it.
+In the installer window, check the box labeled "Add Python 3.10 to PATH." This ensures you can run Python from the command line.
+- MySQL
+Download MySQL at https://dev.mysql.com/downloads/installer/
+Choose the "Developer Default" (Full) setup type.
+Follow the prompts to complete the installation, setting a root password when prompted. Do not lose this root password.
+
 ## Getting Started
 
 1. **Clone the repository:**
@@ -71,10 +80,14 @@ flask db migrate  # Create migration scripts
 flask db upgrade  # Apply migrations to the database
 ```
 
+Some of 
+
 Run the application:
 
+Do not forget to ensure you run the virtual environment
+
 ```bash
-flask run.py
+flask run.py 
 ```
 
 Navigate to http://localhost:5000 in your web browser to view the application.
